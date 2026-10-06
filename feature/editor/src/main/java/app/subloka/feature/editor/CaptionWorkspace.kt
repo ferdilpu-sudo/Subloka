@@ -24,8 +24,8 @@ import app.subloka.core.domain.TranslationStatus
 @Composable
 fun CaptionWorkspace(
     segments: List<CaptionSegment>,
-    selectedId: Long,
-    onSelect: (Long) -> Unit,
+    selectedId: String,
+    onSelect: (String) -> Unit,
     onSourceChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onRetranslate: () -> Unit,

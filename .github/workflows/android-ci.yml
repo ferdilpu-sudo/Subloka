@@ -56,6 +56,12 @@ jobs:
       - name: Validate project guardrails
         run: python3 tools/validate_project.py
 
+      - name: Domain unit tests
+        run: ./gradlew --stacktrace :core:domain:testDebugUnitTest
+
+      - name: Database integration tests
+        run: ./gradlew --stacktrace :core:database:testDebugUnitTest
+
       - name: Assemble debug
         run: ./gradlew --stacktrace :app:assembleDebug
 

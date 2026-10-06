@@ -5,6 +5,7 @@ import app.subloka.core.domain.ProcessingStage
 import app.subloka.core.domain.ProcessingStageState
 import app.subloka.core.domain.ProjectSummary
 import app.subloka.core.domain.SourceLanguage
+import app.subloka.core.domain.TranslationOrigin
 import app.subloka.core.domain.TranslationStatus
 
 object DemoData {
@@ -26,31 +27,40 @@ object DemoData {
 
     val segments = listOf(
         CaptionSegment(
-            id = 1,
+            id = "demo-segment-1",
             startUs = 84_200_000,
             endUs = 88_100_000,
             sourceLanguage = SourceLanguage.ENGLISH,
             sourceText = "This place is absolutely beautiful.",
             translationText = "Tempat ini benar-benar indah.",
             translationStatus = TranslationStatus.CURRENT,
+            translationOrigin = TranslationOrigin.MACHINE,
+            sourceRevision = 1,
+            translationSourceRevision = 1,
         ),
         CaptionSegment(
-            id = 2,
+            id = "demo-segment-2",
             startUs = 88_100_000,
             endUs = 92_600_000,
             sourceLanguage = SourceLanguage.ENGLISH,
             sourceText = "I could stay here all afternoon.",
             translationText = "Aku bisa tinggal di sini sepanjang sore.",
             translationStatus = TranslationStatus.STALE,
+            translationOrigin = TranslationOrigin.MACHINE,
+            sourceRevision = 2,
+            translationSourceRevision = 1,
         ),
         CaptionSegment(
-            id = 3,
+            id = "demo-segment-3",
             startUs = 92_600_000,
             endUs = 96_300_000,
             sourceLanguage = SourceLanguage.ENGLISH,
             sourceText = "Let's keep walking before it gets dark.",
             translationText = "Ayo lanjut jalan sebelum gelap.",
             translationStatus = TranslationStatus.CURRENT,
+            translationOrigin = TranslationOrigin.MACHINE,
+            sourceRevision = 1,
+            translationSourceRevision = 1,
         ),
     )
 }

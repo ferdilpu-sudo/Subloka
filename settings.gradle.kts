@@ -19,6 +19,7 @@ rootProject.name = "SubLoka"
 include(":app")
 include(":core:domain")
 include(":core:designsystem")
+include(":core:database")
 include(":feature:projects")
 include(":feature:editor")
 include(":feature:export")

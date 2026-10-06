@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,7 +37,7 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
 ) {
     var segments by remember { mutableStateOf(initialSegments) }
-    var selectedId by remember { mutableLongStateOf(initialSegments.first().id) }
+    var selectedId by remember { mutableStateOf(initialSegments.first().id) }
     var workspace by remember { mutableStateOf(EditorWorkspace.CAPTION) }
     var style by remember { mutableStateOf(CaptionStyle()) }
 
@@ -130,9 +129,9 @@ private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (Ed
 private fun WorkspacePanel(
     workspace: EditorWorkspace,
     segments: List<CaptionSegment>,
-    selectedId: Long,
+    selectedId: String,
     style: CaptionStyle,
-    onSelect: (Long) -> Unit,
+    onSelect: (String) -> Unit,
     onSegmentsChange: (List<CaptionSegment>) -> Unit,
     onStyleChange: (CaptionStyle) -> Unit,
     modifier: Modifier = Modifier,
@@ -150,7 +149,12 @@ private fun WorkspacePanel(
                     segments.toMutableList().also { list ->
                         list[selectedIndex] = selected.copy(
                             sourceText = newText,
-                            translationStatus = TranslationStatus.STALE,
+                            sourceRevision = selected.sourceRevision + 1,
+                            translationStatus = if (selected.translationText.isBlank()) {
+                                TranslationStatus.MISSING
+                            } else {
+                                TranslationStatus.STALE
+                            },
                         )
                     },
                 )
@@ -160,8 +164,9 @@ private fun WorkspacePanel(
                     segments.toMutableList().also { list ->
                         list[selectedIndex] = selected.copy(
                             translationText = newText,
-                            translationStatus = TranslationStatus.CURRENT,
-                            translationOrigin = TranslationOrigin.MANUAL,
+                            translationStatus = if (newText.isBlank()) TranslationStatus.MISSING else TranslationStatus.CURRENT,
+                            translationOrigin = if (newText.isBlank()) TranslationOrigin.NONE else TranslationOrigin.MANUAL,
+                            translationSourceRevision = if (newText.isBlank()) null else selected.sourceRevision,
                         )
                     },
                 )
@@ -173,6 +178,7 @@ private fun WorkspacePanel(
                             translationText = demoRetranslation(selected.sourceText, selected.sourceLanguage.code),
                             translationStatus = TranslationStatus.CURRENT,
                             translationOrigin = TranslationOrigin.MACHINE,
+                            translationSourceRevision = selected.sourceRevision,
                         )
                     },
                 )
