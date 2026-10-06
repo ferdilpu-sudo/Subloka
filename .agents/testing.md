@@ -1,6 +1,6 @@
 # Pengujian, Gate, dan Bukti
 
-Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Build dan lint Android frontend telah berhasil dijalankan melalui GitHub Actions; runtime pada emulator/perangkat fisik belum diverifikasi. Pemeriksaan statis lokal tetap dicatat terpisah agar bukti compile tidak disamakan dengan bukti usability/runtime.
+Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Build dan lint Android frontend telah berhasil dijalankan melalui GitHub Actions dan Windows lokal; smoke test runtime perangkat untuk frontend demo telah dikonfirmasi PASS oleh pengguna. Pemeriksaan statis lokal tetap dicatat terpisah agar bukti compile tidak disamakan dengan bukti usability/runtime.
 
 ## Klasifikasi hasil
 
@@ -213,12 +213,16 @@ Dokumen/task yang diperbarui:
 - Dampak: T04 dapat ditutup DONE setelah docs sinkron. T05–T07 tetap `IMPLEMENTED` karena compile/lint tidak membuktikan interaction runtime.
 - Batas: tidak membuktikan install APK, startup Activity, click navigation, IME behavior, adaptive layout, TalkBack/font-scale, playback/media, inference, persistence, atau export nyata.
 
-### DEVICE-001 — Sony SO-03L Android 11 smoke test
+### DEVICE-001 — Android device frontend smoke test
 
-- Task: T04–T07.
-- Result: **NOT_RUN**.
-- Alasan: perangkat tidak terhubung ke workspace eksekusi ini.
-- Expected ketika dijalankan: install debug APK; flow Projects → New Project → Model Setup → Processing → Editor → Export; compact layout; IME; state STALE; blocked dual export; back behavior; no crash.
+- Task: T04–T07 / CP3.
+- Tanggal: 2026-10-06.
+- Lingkungan: perangkat Android pengguna; eksekusi manual dari build lokal Windows.
+- Expected: install debug APK; flow Projects → New Project → Model Setup → Processing → Editor → Export; state STALE; blocked dual export; back behavior; no crash pada alur demo utama.
+- Actual: pengguna mengonfirmasi secara eksplisit `DEVICE-001 PASS + CP3`.
+- Result: **PASS**.
+- Dampak: gate frontend CP3 ditutup; T05–T07 dapat ditutup DONE sebagai UI demo dan T08 boleh dimulai.
+- Batas: evidence ini adalah konfirmasi smoke test manual pengguna, bukan log instrumented test. Engine inference, persistence, media pipeline, dan real export belum dibuktikan.
 
 ### DOC-004 — Reorganisasi pedoman coding agent ke `.agents/`
 
@@ -266,3 +270,14 @@ Dokumen/task yang diperbarui:
 - Result: **PASS**.
 - Dampak: build frontend kini terbukti berhasil baik di GitHub Actions maupun Windows lokal menggunakan Gradle Wrapper.
 - Batas: belum membuktikan install APK, startup Activity, navigation/click behavior, IME/adaptive layout, accessibility, atau device runtime.
+
+
+### CP3-001 — Frontend acceptance
+
+- Task: T04–T07.
+- Tanggal: 2026-10-06.
+- Pemilik gate: pengguna.
+- Prasyarat: BUILD-001 PASS, BUILD-002 PASS, DEVICE-001 PASS.
+- Actual: pengguna menyatakan secara eksplisit `DEVICE-001 PASS + CP3`.
+- Result: **PASS**.
+- Dampak: frontend demo diterima untuk melanjutkan ke T08. Status ini tidak menyatakan engine lokal, persistence, media decode, ASR, translation, atau export nyata sudah tersedia.
