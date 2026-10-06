@@ -159,7 +159,7 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 ### T04 / DONE / 2026-10-06
 - Dependensi/checkpoint: T03 + CP2 terpenuhi.
 - Sudah dibuat: Gradle multi-module scaffold, `app`, `core:domain`, `core:designsystem`, feature modules, theme graphite/soft-indigo, semantic actions, manifest privacy baseline, target build commands, dan workflow `.github/workflows/android-ci.yml`.
-- Sudah diuji: `STATIC-001` PASS; `DOMAIN-001` PASS; `DOC-003` PASS; `BUILD-001` PASS pada GitHub Actions run #6 untuk Android 17/API 37, Gradle 9.6, `:app:assembleDebug`, dan `:app:lintDebug`.
+- Sudah diuji: `STATIC-001` PASS; `DOMAIN-001` PASS; `DOC-003` PASS; `BUILD-001` PASS pada GitHub Actions; `BUILD-002` PASS pada Windows lokal menggunakan `gradlew.bat` dengan hasil `BUILD SUCCESSFUL in 3m 46s`.
 - Belum terverifikasi: install/runtime pada emulator atau perangkat fisik, interaction smoke test, TalkBack/font scale/IME.
 - Acceptance: build/lint dan scaffold terpenuhi; T04 ditutup DONE. T05–T07 tetap IMPLEMENTED sampai UI smoke/instrumented test dan CP3 review selesai.
 
@@ -188,7 +188,7 @@ Build/lint frontend telah lulus pada `BUILD-001`. Next executable gate adalah ve
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.
 - Sudah dibuat: `.agents/README.md`, `.agents/AGENTS.md`, serta seluruh pedoman product/rules/architecture/schema/design/plan/testing/decisions di `.agents/`; root `README.md` tetap human-facing.
 - Sudah diuji: `STATIC-001` PASS setelah path validator diperbarui; `DOC-004` PASS untuk struktur/link `.agents`; `DOMAIN-001` kembali PASS dengan `kotlinc`.
-- Sudah diuji setelah handoff: `BUILD-001` PASS pada GitHub Actions run #6; Android 17 SDK setup, Gradle 9.6, validator, assembleDebug, dan lintDebug seluruhnya sukses.
+- Sudah diuji setelah handoff: `BUILD-001` PASS pada GitHub Actions dan `BUILD-002` PASS pada Windows lokal; validator, assembleDebug, dan lintDebug seluruhnya sukses.
 - Belum terverifikasi: device/emulator UI smoke test tetap NOT_RUN sebagaimana `DEVICE-001`.
 - Aturan handoff: jangan membuat catatan planning Markdown baru di root; perbarui source of truth yang relevan di `.agents/`.
 - Task berikutnya: verifikasi T05–T07 pada emulator/perangkat lalu tinjau CP3; jangan mulai T08 sebelum gate tersebut lulus.
