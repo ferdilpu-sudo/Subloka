@@ -253,3 +253,16 @@ Dokumen/task yang diperbarui:
 - Result: **PASS**.
 - Dampak: developer Windows tidak perlu memasang Gradle global; gunakan `.\\gradlew.bat`.
 - Batas: wrapper availability tidak membuktikan Android SDK lokal tersedia atau device runtime lulus.
+
+
+### BUILD-002 — Windows local assemble/lint
+
+- Task: T04 local reproducibility.
+- Tanggal: 2026-10-06.
+- Lingkungan: Windows PowerShell, repository lokal `C:\\Users\\FLYONZ\\Documents\\GitHub\\Subloka`, Gradle Wrapper 9.6.0.
+- Perintah: `.\\gradlew.bat :app:assembleDebug :app:lintDebug`.
+- Expected: build dan lint selesai tanpa error.
+- Actual: user melaporkan `BUILD SUCCESSFUL in 3m 46s`; 236 actionable tasks, 218 executed, 18 from cache.
+- Result: **PASS**.
+- Dampak: build frontend kini terbukti berhasil baik di GitHub Actions maupun Windows lokal menggunakan Gradle Wrapper.
+- Batas: belum membuktikan install APK, startup Activity, navigation/click behavior, IME/adaptive layout, accessibility, atau device runtime.
