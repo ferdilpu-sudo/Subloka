@@ -14,8 +14,8 @@ Folder `.agents/` adalah source of truth untuk spesifikasi, keputusan, rencana, 
 | Arah UX | Focused bilingual caption editor; Caption/Timing/Style; processing sebagai state; adaptive layout dikunci di dokumen v0.2 |
 | Dokumen | 10 dokumen agent disusun dan diperbarui; evidence berada di testing.md |
 | Scaffold Android | **T04 DONE**; build dan lint frontend lulus pada GitHub Actions |
-| UI demo T05–T07 | **IMPLEMENTED**; compile/lint lulus, runtime interaction belum diverifikasi |
-| Emulator / perangkat fisik | Belum diverifikasi pada proyek ini; DEVICE-001 masih NOT_RUN |
+| UI demo T05–T07 | **DONE**; compile/lint dan DEVICE-001 smoke test lulus; CP3 PASS |
+| Emulator / perangkat fisik | DEVICE-001 **PASS** berdasarkan smoke test manual pengguna |
 | Engine offline / persistence / media / export nyata | Belum diintegrasikan dan belum diverifikasi |
 | Akurasi, performa dan kompatibilitas | Belum diverifikasi |
 
@@ -93,11 +93,11 @@ Baseline frontend: Kotlin built-in AGP + Jetpack Compose, minSdk 26, compile/tar
 ## Melanjutkan implementasi
 
 1. Baca seluruh pedoman dan kode aktual.
-2. T04 telah selesai. Fokus berikutnya adalah verifikasi runtime T05–T07.
-3. Jalankan UI smoke/instrumented test untuk flow Projects → New Project → Model Setup → Processing → Editor → Export.
-4. Verifikasi compact/expanded, IME, translation STALE, blocked dual export, dan back behavior.
-5. Catat bukti di testing.md dan perbarui plan.md.
-6. **Jangan mulai T08** sampai UI runtime yang relevan lulus dan CP3 ditinjau.
+2. T04–T07 dan CP3 telah selesai sebagai frontend demo.
+3. Next task adalah **T08: persistensi lokal dan aturan editor**.
+4. Implementasikan repository/Room, revision, split/merge, autosave, dan migration fixtures sesuai schema/architecture.
+5. Jalankan unit/integration tests T08 dan catat bukti di testing.md.
+6. Jangan melompat ke media/ASR sebelum T08 benar-benar lulus.
 
 GitHub Actions telah membuktikan `:app:assembleDebug` dan `:app:lintDebug` sukses. Evidence lengkap berada di testing.md sebagai `BUILD-001`.
 
