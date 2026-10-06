@@ -138,6 +138,20 @@ class RoomCaptionRepositoryTest {
     }
 
     @Test
+    fun restoreSnapshotKeepsProjectRevisionMonotonic() = runBlocking {
+        seedProjectAndSegments()
+        val snapshot = captionRepository.list(PROJECT_ID)
+
+        val edited = captionRepository.saveSourceText(PROJECT_ID, "segment-1", "Temporary edit")
+        assertEquals(2L, edited.contentRevision)
+
+        val restored = captionRepository.restoreSnapshot(PROJECT_ID, snapshot)
+        assertEquals(3L, restored.contentRevision)
+        assertEquals("This place is beautiful", restored.value.first { it.id == "segment-1" }.sourceText)
+        assertEquals(3L, projectRepository.find(PROJECT_ID)?.contentRevision)
+    }
+
+    @Test
     fun styleAutosavePersistsAndBumpsProjectRevision() = runBlocking {
         seedProjectAndSegments()
         val style = CaptionStyle(
