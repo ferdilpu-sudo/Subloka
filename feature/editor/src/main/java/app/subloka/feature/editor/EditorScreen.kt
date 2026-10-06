@@ -23,15 +23,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import app.subloka.core.designsystem.DemoBadge
 import app.subloka.core.designsystem.SubLokaColors
+import app.subloka.core.domain.CaptionEditingRules
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
 import app.subloka.core.domain.EditorWorkspace
 import app.subloka.core.domain.TranslationOrigin
 import app.subloka.core.domain.TranslationStatus
+import java.util.UUID
 
 @Composable
 fun EditorScreen(
     initialSegments: List<CaptionSegment>,
+    initialStyle: CaptionStyle,
+    saveStatusText: String,
+    saveFailed: Boolean,
+    onSegmentsPersist: (List<CaptionSegment>) -> Unit,
+    onStylePersist: (CaptionStyle) -> Unit,
     onBack: () -> Unit,
     onExport: (List<CaptionSegment>) -> Unit,
     modifier: Modifier = Modifier,
@@ -39,7 +46,90 @@ fun EditorScreen(
     var segments by remember { mutableStateOf(initialSegments) }
     var selectedId by remember { mutableStateOf(initialSegments.first().id) }
     var workspace by remember { mutableStateOf(EditorWorkspace.CAPTION) }
-    var style by remember { mutableStateOf(CaptionStyle()) }
+    var style by remember { mutableStateOf(initialStyle) }
+
+    fun commitSegments(next: List<CaptionSegment>, nextSelectedId: String? = null) {
+        segments = next.sortedBy { it.startUs }
+        if (nextSelectedId != null) selectedId = nextSelectedId
+        onSegmentsPersist(segments)
+    }
+
+    fun splitSelected() {
+        val index = segments.indexOfFirst { it.id == selectedId }
+        if (index < 0) return
+        val selected = segments[index]
+        val splitUs = selected.startUs + ((selected.endUs - selected.startUs) / 2)
+        if (splitUs <= selected.startUs || splitUs >= selected.endUs) return
+
+        val ratio = (splitUs - selected.startUs).toDouble() / (selected.endUs - selected.startUs).toDouble()
+        val sourceParts = CaptionEditingRules.splitTextSuggestion(selected.sourceText, ratio)
+        val translationParts = CaptionEditingRules.splitTextSuggestion(selected.translationText, ratio)
+        val hasTranslation = selected.translationText.isNotBlank()
+        val status = if (hasTranslation) TranslationStatus.STALE else TranslationStatus.MISSING
+        val origin = if (hasTranslation) selected.translationOrigin else TranslationOrigin.NONE
+
+        val left = selected.copy(
+            id = UUID.randomUUID().toString(),
+            endUs = splitUs,
+            sourceText = sourceParts.first,
+            translationText = translationParts.first,
+            translationStatus = status,
+            translationOrigin = origin,
+            sourceRevision = 1,
+            translationSourceRevision = if (hasTranslation) 0 else null,
+        )
+        val right = selected.copy(
+            id = UUID.randomUUID().toString(),
+            startUs = splitUs,
+            sourceText = sourceParts.second,
+            translationText = translationParts.second,
+            translationStatus = status,
+            translationOrigin = origin,
+            sourceRevision = 1,
+            translationSourceRevision = if (hasTranslation) 0 else null,
+        )
+
+        val next = segments.toMutableList().apply {
+            removeAt(index)
+            add(index, right)
+            add(index, left)
+        }
+        commitSegments(next, left.id)
+    }
+
+    fun mergeSelectedWithNext() {
+        val ordered = segments.sortedBy { it.startUs }
+        val index = ordered.indexOfFirst { it.id == selectedId }
+        if (index < 0 || index >= ordered.lastIndex) return
+
+        val first = ordered[index]
+        val second = ordered[index + 1]
+        val mergedTranslation = CaptionEditingRules.mergeText(first.translationText, second.translationText)
+        val hasTranslation = mergedTranslation.isNotBlank()
+        val origin = when {
+            !hasTranslation -> TranslationOrigin.NONE
+            first.translationOrigin == TranslationOrigin.MANUAL ||
+                second.translationOrigin == TranslationOrigin.MANUAL -> TranslationOrigin.MANUAL
+            else -> TranslationOrigin.MACHINE
+        }
+        val merged = first.copy(
+            id = UUID.randomUUID().toString(),
+            endUs = second.endUs,
+            sourceText = CaptionEditingRules.mergeText(first.sourceText, second.sourceText),
+            translationText = mergedTranslation,
+            translationStatus = if (hasTranslation) TranslationStatus.STALE else TranslationStatus.MISSING,
+            translationOrigin = origin,
+            sourceRevision = 1,
+            translationSourceRevision = if (hasTranslation) 0 else null,
+        )
+
+        val next = ordered.toMutableList().apply {
+            removeAt(index + 1)
+            removeAt(index)
+            add(index, merged)
+        }
+        commitSegments(next, merged.id)
+    }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val expanded = maxWidth >= 840.dp
@@ -48,7 +138,12 @@ fun EditorScreen(
         val selected = segments.first { it.id == selectedId }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProjectTopBar(onBack = onBack, onExport = { onExport(segments) })
+            ProjectTopBar(
+                onBack = onBack,
+                onExport = { onExport(segments) },
+                saveStatusText = saveStatusText,
+                saveFailed = saveFailed,
+            )
             DemoBadge()
 
             if (expanded) {
@@ -66,8 +161,13 @@ fun EditorScreen(
                         selectedId = selectedId,
                         style = style,
                         onSelect = { selectedId = it },
-                        onSegmentsChange = { segments = it },
-                        onStyleChange = { style = it },
+                        onSegmentsChange = { commitSegments(it) },
+                        onStyleChange = {
+                            style = it
+                            onStylePersist(it)
+                        },
+                        onSplit = ::splitSelected,
+                        onMergeNext = ::mergeSelectedWithNext,
                         modifier = Modifier.weight(1.05f),
                     )
                 }
@@ -80,8 +180,13 @@ fun EditorScreen(
                     selectedId = selectedId,
                     style = style,
                     onSelect = { selectedId = it },
-                    onSegmentsChange = { segments = it },
-                    onStyleChange = { style = it },
+                    onSegmentsChange = { commitSegments(it) },
+                    onStyleChange = {
+                        style = it
+                        onStylePersist(it)
+                    },
+                    onSplit = ::splitSelected,
+                    onMergeNext = ::mergeSelectedWithNext,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -90,7 +195,12 @@ fun EditorScreen(
 }
 
 @Composable
-private fun ProjectTopBar(onBack: () -> Unit, onExport: () -> Unit) {
+private fun ProjectTopBar(
+    onBack: () -> Unit,
+    onExport: () -> Unit,
+    saveStatusText: String,
+    saveFailed: Boolean,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -100,7 +210,11 @@ private fun ProjectTopBar(onBack: () -> Unit, onExport: () -> Unit) {
             Text("‹", modifier = Modifier.clickable(onClick = onBack), style = MaterialTheme.typography.headlineSmall)
             Column {
                 Text("Traveling", style = MaterialTheme.typography.titleMedium)
-                Text("✓ Tersimpan", color = SubLokaColors.TextSecondary, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    saveStatusText,
+                    color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -134,6 +248,8 @@ private fun WorkspacePanel(
     onSelect: (String) -> Unit,
     onSegmentsChange: (List<CaptionSegment>) -> Unit,
     onStyleChange: (CaptionStyle) -> Unit,
+    onSplit: () -> Unit,
+    onMergeNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val selectedIndex = segments.indexOfFirst { it.id == selectedId }
@@ -183,6 +299,8 @@ private fun WorkspacePanel(
                     },
                 )
             },
+            onSplit = onSplit,
+            onMergeNext = onMergeNext,
             modifier = modifier,
         )
         EditorWorkspace.TIMING -> TimingWorkspace(segment = selected, modifier = modifier)

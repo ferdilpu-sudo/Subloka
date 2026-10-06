@@ -1,12 +1,15 @@
 package app.subloka
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import app.subloka.core.domain.CaptionSegment
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.subloka.core.domain.CaptionStyle
 import app.subloka.demo.DemoData
 import app.subloka.feature.editor.EditorScreen
 import app.subloka.feature.export.ExportScreen
@@ -25,9 +28,26 @@ private sealed interface DemoRoute {
 }
 
 @Composable
-fun SubLokaApp(modifier: Modifier = Modifier) {
+fun SubLokaApp(
+    modifier: Modifier = Modifier,
+    persistence: SubLokaViewModel = viewModel(),
+) {
     var route by remember { mutableStateOf<DemoRoute>(DemoRoute.Projects) }
+    val persistedSegments by persistence.segments.collectAsState()
+    val persistedStyle by persistence.style.collectAsState()
+    val saveState by persistence.saveState.collectAsState()
+
     var editorSegments by remember { mutableStateOf(DemoData.segments) }
+    var editorStyle by remember { mutableStateOf(CaptionStyle()) }
+
+    LaunchedEffect(persistedSegments) {
+        if (persistedSegments.isNotEmpty()) {
+            editorSegments = persistedSegments
+        }
+    }
+    LaunchedEffect(persistedStyle) {
+        editorStyle = persistedStyle
+    }
 
     when (route) {
         DemoRoute.Projects -> ProjectsScreen(
@@ -53,10 +73,28 @@ fun SubLokaApp(modifier: Modifier = Modifier) {
         )
         DemoRoute.Editor -> EditorScreen(
             initialSegments = editorSegments,
-            onBack = { route = DemoRoute.Projects },
+            initialStyle = editorStyle,
+            saveStatusText = saveState.label(),
+            saveFailed = saveState == PersistenceSaveState.FAILED,
+            onSegmentsPersist = { segments ->
+                editorSegments = segments
+                persistence.persistSegments(segments)
+            },
+            onStylePersist = { style ->
+                editorStyle = style
+                persistence.persistStyle(style)
+            },
+            onBack = {
+                persistence.flush { success ->
+                    if (success) route = DemoRoute.Projects
+                }
+            },
             onExport = { segments ->
                 editorSegments = segments
-                route = DemoRoute.Export
+                persistence.persistSegments(segments)
+                persistence.flush { success ->
+                    if (success) route = DemoRoute.Export
+                }
             },
             modifier = modifier,
         )
@@ -67,4 +105,11 @@ fun SubLokaApp(modifier: Modifier = Modifier) {
             modifier = modifier,
         )
     }
+}
+
+private fun PersistenceSaveState.label(): String = when (this) {
+    PersistenceSaveState.LOADING -> "Menyiapkan penyimpanan…"
+    PersistenceSaveState.SAVING -> "Menyimpan…"
+    PersistenceSaveState.SAVED -> "✓ Tersimpan lokal"
+    PersistenceSaveState.FAILED -> "! Gagal menyimpan"
 }

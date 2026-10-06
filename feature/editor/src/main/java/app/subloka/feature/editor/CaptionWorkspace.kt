@@ -29,6 +29,8 @@ fun CaptionWorkspace(
     onSourceChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onRetranslate: () -> Unit,
+    onSplit: () -> Unit,
+    onMergeNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val selected = segments.first { it.id == selectedId }
@@ -51,6 +53,8 @@ fun CaptionWorkspace(
             onSourceChange = onSourceChange,
             onTranslationChange = onTranslationChange,
             onRetranslate = onRetranslate,
+            onSplit = onSplit,
+            onMergeNext = onMergeNext,
         )
 
         Text("Segments", style = MaterialTheme.typography.titleSmall)
@@ -68,6 +72,8 @@ private fun SelectedCaptionEditor(
     onSourceChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onRetranslate: () -> Unit,
+    onSplit: () -> Unit,
+    onMergeNext: () -> Unit,
 ) {
     Surface(color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -96,8 +102,8 @@ private fun SelectedCaptionEditor(
                 Text(formatTime(segment.endUs), color = SubLokaColors.TextSecondary)
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SecondaryAction("Split", onClick = {}, modifier = Modifier.weight(1f))
-                SecondaryAction("Merge next", onClick = {}, modifier = Modifier.weight(1f))
+                SecondaryAction("Split", onClick = onSplit, modifier = Modifier.weight(1f))
+                SecondaryAction("Merge next", onClick = onMergeNext, modifier = Modifier.weight(1f))
             }
         }
     }

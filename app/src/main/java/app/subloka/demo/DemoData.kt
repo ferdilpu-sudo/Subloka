@@ -1,5 +1,6 @@
 package app.subloka.demo
 
+import app.subloka.core.domain.CaptionProject
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.ProcessingStage
 import app.subloka.core.domain.ProcessingStageState
@@ -9,14 +10,34 @@ import app.subloka.core.domain.TranslationOrigin
 import app.subloka.core.domain.TranslationStatus
 
 object DemoData {
+    const val PROJECT_ID = "demo-traveling"
+
     val project = ProjectSummary(
-        id = "demo-traveling",
+        id = PROJECT_ID,
         title = "Traveling",
         sourceFileName = "Traveling.mp4",
         sourceLanguage = SourceLanguage.ENGLISH,
         durationLabel = "03:42",
         resolutionLabel = "1080p",
         lastEditedLabel = "baru saja",
+    )
+
+    val persistentProject = CaptionProject(
+        id = PROJECT_ID,
+        title = "Traveling",
+        sourceUri = "demo://traveling.mp4",
+        sourceDisplayName = "Traveling.mp4",
+        sourceSizeBytes = null,
+        sourceFingerprint = null,
+        durationUs = 222_000_000,
+        widthPx = 1_920,
+        heightPx = 1_080,
+        rotationDegrees = 0,
+        sourceLanguage = SourceLanguage.ENGLISH,
+        targetLanguage = SourceLanguage.INDONESIA,
+        contentRevision = 0,
+        createdAtMs = 1,
+        updatedAtMs = 1,
     )
 
     val stages = listOf(
