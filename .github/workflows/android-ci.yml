@@ -23,12 +23,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android API 37
         shell: bash
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          sdkmanager --version
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-37" "build-tools;37.0.0"
 
