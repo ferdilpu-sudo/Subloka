@@ -3,8 +3,6 @@ package app.subloka
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.subloka.core.database.RoomCaptionRepository
-import app.subloka.core.database.RoomProjectRepository
 import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
@@ -24,10 +22,9 @@ enum class PersistenceSaveState {
 }
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = SubLokaDatabaseFactory.create(application)
-
-    private val projectRepository = RoomProjectRepository(database)
-    private val captionRepository = RoomCaptionRepository(database)
+    private val persistence = SubLokaDatabaseFactory.create(application)
+    private val projectRepository = persistence.projectRepository
+    private val captionRepository = persistence.captionRepository
 
     private val saveQueue = Channel<SaveCommand>(Channel.UNLIMITED)
     private var pendingWrites = 0
@@ -81,7 +78,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
 
     override fun onCleared() {
         saveQueue.close()
-        database.close()
+        persistence.close()
         super.onCleared()
     }
 
