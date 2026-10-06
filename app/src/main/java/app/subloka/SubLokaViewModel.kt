@@ -3,10 +3,9 @@ package app.subloka
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
 import app.subloka.core.database.RoomCaptionRepository
 import app.subloka.core.database.RoomProjectRepository
-import app.subloka.core.database.SubLokaDatabase
+import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
 import app.subloka.demo.DemoData
@@ -25,11 +24,7 @@ enum class PersistenceSaveState {
 }
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = Room.databaseBuilder(
-        application,
-        SubLokaDatabase::class.java,
-        "subloka.db",
-    ).build()
+    private val database = SubLokaDatabaseFactory.create(application)
 
     private val projectRepository = RoomProjectRepository(database)
     private val captionRepository = RoomCaptionRepository(database)
