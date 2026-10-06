@@ -1,6 +1,6 @@
 # Pengujian, Gate, dan Bukti
 
-Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Belum ada build/runtime Android yang dapat dijalankan pada workspace ini. Paket dokumentasi dan scaffold/frontend demo telah melewati pemeriksaan statis lokal; hasil tersebut **bukan** bukti aplikasi dapat dikompilasi atau berjalan pada perangkat.
+Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Build dan lint Android frontend telah berhasil dijalankan melalui GitHub Actions; runtime pada emulator/perangkat fisik belum diverifikasi. Pemeriksaan statis lokal tetap dicatat terpisah agar bukti compile tidak disamakan dengan bukti usability/runtime.
 
 ## Klasifikasi hasil
 
@@ -150,11 +150,11 @@ Dokumen/task yang diperbarui:
 - Actual: 10 Markdown; 0 tautan lokal rusak; 17 task; 8 checkpoint; task DAG acyclic; code fence berpasangan; ADR-016–021 tersedia; guardrail Caption/Timing/Style, no-bottom-nav, adaptive/keyboard, T03 outputs, dan CP2 review questions terdeteksi konsisten.
 - Batas: pemeriksaan dokumentasi tidak membuktikan usability pada pengguna, Compose runtime, aksesibilitas aktual, engine, performa, atau export.
 
-### APP-BASELINE — Implementasi aplikasi
+### APP-BASELINE — Implementasi frontend demo
 
-- Result: NOT_RUN.
-- Alasan: belum ada kode Android, Gradle project, APK, atau sesi pengujian perangkat.
-- Belum terverifikasi: seluruh suite selain DOC, usability nyata, accessibility runtime, akurasi, resource, codec, privacy trafik SDK, dan hasil ekspor.
+- Result: **PASS untuk compile/lint baseline** melalui BUILD-001.
+- Actual: source Android multi-module tersedia dan berhasil melewati `:app:assembleDebug` serta `:app:lintDebug` pada GitHub Actions.
+- Belum terverifikasi: install/runtime, usability nyata, accessibility runtime, akurasi engine, resource, codec, privacy trafik SDK, dan hasil ekspor nyata.
 
 
 ### STATIC-001 — Scaffold/frontend guardrail validation
@@ -203,11 +203,15 @@ Dokumen/task yang diperbarui:
 
 - Task: T04–T07.
 - Tanggal: 2026-10-06.
-- Perintah target: `./gradlew :app:assembleDebug :app:lintDebug`.
-- Expected: Gradle sync/compile/lint sukses tanpa error.
-- Actual: Android SDK dan Gradle runtime tidak tersedia pada workspace; sandbox tidak dapat mengambil distribusi/toolchain eksternal untuk menjalankan build.
-- Result: **BLOCKED**.
-- Dampak: T04–T07 hanya `IMPLEMENTED`; CP3 tetap menunggu. Tidak boleh mengklaim APK tersedia atau UI berjalan.
+- Revision: `d01f1fcdd0f8ce7da16c9148551f9a06f06ac702`.
+- Lingkungan: GitHub Actions `ubuntu-latest`; Temurin JDK 21; Android 17 SDK platform package `platforms;android-37.0`; Build Tools 37.0.0; Gradle 9.6.0; AGP 9.4.0.
+- Workflow run: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37461629333
+- Langkah aktual: setup Android SDK → setup Gradle → `python3 tools/validate_project.py` → `gradle --stacktrace :app:assembleDebug` → `gradle --stacktrace :app:lintDebug`.
+- Expected: toolchain siap, guardrail lulus, app dapat dikompilasi dan lint tanpa error yang menghentikan build.
+- Actual: seluruh langkah selesai dengan conclusion `success`; assembleDebug PASS dan lintDebug PASS.
+- Result: **PASS**.
+- Dampak: T04 dapat ditutup DONE setelah docs sinkron. T05–T07 tetap `IMPLEMENTED` karena compile/lint tidak membuktikan interaction runtime.
+- Batas: tidak membuktikan install APK, startup Activity, click navigation, IME behavior, adaptive layout, TalkBack/font-scale, playback/media, inference, persistence, atau export nyata.
 
 ### DEVICE-001 — Sony SO-03L Android 11 smoke test
 
@@ -226,3 +230,13 @@ Dokumen/task yang diperbarui:
 - Actual: `MARKDOWN_LINKS_PASS`; validator proyek `PASS`; pencarian referensi `docs/*.md` lama tidak menemukan stale path.
 - Result: **PASS**.
 - Batas: reorganisasi dokumentasi tidak membuktikan Android build/runtime dan tidak mengubah status T04–T07.
+
+
+### CI-SETUP-001 — Koreksi Android 17 CI
+
+- Task: T04 verification infrastructure.
+- Tanggal: 2026-10-06.
+- Result: **PASS** setelah iterasi setup.
+- Temuan: runner awal membawa command-line tools lama; Android 17 package tersedia sebagai `platforms;android-37.0`, bukan `platforms;android-37`.
+- Perbaikan: workflow memperbarui command-line tools melalui channel 3 dan memasang package API 37.0 + Build Tools 37.0.0.
+- Batas: ini bukti kesiapan CI, bukan requirement produk.
