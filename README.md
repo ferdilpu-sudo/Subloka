@@ -32,7 +32,7 @@ Android CI has verified the frontend scaffold on GitHub Actions:
 - verified build evidence: [Android CI run #9](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37462634099)
 - wrapper bootstrap evidence: [Bootstrap Gradle Wrapper run #1](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37463131375)
 
-This proves the current frontend compiles and passes lint. It does **not** prove install/startup, interaction behavior, IME/adaptive layout, accessibility, media processing, offline inference, persistence, or real export. Those remain separate gates in `.agents/testing.md`.
+The frontend also passed the user-confirmed DEVICE-001 manual smoke test and CP3 acceptance gate. This still does **not** prove media processing, offline inference, persistence, or real export; those remain later tasks in `.agents/testing.md`.
 
 ## Modules
 
@@ -70,4 +70,4 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04 is **DONE** for scaffold/build/lint. T05–T07 remain **IMPLEMENTED** until relevant UI runtime tests and CP3 review are complete. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T07 are **DONE** as the frontend demo baseline and CP3 is **PASS**. The next implementation task is **T08: local persistence and editor rules**. See `.agents/plan.md` and `.agents/testing.md`.
