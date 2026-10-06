@@ -17,9 +17,9 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T02 | Kontrak arsitektur dan toolchain | T01, CP0 | Pin baseline versi/SDK/ABI/native; kontrak adapter; ADR; verifikasi dokumentasi/kompatibilitas; CP1 ditinjau | DONE |
 | T03 | UX & interaction specification | T02, CP1 | IA final; primary flow; wireframe compact/wide/expanded; keyboard state; Caption/Timing/Style; processing/export/error/empty/stale states; component inventory; accessibility notes; acceptance mapping; CP2 ditinjau | DONE |
 | T04 | Scaffold Android dan design system | T03, CP2 | Gradle build/lint jalan; app shell mengikuti semantic tokens/component contract T03; perintah/lingkungan dicatat README | DONE |
-| T05 | UI Projects, model setup, New Project | T04 | Home/recent/empty, model states, pick video + source language flow; tidak ada bottom nav; fake adapter/demo label; UI tests relevan lulus | IMPLEMENTED |
-| T06 | UI editor Caption/Timing/Style | T05 | Caption default; bounded preview; bilingual edit; stale translation actions; timing nudge/input; style MVP; keyboard/adaptive state; undo/redo UI teruji | IMPLEMENTED |
-| T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | IMPLEMENTED |
+| T05 | UI Projects, model setup, New Project | T04 | Home/recent/empty, model states, pick video + source language flow; tidak ada bottom nav; fake adapter/demo label; UI tests relevan lulus | DONE |
+| T06 | UI editor Caption/Timing/Style | T05 | Caption default; bounded preview; bilingual edit; stale translation actions; timing nudge/input; style MVP; keyboard/adaptive state; undo/redo UI teruji | DONE |
+| T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | DONE |
 | T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | TODO |
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | TODO |
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | TODO |
@@ -63,7 +63,7 @@ T03 tidak menambah feature di luar MVP. Brand/logo/icon boleh tetap placeholder.
 | CP0 | Baseline produk / pengguna | Scope inti dikonfirmasi; detail asumsi T01 ditinjau; tidak ada API berbayar | PASS — eksekusi diminta setelah paket agent-ready; baseline detail dicatat |
 | CP1 | Arsitektur / pengguna | T02 menghasilkan desain/batas teknis konkret; risiko model belum terbukti ditandai | PASS — baseline stabil dipin; engine tetap unverified |
 | CP2 | Desain / pengguna | Semua keluaran T03 tersedia; dua arah bahasa; compact/expanded/keyboard; reviewer dapat menyelesaikan user flow tanpa ambiguity | PASS — interaction contract v0.3 menjadi dasar frontend demo |
-| CP3 | Frontend / pengguna | T04–T07 teruji sebagai UI demo; jelas engine belum terhubung; layout mengikuti ADR-016–021; izin lanjut engine lokal | Menunggu |
+| CP3 | Frontend / pengguna | T04–T07 teruji sebagai UI demo; jelas engine belum terhubung; layout mengikuti ADR-016–021; izin lanjut engine lokal | PASS — DEVICE-001 dikonfirmasi pengguna; lanjut T08 diizinkan |
 | CP4 | Kelayakan offline / teknis | T10 memenuhi gate kualitas/resource testing.md; keputusan model/perangkat dicatat | Menunggu |
 | CP5 | Engine lokal / teknis | T08–T13 teruji dan docs sinkron sebelum ekspor/integrasi penuh | Menunggu |
 | CP6 | Kandidat rilis / teknis | T15 semua gate wajib PASS, batas dukungan berdasarkan bukti | Menunggu |
@@ -163,32 +163,35 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Belum terverifikasi: install/runtime pada emulator atau perangkat fisik, interaction smoke test, TalkBack/font scale/IME.
 - Acceptance: build/lint dan scaffold terpenuhi; T04 ditutup DONE. T05–T07 tetap IMPLEMENTED sampai UI smoke/instrumented test dan CP3 review selesai.
 
-### T05 / IMPLEMENTED / 2026-10-06
+### T05 / DONE / 2026-10-06
 - Sudah dibuat: Projects recent/empty structure, New Project one-primary-action flow, source language EN/ID with automatic target, model setup states, permanent DEMO disclosure.
 - Sudah diuji: static guardrail validator PASS.
-- Belum terverifikasi: Compose runtime/UI tests, document picker integration, actual model download.
-- Acceptance: implementasi UI ada; tes wajib belum lengkap.
+- Sudah diuji: DEVICE-001 PASS berdasarkan smoke test manual pengguna pada perangkat; flow UI demo T05 tercakup dalam CP3.
+- Belum terverifikasi: document picker integration nyata dan actual model download tetap belum ada karena masih demo.
+- Acceptance: UI demo dan runtime gate T05 terpenuhi untuk CP3; engine nyata tetap di luar scope task ini.
 
-### T06 / IMPLEMENTED / 2026-10-06
+### T06 / DONE / 2026-10-06
 - Sudah dibuat: bounded preview, Caption default, bilingual source/translation editor, source edit → STALE, manual translation origin, stale summary/retranslate demo, contextual Timing with direct values+nudge, Style MVP, compact/expanded composition, IME-driven preview compaction.
 - Sudah diuji: static guardrail validator PASS.
-- Belum terverifikasi: UI compile/runtime, undo/redo behavior, real seek, timing mutations, font-scale/TalkBack/keyboard device tests.
-- Acceptance: implementasi UI utama ada; tes wajib belum lengkap.
+- Sudah diuji: DEVICE-001 PASS dan CP3 PASS berdasarkan smoke test manual pengguna; editor Caption/Timing/Style dapat dijalankan pada perangkat.
+- Belum terverifikasi: behavior produksi yang belum diimplementasikan seperti real seek, timing mutation penuh, persistence, dan engine lokal.
+- Acceptance: UI demo/runtime T06 diterima untuk CP3; behavior engine/data tetap task lanjutan.
 
-### T07 / IMPLEMENTED / 2026-10-06
+### T07 / DONE / 2026-10-06
 - Sudah dibuat: processing stage UI with honest indeterminate semantics, cancel/demo-complete path, Export screen, source-only fallback, bilingual/translation blocked on non-CURRENT translation, explicit fake-export disclosure.
 - Sudah diuji: static validator PASS; source code inspection confirms no output file is written by demo actions.
-- Belum terverifikasi: UI runtime, interrupted/error variants lengkap, export engine/progress/cancel nyata.
-- Acceptance: belum memenuhi CP3 karena frontend belum build/runtime tested.
+- Sudah diuji: DEVICE-001 PASS dan CP3 PASS berdasarkan smoke test manual pengguna; flow Processing → Editor → Export diterima sebagai UI demo.
+- Belum terverifikasi: interrupted/error variants produksi dan export engine/progress/cancel nyata.
+- Acceptance: T07 selesai sebagai UI demo; real export tetap T14.
 
 ### Handoff saat ini
-Build/lint frontend telah lulus pada `BUILD-001`. Next executable gate adalah verifikasi UI T05–T07 pada emulator/perangkat dan tinjauan CP3. **Jangan mulai T08** sampai UI smoke/instrumented test yang relevan lulus dan CP3 ditinjau. Bila runtime menemukan defect, perbaiki hanya frontend/scaffold terkait tanpa mengubah interaction model yang sudah dikunci.
+Build/lint frontend telah lulus pada `BUILD-001`/`BUILD-002`; `DEVICE-001` dan CP3 telah PASS berdasarkan konfirmasi smoke test manual pengguna. **T08 sekarang boleh dimulai**. Next task adalah persistensi lokal dan aturan editor, tanpa mengubah interaction model yang sudah dikunci. Bila runtime menemukan defect, perbaiki hanya frontend/scaffold terkait tanpa mengubah interaction model yang sudah dikunci.
 
 ### Handoff repository — 2026-10-06
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.
 - Sudah dibuat: `.agents/README.md`, `.agents/AGENTS.md`, serta seluruh pedoman product/rules/architecture/schema/design/plan/testing/decisions di `.agents/`; root `README.md` tetap human-facing.
 - Sudah diuji: `STATIC-001` PASS setelah path validator diperbarui; `DOC-004` PASS untuk struktur/link `.agents`; `DOMAIN-001` kembali PASS dengan `kotlinc`.
 - Sudah diuji setelah handoff: `BUILD-001` PASS pada GitHub Actions dan `BUILD-002` PASS pada Windows lokal; validator, assembleDebug, dan lintDebug seluruhnya sukses.
-- Belum terverifikasi: device/emulator UI smoke test tetap NOT_RUN sebagaimana `DEVICE-001`.
+- Sudah diuji: `DEVICE-001` PASS berdasarkan smoke test manual pengguna; CP3 PASS dan T05–T07 ditutup DONE sebagai frontend demo.
 - Aturan handoff: jangan membuat catatan planning Markdown baru di root; perbarui source of truth yang relevan di `.agents/`.
-- Task berikutnya: verifikasi T05–T07 pada emulator/perangkat lalu tinjau CP3; jangan mulai T08 sebelum gate tersebut lulus.
+- Task berikutnya: mulai T08 persistensi lokal dan aturan editor.
