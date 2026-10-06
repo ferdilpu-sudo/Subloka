@@ -13,7 +13,7 @@ Editor workspaces are deliberately limited to **Caption**, **Timing**, and **Sty
 ## Toolchain baseline
 
 - Android Gradle Plugin: 9.4.0
-- Gradle: 9.6.0
+- Gradle Wrapper: 9.6.0
 - Kotlin / Compose compiler plugin: 2.3.21
 - compileSdk / targetSdk: 37
 - minSdk: 26
@@ -28,8 +28,9 @@ Android CI has verified the frontend scaffold on GitHub Actions:
 - project guardrail validator: **PASS**
 - `:app:assembleDebug`: **PASS**
 - `:app:lintDebug`: **PASS**
-- verified revision: `d01f1fcdd0f8ce7da16c9148551f9a06f06ac702`
-- evidence: [Android CI run #6](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37461629333)
+- Gradle Wrapper 9.6.0 generation: **PASS**
+- verified build evidence: [Android CI run #9](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37462634099)
+- wrapper bootstrap evidence: [Bootstrap Gradle Wrapper run #1](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37463131375)
 
 This proves the current frontend compiles and passes lint. It does **not** prove install/startup, interaction behavior, IME/adaptive layout, accessibility, media processing, offline inference, persistence, or real export. Those remain separate gates in `.agents/testing.md`.
 
@@ -49,17 +50,24 @@ All implementation guidance and handoff notes live under [`.agents/`](.agents/RE
 
 ## Build locally
 
-A Gradle wrapper properties file is included, but wrapper scripts/JAR have not yet been generated in the repository. In Android Studio, open the project and use the IDE-provided Gradle tooling, or with Gradle 9.6.0 installed:
+Gradle Wrapper 9.6.0 is committed to the repository. A global Gradle installation is **not required**.
 
-```bash
-gradle :app:assembleDebug :app:lintDebug
+Windows PowerShell:
+
+```powershell
+git pull origin main
+.\gradlew.bat --version
+.\gradlew.bat :app:assembleDebug :app:lintDebug
 ```
 
-To generate wrapper scripts first:
+macOS/Linux:
 
 ```bash
-gradle wrapper --gradle-version 9.6.0
+git pull origin main
+./gradlew --version
 ./gradlew :app:assembleDebug :app:lintDebug
 ```
+
+The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
 T04 is **DONE** for scaffold/build/lint. T05–T07 remain **IMPLEMENTED** until relevant UI runtime tests and CP3 review are complete. See `.agents/plan.md` and `.agents/testing.md`.

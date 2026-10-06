@@ -9,6 +9,7 @@
 .agents/schema.md
 .agents/testing.md
 .github/workflows/android-ci.yml
+.github/workflows/bootstrap-wrapper.yml
 .gitignore
 FILELIST.txt
 README.md
@@ -43,6 +44,9 @@ feature/projects/src/main/java/app/subloka/feature/projects/NewProjectScreen.kt
 feature/projects/src/main/java/app/subloka/feature/projects/ProcessingScreen.kt
 feature/projects/src/main/java/app/subloka/feature/projects/ProjectsScreen.kt
 gradle.properties
+gradle/wrapper/gradle-wrapper.jar
 gradle/wrapper/gradle-wrapper.properties
+gradlew
+gradlew.bat
 settings.gradle.kts
 tools/validate_project.py

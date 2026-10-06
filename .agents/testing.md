@@ -240,3 +240,16 @@ Dokumen/task yang diperbarui:
 - Temuan: runner awal membawa command-line tools lama; Android 17 package tersedia sebagai `platforms;android-37.0`, bukan `platforms;android-37`.
 - Perbaikan: workflow memperbarui command-line tools melalui channel 3 dan memasang package API 37.0 + Build Tools 37.0.0.
 - Batas: ini bukti kesiapan CI, bukan requirement produk.
+
+
+### WRAPPER-001 — Gradle Wrapper 9.6.0
+
+- Task: T04 local reproducibility.
+- Tanggal: 2026-10-06.
+- Revision bootstrap: `54498b135494eb42d37e55f866c21c0c3a12cdef`.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37463131375
+- Expected: repository memiliki `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`, dan properties yang mengunci Gradle 9.6.0.
+- Actual: workflow bootstrap selesai SUCCESS; seluruh file wrapper tersedia pada branch main; `distributionUrl` mengarah ke `gradle-9.6.0-bin.zip`.
+- Result: **PASS**.
+- Dampak: developer Windows tidak perlu memasang Gradle global; gunakan `.\\gradlew.bat`.
+- Batas: wrapper availability tidak membuktikan Android SDK lokal tersedia atau device runtime lulus.
