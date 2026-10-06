@@ -23,7 +23,7 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Install Android 17 preview SDK
+      - name: Install Android 17 SDK
         shell: bash
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
@@ -34,13 +34,11 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
 
           "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           echo "Updated sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
 
-          "$SDKMANAGER" --list --channel=3 | grep -E "platforms;android-37|build-tools;37" || true
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37"
-          "$SDKMANAGER" "build-tools;36.0.0"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Set up Gradle 9.6
         uses: gradle/actions/setup-gradle@v4
