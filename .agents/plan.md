@@ -16,7 +16,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T01 | Konfirmasi baseline produk dan perangkat uji | T00 | Scope EN/ID offline dikonfirmasi; perangkat, durasi/resolusi sampel dan batas MVP dicatat; CP0 ditinjau | DONE |
 | T02 | Kontrak arsitektur dan toolchain | T01, CP0 | Pin baseline versi/SDK/ABI/native; kontrak adapter; ADR; verifikasi dokumentasi/kompatibilitas; CP1 ditinjau | DONE |
 | T03 | UX & interaction specification | T02, CP1 | IA final; primary flow; wireframe compact/wide/expanded; keyboard state; Caption/Timing/Style; processing/export/error/empty/stale states; component inventory; accessibility notes; acceptance mapping; CP2 ditinjau | DONE |
-| T04 | Scaffold Android dan design system | T03, CP2 | Gradle build/lint jalan; app shell mengikuti semantic tokens/component contract T03; perintah/lingkungan dicatat README | IMPLEMENTED |
+| T04 | Scaffold Android dan design system | T03, CP2 | Gradle build/lint jalan; app shell mengikuti semantic tokens/component contract T03; perintah/lingkungan dicatat README | DONE |
 | T05 | UI Projects, model setup, New Project | T04 | Home/recent/empty, model states, pick video + source language flow; tidak ada bottom nav; fake adapter/demo label; UI tests relevan lulus | IMPLEMENTED |
 | T06 | UI editor Caption/Timing/Style | T05 | Caption default; bounded preview; bilingual edit; stale translation actions; timing nudge/input; style MVP; keyboard/adaptive state; undo/redo UI teruji | IMPLEMENTED |
 | T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | IMPLEMENTED |
@@ -156,12 +156,12 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Acceptance: artefak T03 tersedia; CP2 PASS sebagai interaction contract frontend.
 - Dokumen: design, decisions, plan, testing.
 
-### T04 / IMPLEMENTED / 2026-10-06
+### T04 / DONE / 2026-10-06
 - Dependensi/checkpoint: T03 + CP2 terpenuhi.
-- Sudah dibuat: Gradle multi-module scaffold, `app`, `core:domain`, `core:designsystem`, feature modules, theme graphite/soft-indigo, semantic actions, manifest privacy baseline, target build commands.
-- Sudah diuji: `tools/validate_project.py` PASS untuk file/module/guardrail statis; `DOMAIN-001` PASS mengompilasi `core:domain` dengan `kotlinc`; `DOC-003` PASS untuk tautan dokumen pasca-eksekusi.
-- Belum terverifikasi: Gradle sync, `assembleDebug`, `lintDebug`, Android runtime. Workspace eksekusi tidak memiliki Android SDK/Gradle runtime dan distribusi tidak dapat diunduh dari sandbox.
-- Acceptance: belum terpenuhi penuh karena build/lint belum PASS. Jangan ubah menjadi DONE.
+- Sudah dibuat: Gradle multi-module scaffold, `app`, `core:domain`, `core:designsystem`, feature modules, theme graphite/soft-indigo, semantic actions, manifest privacy baseline, target build commands, dan workflow `.github/workflows/android-ci.yml`.
+- Sudah diuji: `STATIC-001` PASS; `DOMAIN-001` PASS; `DOC-003` PASS; `BUILD-001` PASS pada GitHub Actions run #6 untuk Android 17/API 37, Gradle 9.6, `:app:assembleDebug`, dan `:app:lintDebug`.
+- Belum terverifikasi: install/runtime pada emulator atau perangkat fisik, interaction smoke test, TalkBack/font scale/IME.
+- Acceptance: build/lint dan scaffold terpenuhi; T04 ditutup DONE. T05–T07 tetap IMPLEMENTED sampai UI smoke/instrumented test dan CP3 review selesai.
 
 ### T05 / IMPLEMENTED / 2026-10-06
 - Sudah dibuat: Projects recent/empty structure, New Project one-primary-action flow, source language EN/ID with automatic target, model setup states, permanent DEMO disclosure.
@@ -182,12 +182,13 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Acceptance: belum memenuhi CP3 karena frontend belum build/runtime tested.
 
 ### Handoff saat ini
-Next executable gate adalah menyelesaikan verifikasi T04–T07 pada Android toolchain/device. **Jangan mulai T08** sampai build/lint/UI smoke test lulus dan CP3 ditinjau. Bila build menemukan compile defect, perbaiki hanya frontend/scaffold terkait tanpa mengubah interaction model yang sudah dikunci.
+Build/lint frontend telah lulus pada `BUILD-001`. Next executable gate adalah verifikasi UI T05–T07 pada emulator/perangkat dan tinjauan CP3. **Jangan mulai T08** sampai UI smoke/instrumented test yang relevan lulus dan CP3 ditinjau. Bila runtime menemukan defect, perbaiki hanya frontend/scaffold terkait tanpa mengubah interaction model yang sudah dikunci.
 
 ### Handoff repository — 2026-10-06
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.
 - Sudah dibuat: `.agents/README.md`, `.agents/AGENTS.md`, serta seluruh pedoman product/rules/architecture/schema/design/plan/testing/decisions di `.agents/`; root `README.md` tetap human-facing.
 - Sudah diuji: `STATIC-001` PASS setelah path validator diperbarui; `DOC-004` PASS untuk struktur/link `.agents`; `DOMAIN-001` kembali PASS dengan `kotlinc`.
-- Belum terverifikasi: Gradle/Android build dan device smoke test tetap BLOCKED/NOT_RUN sebagaimana `BUILD-001` dan `DEVICE-001`.
+- Sudah diuji setelah handoff: `BUILD-001` PASS pada GitHub Actions run #6; Android 17 SDK setup, Gradle 9.6, validator, assembleDebug, dan lintDebug seluruhnya sukses.
+- Belum terverifikasi: device/emulator UI smoke test tetap NOT_RUN sebagaimana `DEVICE-001`.
 - Aturan handoff: jangan membuat catatan planning Markdown baru di root; perbarui source of truth yang relevan di `.agents/`.
-- Task berikutnya: verifikasi T04–T07 pada Android toolchain/device lalu tinjau CP3; jangan mulai T08 sebelum gate tersebut lulus.
+- Task berikutnya: verifikasi T05–T07 pada emulator/perangkat lalu tinjau CP3; jangan mulai T08 sebelum gate tersebut lulus.
