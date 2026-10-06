@@ -23,15 +23,22 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Install Android API 37 preview
+      - name: Install Android 17 preview SDK
         shell: bash
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           test -n "$SDKMANAGER"
-          echo "SDKMANAGER=$SDKMANAGER"
+          echo "Initial sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
           yes | "$SDKMANAGER" --licenses >/dev/null || true
+
+          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          echo "Updated sdkmanager: $SDKMANAGER"
+          "$SDKMANAGER" --version
+
+          "$SDKMANAGER" --list --channel=3 | grep -E "platforms;android-37|build-tools;37" || true
           "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37"
           "$SDKMANAGER" "build-tools;36.0.0"
 
