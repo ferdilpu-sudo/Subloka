@@ -13,13 +13,25 @@ Editor workspaces are deliberately limited to **Caption**, **Timing**, and **Sty
 ## Toolchain baseline
 
 - Android Gradle Plugin: 9.4.0
-- Gradle wrapper target: 9.6.0
+- Gradle: 9.6.0
 - Kotlin / Compose compiler plugin: 2.3.21
 - compileSdk / targetSdk: 37
 - minSdk: 26
 - Compose BOM: 2026.09.00
 - Activity Compose: 1.13.0
 - Core KTX: 1.19.1
+
+## Verification status
+
+Android CI has verified the frontend scaffold on GitHub Actions:
+
+- project guardrail validator: **PASS**
+- `:app:assembleDebug`: **PASS**
+- `:app:lintDebug`: **PASS**
+- verified revision: `d01f1fcdd0f8ce7da16c9148551f9a06f06ac702`
+- evidence: [Android CI run #6](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37461629333)
+
+This proves the current frontend compiles and passes lint. It does **not** prove install/startup, interaction behavior, IME/adaptive layout, accessibility, media processing, offline inference, persistence, or real export. Those remain separate gates in `.agents/testing.md`.
 
 ## Modules
 
@@ -35,13 +47,19 @@ Editor workspaces are deliberately limited to **Caption**, **Timing**, and **Sty
 
 All implementation guidance and handoff notes live under [`.agents/`](.agents/README.md). Agents should start at [`.agents/AGENTS.md`](.agents/AGENTS.md) and follow the prescribed read order before changing code. Keep task status in `.agents/plan.md` and test evidence in `.agents/testing.md`; do not scatter new planning Markdown around the repository.
 
-## Build
+## Build locally
 
-A standard Gradle wrapper properties file is included, but the wrapper JAR/scripts are not generated in this execution environment because Android/Gradle distributions are unavailable locally. In Android Studio, open the project and use the IDE-provided Gradle tooling, or generate the wrapper with Gradle 9.6.0:
+A Gradle wrapper properties file is included, but wrapper scripts/JAR have not yet been generated in the repository. In Android Studio, open the project and use the IDE-provided Gradle tooling, or with Gradle 9.6.0 installed:
+
+```bash
+gradle :app:assembleDebug :app:lintDebug
+```
+
+To generate wrapper scripts first:
 
 ```bash
 gradle wrapper --gradle-version 9.6.0
 ./gradlew :app:assembleDebug :app:lintDebug
 ```
 
-Do not mark T04–T07 `DONE` until those commands and relevant UI tests pass. See `.agents/plan.md` and `.agents/testing.md`.
+T04 is **DONE** for scaffold/build/lint. T05–T07 remain **IMPLEMENTED** until relevant UI runtime tests and CP3 review are complete. See `.agents/plan.md` and `.agents/testing.md`.

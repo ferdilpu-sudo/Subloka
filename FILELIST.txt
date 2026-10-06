@@ -8,6 +8,7 @@
 .agents/rules.md
 .agents/schema.md
 .agents/testing.md
+.github/workflows/android-ci.yml
 .gitignore
 FILELIST.txt
 README.md
