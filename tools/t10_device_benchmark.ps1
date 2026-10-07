@@ -131,9 +131,9 @@ foreach ($Model in $Models) {
         $Stderr = Join-Path $WorkDir "_stderr.txt"
         Remove-Item $Stdout,$Stderr -Force -ErrorAction SilentlyContinue
 
-        $Args = @($AdbArgs + @("shell", "cd $Remote && ./whisper-cli -m model.bin -f input.wav -l $($Sample.language) -nt"))
+        $AdbProcessArgs = @($AdbArgs + @("shell", "cd $Remote && ./whisper-cli -m model.bin -f input.wav -l $($Sample.language) -nt"))
         $Watch = [System.Diagnostics.Stopwatch]::StartNew()
-        $Process = Start-Process -FilePath $Adb -ArgumentList $Args -NoNewWindow -PassThru -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
+        $Process = Start-Process -FilePath $Adb -ArgumentList $AdbProcessArgs -NoNewWindow -PassThru -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
         $PeakRssKb = 0
         while (!$Process.HasExited) {
             $PidText = (& $Adb @AdbArgs shell "pidof whisper-cli" 2>$null).Trim()
