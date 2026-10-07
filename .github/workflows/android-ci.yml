@@ -121,12 +121,4 @@ jobs:
           arch: x86_64
           profile: pixel_4
           disable-animations: true
-          script: |
-            set +e
-            ./gradlew --stacktrace --info :core:media:connectedDebugAndroidTest
-            status=$?
-            if [ "$status" -ne 0 ]; then
-              echo "=== Android test XML ==="
-              find core/media/build/outputs/androidTest-results -type f -name '*.xml' -print -exec cat {} \; || true
-            fi
-            exit "$status"
+          script: bash tools/run_media_device_tests.sh
