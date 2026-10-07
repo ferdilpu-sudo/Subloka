@@ -325,3 +325,60 @@ Dokumen/task yang diperbarui:
 - Result: **PASS**.
 - Batas: emulator tidak membuktikan thermal/performance perangkat fisik atau seluruh codec OEM/VFR. Multi-track selection UX belum menjadi coverage gate. Coverage kompatibilitas luas tetap T15.
 - Dampak: T09 DONE; T10 boleh dimulai.
+
+
+### MODEL-001 — Whisper model integrity
+
+- Task: T10.
+- Tanggal: 2026-10-07.
+- Candidate: whisper.cpp v1.9.4; multilingual `tiny` dan `base`.
+- Model source revision: `80da2d8bfee42b0e836fc3a9890373e5defc00a6`.
+- Workflow evidence: T10 Engine Evaluation run #1/#2, termasuk https://github.com/ferdilpu-sudo/Subloka/actions/runs/37563052224.
+- Expected: model aktual dapat diunduh dari source pinned dan SHA-256 sesuai katalog aplikasi.
+- Actual: `ggml-tiny.bin` checksum `be07e048...c6e1b21` PASS; `ggml-base.bin` checksum `60ed5bc3...fba2efe` PASS.
+- Result: **PASS**.
+- Batas: integrity artifact tidak membuktikan akurasi atau resource perangkat.
+
+### TRANS-SMOKE-001 — ML Kit EN↔ID readiness
+
+- Task: T10.
+- Tanggal: 2026-10-07.
+- Engine: ML Kit on-device Translation 17.0.3.
+- Environment: Android 11/API 30 Google APIs emulator.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37563052224
+- Expected: model EN dan ID dapat diunduh via RemoteModelManager, readiness menjadi READY, translation dua arah menghasilkan output non-empty dan mempertahankan fixture nama/angka.
+- Actual: `connectedDebugAndroidTest` PASS; model download/readiness PASS; EN→ID dan ID→EN smoke PASS untuk nama `Rina` dan angka 3/7.
+- Result: **PASS** untuk readiness/functional smoke.
+- Batas: bukan review kualitas 30 segmen per arah dan bukan bukti traffic-free ketika online.
+
+### ASR-SMOKE-001 — whisper.cpp bilingual synthetic smoke
+
+- Task: T10.
+- Tanggal: 2026-10-07.
+- Engine/model: whisper.cpp v1.9.4; tiny/base multilingual.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37563052224
+- Fixture: espeak-ng synthetic EN/ID, 16 kHz mono WAV.
+- Actual: engine berhasil build dan menjalankan seluruh kombinasi model/language. WER smoke: tiny EN 0.5000; tiny ID 0.7500; base EN 0.5000; base ID 1.5000. Host max RSS teramati sekitar 180 MB tiny dan 291 MB base pada fixture ini.
+- Result: **PASS** hanya untuk functional smoke.
+- Batas: synthetic TTS dan host Linux tidak boleh digunakan sebagai quality/resource CP4. WER ini sengaja tidak dipakai untuk memilih model.
+
+### ASR-ANDROID-BUILD-001 — benchmark binary arm64
+
+- Task: T10.
+- Tanggal: 2026-10-07.
+- Workflow: T10 Engine Evaluation run https://github.com/ferdilpu-sudo/Subloka/actions/runs/37563402825
+- Toolchain: whisper.cpp v1.9.4, NDK 28.2.13676358, Android platform 26, ABI arm64-v8a.
+- Expected: `whisper-cli` dapat di-cross-compile untuk Android arm64 tanpa mengintegrasikan JNI produksi T11.
+- Actual: job `android-benchmark-binary` PASS.
+- Result: **PASS**.
+- Dampak: `tools/t10_device_benchmark.ps1` dapat digunakan untuk benchmark fisik tiny/base melalui ADB.
+
+### CP4-001 — Offline engine feasibility gate
+
+- Task: T10 / CP4.
+- Tanggal: 2026-10-07.
+- Result: **BLOCKED**.
+- Sudah tersedia: model integrity, atomic model store, ML Kit readiness/functional smoke, whisper bilingual functional smoke, arm64 benchmark binary/harness.
+- Blocker: belum ada hasil dataset manusia 30 ujaran per bahasa + 30 translation segment per arah dan belum ada RTF/RAM/thermal dari perangkat fisik.
+- Syarat buka: jalankan physical benchmark dan review kualitas sesuai gate; jangan mengganti threshold setelah melihat hasil.
+- Dampak: T11 tetap TODO.

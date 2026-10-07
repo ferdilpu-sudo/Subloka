@@ -22,7 +22,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | DONE |
 | T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | DONE |
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | DONE |
-| T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | IN_PROGRESS |
+| T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | BLOCKED |
 | T11 | Pipeline ASR produksi | T10, CP4 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | TODO |
 | T12 | Pipeline translation produksi | T11 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | TODO |
 | T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
@@ -64,7 +64,7 @@ T03 tidak menambah feature di luar MVP. Brand/logo/icon boleh tetap placeholder.
 | CP1 | Arsitektur / pengguna | T02 menghasilkan desain/batas teknis konkret; risiko model belum terbukti ditandai | PASS — baseline stabil dipin; engine tetap unverified |
 | CP2 | Desain / pengguna | Semua keluaran T03 tersedia; dua arah bahasa; compact/expanded/keyboard; reviewer dapat menyelesaikan user flow tanpa ambiguity | PASS — interaction contract v0.3 menjadi dasar frontend demo |
 | CP3 | Frontend / pengguna | T04–T07 teruji sebagai UI demo; jelas engine belum terhubung; layout mengikuti ADR-016–021; izin lanjut engine lokal | PASS — DEVICE-001 dikonfirmasi pengguna; lanjut T08 diizinkan |
-| CP4 | Kelayakan offline / teknis | T10 memenuhi gate kualitas/resource testing.md; keputusan model/perangkat dicatat | Menunggu |
+| CP4 | Kelayakan offline / teknis | T10 memenuhi gate kualitas/resource testing.md; keputusan model/perangkat dicatat | BLOCKED — smoke/readiness lulus; benchmark dataset manusia pada perangkat fisik belum dijalankan |
 | CP5 | Engine lokal / teknis | T08–T13 teruji dan docs sinkron sebelum ekspor/integrasi penuh | Menunggu |
 | CP6 | Kandidat rilis / teknis | T15 semua gate wajib PASS, batas dukungan berdasarkan bukti | Menunggu |
 | CP7 | Delivery / pengguna | T16 artefak dan hasil uji disajikan; distribusi publik memerlukan otorisasi terpisah | Menunggu |
@@ -203,8 +203,18 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Acceptance: seluruh kriteria T09 terpenuhi untuk baseline media.
 - Next task: T10 — evaluasi engine/model offline dan CP4.
 
+### T10 / BLOCKED / 2026-10-07
+- Dependensi/checkpoint: T09 DONE.
+- Sudah dibuat: kontrak ModelReadiness/OfflineTranslator; `engine:asr` model catalog/store untuk Whisper multilingual tiny/base dengan SHA-256 pinned dan atomic install; `engine:translation` ML Kit EN↔ID readiness/translate; WER tool; synthetic bilingual smoke; arm64 physical-device benchmark harness via ADB.
+- Sudah diuji: `MODEL-001` PASS untuk download+checksum tiny/base; `TRANS-SMOKE-001` PASS untuk download model ML Kit dan translate EN↔ID pada Android 11 emulator; `ASR-SMOKE-001` PASS untuk whisper.cpp v1.9.4 tiny/base mengeksekusi EN/ID synthetic; `ASR-ANDROID-BUILD-001` PASS untuk cross-compile `whisper-cli` arm64 dengan NDK 28.2.13676358; Android CI revision `729dc64` PASS setelah model-store test diperbaiki.
+- Temuan synthetic: WER smoke tiny EN 0.50, tiny ID 0.75, base EN 0.50, base ID 1.50 pada espeak-ng. Angka ini tidak dipakai sebagai quality gate karena synthetic TTS bukan dataset manusia dan karakteristiknya tidak mewakili rekaman target.
+- Belum terverifikasi/blocker: dataset manusia minimum 30 ujaran EN + 30 ID (20 clean + 10 challenging), review translation 30 segmen per arah, dan benchmark RTF/RAM/thermal pada perangkat fisik belum tersedia/dijalankan dari sesi ini.
+- Acceptance: readiness, integrity, build harness, dan functional smoke terpenuhi; quality/resource gate T10 belum terpenuhi. Status BLOCKED, bukan FAIL.
+- CP4: BLOCKED sampai hasil benchmark fisik + review kualitas memenuhi `testing.md`.
+- Next task: tetap T10. Jangan mulai T11.
+
 ### Handoff saat ini
-T09 telah DONE dengan `MEDIA-001` PASS pada Android 11 emulator. **T10 sekarang IN_PROGRESS** untuk evaluasi engine/model offline, model readiness, lisensi, kualitas, resource, dan CP4. Jangan memulai T11 pipeline ASR produksi sebelum CP4 lulus atau keputusan BLOCKED dicatat.
+T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED** pada benchmark dataset manusia + perangkat fisik. Gunakan `tools/t10_device_benchmark.ps1` untuk tiny/base setelah manifest dataset memenuhi 20 clean + 10 challenging per bahasa. T11 tetap TODO dan dilarang dimulai sebelum CP4 diselesaikan.
 
 ### Handoff repository — 2026-10-06
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.

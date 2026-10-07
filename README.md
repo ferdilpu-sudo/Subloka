@@ -71,4 +71,8 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. The next task is **T10: offline engine/model evaluation and CP4**. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. **T10 is now BLOCKED at CP4** after model/readiness smoke: the remaining gate is human-dataset quality plus physical-device RTF/RAM/thermal benchmark. T11 has not started. See `.agents/plan.md` and `.agents/testing.md`.
+
+## T10 physical benchmark
+
+T10 includes `tools/t10_device_benchmark.ps1` for arm64 Android evaluation of pinned Whisper tiny/base through ADB. It validates model checksums, builds whisper.cpp v1.9.4 with NDK 28.2.13676358, enforces the minimum dataset counts, and writes WER/RTF/RSS results. Synthetic/emulator smoke results are not accepted as CP4 quality evidence.

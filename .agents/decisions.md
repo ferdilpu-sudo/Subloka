@@ -28,8 +28,8 @@ Status keputusan: ACCEPTED = kebutuhan/keputusan telah disepakati; PROPOSED = ar
 | ADR-022 | Nama kerja produk **SubLoka**; applicationId sementara `app.subloka.caption` | ACCEPTED | Pendek, mudah diucapkan, mengomunikasikan subtitle + lokal; ID masih boleh berubah sebelum distribusi publik |
 | ADR-023 | Baseline Android frontend memakai AGP 9.4.0 / Gradle 9.6.0 / Kotlin 2.3.21 / compile-target 37 / min 26 | ACCEPTED | Versi stabil saat eksekusi; minSdk 26 tetap mencakup perangkat uji Android 11 dan mengurangi kompatibilitas lama |
 | ADR-024 | Frontend T04–T07 memakai fake adapter dan disclosure `DEMO` permanen sampai engine nyata terhubung | ACCEPTED | Memungkinkan validasi flow tanpa mengarang keberhasilan ASR/translation/export |
-| ADR-025 | T10 membandingkan whisper.cpp v1.9.4 multilingual `tiny` dan `base`; synthetic smoke tidak boleh menutup CP4 | PROPOSED | Upstream Android merekomendasikan tiny/base; model dipin dengan SHA-256; keputusan final menunggu WER/resource perangkat fisik |
-| ADR-026 | T10 mengevaluasi ML Kit Translation 17.0.3 EN↔ID dengan explicit model readiness | PROPOSED | EN/ID didukung on-device; input diproses lokal, tetapi SDK dapat melakukan model/update/metrics traffic sehingga disclosure privasi harus presisi |
+| ADR-025 | T10 membandingkan whisper.cpp v1.9.4 multilingual `tiny` dan `base`; synthetic smoke tidak boleh menutup CP4 | ACCEPTED | Upstream Android merekomendasikan tiny/base; model dipin dengan SHA-256; keputusan final menunggu WER/resource perangkat fisik |
+| ADR-026 | T10 mengevaluasi ML Kit Translation 17.0.3 EN↔ID dengan explicit model readiness | ACCEPTED | EN/ID didukung on-device; input diproses lokal, tetapi SDK dapat melakukan model/update/metrics traffic sehingga disclosure privasi harus presisi |
 
 ## Rationale keputusan teknis
 
@@ -66,8 +66,8 @@ Perubahan terhadap interaction model ini memerlukan ADR pengganti, bukan improvi
 | OQ01 | Nama produk/package ID final? | T01–T02 | **Sebagian terjawab:** SubLoka dipakai sebagai nama kerja dan `app.subloka.caption` sebagai ID sementara; brand/package baru final saat release packaging |
 | OQ02 | HP target, RAM/OS dan perangkat tes yang tersedia? | T01 | **Baseline:** Sony SO-03L Android 11 sebagai perangkat primer yang pernah tersedia; RAM/koneksi aktual dan perangkat tambahan masih perlu verifikasi saat device test |
 | OQ03 | Durasi/resolusi video paling sering? | T01/T10 | Belum ada profil penggunaan aktual; benchmark wajib memakai fixture 30 dtk / 2 mnt / 10 mnt, 720p dan 1080p, portrait + landscape sebelum batas dukungan diklaim |
-| OQ04 | Model ASR mana yang memenuhi akurasi dan resource? | T10 | CP4 tidak dapat lulus sebelum hasil tersedia |
-| OQ05 | Apakah translation lokal memenuhi kualitas dialog EN/ID? | T10/T12 | Kualitas harus dibuktikan; jangan menutupi dengan klaim gratis |
+| OQ04 | Model ASR mana yang memenuhi akurasi dan resource? | T10 | Tiny/base berhasil functional smoke; pilihan final tetap terbuka sampai benchmark manusia/perangkat fisik CP4 |
+| OQ05 | Apakah translation lokal memenuhi kualitas dialog EN/ID? | T10/T12 | ML Kit readiness + bidirectional smoke PASS; kualitas 30 segmen per arah masih wajib sebelum CP4 |
 | OQ06 | Versi SDK/native, min SDK, ABI, runner background? | T02/T13 | Build/lifecycle harus diverifikasi sesuai versi pilihan |
 | OQ07 | Input codec/HDR/VFR dan profil ekspor yang didukung? | T09/T14 | Tampilkan unsupported yang jelas; tidak menjanjikan semua format |
 | OQ08 | Distribusi APK/model, lisensi/atribusi dan metadata SDK? | T10/T16 | Rilis tertahan jika kebutuhan distribusi tidak terpenuhi |

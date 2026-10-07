@@ -18,7 +18,8 @@ Folder `.agents/` adalah source of truth untuk spesifikasi, keputusan, rencana, 
 | Emulator / perangkat fisik | DEVICE-001 **PASS** berdasarkan smoke test manual pengguna |
 | Persistence lokal T08 | **DONE**; Room v1, autosave/editor rules, reopen, revision dan schema fixture teruji |
 | Media T09 | **DONE**; content URI, metadata/rotation/audio, PCM decode, relink, error gate dan Media3 playback teruji pada Android 11 emulator |
-| ASR / translation engine / export nyata | Belum diintegrasikan dan belum diverifikasi |
+| T10 engine evaluation | **BLOCKED at CP4**; Whisper model integrity + synthetic functional smoke + arm64 benchmark build PASS; ML Kit EN↔ID readiness smoke PASS; human/physical benchmark belum selesai |
+| Production ASR / translation pipeline / export nyata | Belum diintegrasikan dan belum diverifikasi |
 | Akurasi, performa dan kompatibilitas | Belum diverifikasi |
 
 Bukti teknis terbaru: `DATA-001` pada GitHub Actions run #15, revision `deb5b1ebfe87254535a5a5845fa368cb6e6c8829`; domain tests, Room integration tests, schema fixture, assemble dan lint PASS. Ini belum membuktikan media/ASR/translation/export produksi.
@@ -96,10 +97,10 @@ Baseline frontend: Kotlin built-in AGP + Jetpack Compose, minSdk 26, compile/tar
 
 1. Baca seluruh pedoman dan kode aktual.
 2. T04–T08 dan CP3 telah selesai.
-3. T09 media baseline telah lulus pada Android 11 emulator.
-4. Next task adalah **T10: evaluasi engine dan model offline**.
-5. Ukur kandidat ASR/translation EN↔ID, readiness/download, lisensi, kualitas, latency/RAM dan batas perangkat dengan fixture yang terdokumentasi.
-6. Jangan mulai T11 sebelum CP4 lulus atau keputusan BLOCKED dicatat.
+3. T09 DONE; T10 readiness/infrastructure smoke sudah dijalankan.
+4. T10/CP4 saat ini **BLOCKED** hanya pada benchmark dataset manusia + perangkat fisik.
+5. Gunakan `tools/t10_device_benchmark.ps1` dengan manifest dataset yang memenuhi 20 clean + 10 challenging per bahasa, lalu catat WER/RTF/RSS/thermal dan review translation 30 segmen per arah.
+6. Jangan mulai T11 sebelum CP4 PASS atau keputusan pengguna setelah laporan hasil yang tidak memenuhi gate.
 
 GitHub Actions telah membuktikan build/lint frontend dan T08 persistence tests. Evidence terbaru berada di testing.md sebagai `DATA-001`.
 
