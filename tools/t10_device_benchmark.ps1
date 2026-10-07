@@ -165,6 +165,7 @@ if (!(Test-Path $SourceDir)) {
     "-DCMAKE_BUILD_TYPE=Release" `
     "-DWHISPER_BUILD_TESTS=OFF" `
     "-DWHISPER_BUILD_EXAMPLES=ON" `
+    "-DBUILD_SHARED_LIBS=OFF" `
     "-DGGML_OPENMP=OFF" `
     "-DGGML_NATIVE=OFF"
 if ($LASTEXITCODE -ne 0) { throw "CMake configure gagal." }
