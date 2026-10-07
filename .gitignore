@@ -10,3 +10,4 @@ captures/
 .t10-benchmark/
 /t10-dataset.json
 /t10-audio/
+/.t10-fleurs-cache/

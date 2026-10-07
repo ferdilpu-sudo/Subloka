@@ -205,7 +205,7 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 
 ### T10 / BLOCKED / 2026-10-07
 - Dependensi/checkpoint: T09 DONE.
-- Sudah dibuat: kontrak ModelReadiness/OfflineTranslator; `engine:asr` model catalog/store untuk Whisper multilingual tiny/base dengan SHA-256 pinned dan atomic install; `engine:translation` ML Kit EN↔ID readiness/translate; WER tool; synthetic bilingual smoke; arm64 physical-device benchmark harness via ADB.
+- Sudah dibuat: `tools/t10_fetch_fleurs_dataset.py` untuk mematerialisasi 60 fixture manusia Google FLEURS EN/ID secara deterministik;  kontrak ModelReadiness/OfflineTranslator; `engine:asr` model catalog/store untuk Whisper multilingual tiny/base dengan SHA-256 pinned dan atomic install; `engine:translation` ML Kit EN↔ID readiness/translate; WER tool; synthetic bilingual smoke; arm64 physical-device benchmark harness via ADB.
 - Sudah diuji: `MODEL-001` PASS untuk download+checksum tiny/base; `TRANS-SMOKE-001` PASS untuk download model ML Kit dan translate EN↔ID pada Android 11 emulator; `ASR-SMOKE-001` PASS untuk whisper.cpp v1.9.4 tiny/base mengeksekusi EN/ID synthetic; `ASR-ANDROID-BUILD-001` PASS untuk cross-compile `whisper-cli` arm64 dengan NDK 28.2.13676358; Android CI revision `729dc64` PASS setelah model-store test diperbaiki.
 - Temuan synthetic: WER smoke tiny EN 0.50, tiny ID 0.75, base EN 0.50, base ID 1.50 pada espeak-ng. Angka ini tidak dipakai sebagai quality gate karena synthetic TTS bukan dataset manusia dan karakteristiknya tidak mewakili rekaman target.
 - Sudah dibuat/diuji tambahan: harness Windows telah melewati syntax parse CI dan binary benchmark whisper.cpp arm64 telah berhasil di-cross-compile dengan NDK pinned.

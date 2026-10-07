@@ -94,6 +94,8 @@ Translation candidate adalah ML Kit on-device Translation 17.0.3, hanya pair ENâ
 
 Dataset CP4 minimum tetap 30 ujaran per bahasa untuk ASR (20 clean + 10 challenging) dan 30 segmen per arah untuk translation. Perangkat fisik wajib untuk angka RTF/RAM/thermal. Emulator hanya membuktikan API/readiness/smoke.
 
+Fixture ASR T10 dapat dimaterialisasi dari Google FLEURS `dev` split pada revision `4683b04af03d2d9549064c7d72060a9a94bb6046` melalui `tools/t10_fetch_fleurs_dataset.py`. Per bahasa dipilih 20 ujaran unik berdurasi tipikal di sekitar median sebagai `clean` dan 10 ujaran unik terpanjang dengan durasi maksimal 25 detik sebagai `challenging` long-utterance. Seluruh audio tetap suara manusia dan dikonversi ke WAV PCM signed 16-bit mono 16 kHz. Subset challenging ini menguji beban utterance panjang/linguistik, bukan bukti robustness terhadap noise alami, overlap, atau variasi aksen. Reference berasal dari metadata FLEURS dan review dengar-manusia lokal tetap harus dicatat sebelum CP4 ditutup.
+
 Pengukuran ASR per model/perangkat: WER per bahasa, RTF, thread count, wall time, peak memory bila stabil, crash/OOM/ANR, thermal bila tersedia. Translation: ACCEPT/MAJOR_MEANING_ERROR/NEGATION_ERROR/NUMBER_OR_NAME_ERROR, median/p95 latency setelah model siap.
 
 CP4 tidak boleh PASS dari model checksum, build native, synthetic TTS, atau emulator saja. T11 tetap tertahan sampai benchmark fisik + review kualitas memenuhi gate atau keputusan eksplisit setelah FAIL/BLOCKED.

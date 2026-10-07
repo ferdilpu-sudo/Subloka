@@ -30,6 +30,7 @@ Status keputusan: ACCEPTED = kebutuhan/keputusan telah disepakati; PROPOSED = ar
 | ADR-024 | Frontend T04–T07 memakai fake adapter dan disclosure `DEMO` permanen sampai engine nyata terhubung | ACCEPTED | Memungkinkan validasi flow tanpa mengarang keberhasilan ASR/translation/export |
 | ADR-025 | T10 membandingkan whisper.cpp v1.9.4 multilingual `tiny` dan `base`; synthetic smoke tidak boleh menutup CP4 | ACCEPTED | Upstream Android merekomendasikan tiny/base; model dipin dengan SHA-256; keputusan final menunggu WER/resource perangkat fisik |
 | ADR-026 | T10 mengevaluasi ML Kit Translation 17.0.3 EN↔ID dengan explicit model readiness | ACCEPTED | EN/ID didukung on-device; input diproses lokal, tetapi SDK dapat melakukan model/update/metrics traffic sehingga disclosure privasi harus presisi |
+| ADR-027 | Fixture ASR CP4 memakai Google FLEURS dev split EN/ID yang dipin; clean = durasi tipikal, challenging = long-utterance | ACCEPTED | Audio manusia + reference tersedia untuk kedua bahasa; challenging dilaporkan terpisah dan tidak diklaim sebagai uji noise/overlap/aksen |
 
 ## Rationale keputusan teknis
 

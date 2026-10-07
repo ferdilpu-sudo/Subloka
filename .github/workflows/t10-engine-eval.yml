@@ -10,6 +10,7 @@ on:
       - "tools/t10_wer.py"
       - "tools/t10_device_benchmark.ps1"
       - "tools/t10_prepare_dataset.ps1"
+      - "tools/t10_fetch_fleurs_dataset.py"
       - "tools/t10_build_android_whisper.sh"
       - "tools/t10_dataset.example.json"
       - ".github/workflows/t10-engine-eval.yml"
@@ -113,6 +114,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Validate FLEURS dataset fetcher syntax
+        shell: bash
+        run: python -m py_compile tools/t10_fetch_fleurs_dataset.py
 
       - name: Validate dataset preparation script syntax
         shell: pwsh
