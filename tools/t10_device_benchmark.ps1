@@ -9,7 +9,11 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $WorkDir = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $WorkDir))
-$ManifestPath = [System.IO.Path]::GetFullPath($DatasetManifest)
+$ManifestPath = if ([System.IO.Path]::IsPathRooted($DatasetManifest)) {
+    [System.IO.Path]::GetFullPath($DatasetManifest)
+} else {
+    [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $DatasetManifest))
+}
 $Sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA "Android\Sdk" }
 $Adb = Join-Path $Sdk "platform-tools\adb.exe"
 $NdkVersion = "28.2.13676358"
