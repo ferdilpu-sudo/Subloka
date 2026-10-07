@@ -20,7 +20,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T05 | UI Projects, model setup, New Project | T04 | Home/recent/empty, model states, pick video + source language flow; tidak ada bottom nav; fake adapter/demo label; UI tests relevan lulus | DONE |
 | T06 | UI editor Caption/Timing/Style | T05 | Caption default; bounded preview; bilingual edit; stale translation actions; timing nudge/input; style MVP; keyboard/adaptive state; undo/redo UI teruji | DONE |
 | T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | DONE |
-| T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | IN_PROGRESS |
+| T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | DONE |
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | TODO |
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | TODO |
 | T11 | Pipeline ASR produksi | T10, CP4 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | TODO |
@@ -184,8 +184,18 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Belum terverifikasi: interrupted/error variants produksi dan export engine/progress/cancel nyata.
 - Acceptance: T07 selesai sebagai UI demo; real export tetap T14.
 
+### T08 / DONE / 2026-10-07
+- Dependensi/checkpoint: T07 DONE; CP3 PASS.
+- Sudah dibuat: `core:database` Room v1; repository project/caption; UUID string segment ID; project/source revision; optimistic compare-and-set translation; split/merge; timing validation; style persistence; editor autosave queue; flush sebelum Back/Export; persistence facade; schema export v1.
+- Sudah diuji: `DATA-001` PASS pada Android CI run #15, revision `deb5b1ebfe87254535a5a5845fa368cb6e6c8829`; domain unit tests, Room integration tests, schema fixture verification, assembleDebug, dan lintDebug seluruhnya PASS.
+- Belum terverifikasi: migrasi antarversi belum dapat diuji karena schema saat ini baru version 1; fixture `1.json` menjadi baseline wajib untuk migration test saat version 2 dibuat. Persistence proyek/media nyata selain fixture demo juga menunggu T09+.
+- Acceptance: Room/repository, revision monotonic, split/merge, autosave/reopen, manual-translation protection, dan schema fixture terpenuhi. T08 ditutup DONE.
+- Dokumen diperbarui: plan, testing, architecture, schema, README, `.agents/README.md`, FILELIST.
+- Blocker/risiko: tidak ada blocker T08. Jangan menganggap Room PASS sebagai bukti URI/media pipeline.
+- Next task: T09 — impor/pemutar/decode audio nyata.
+
 ### Handoff saat ini
-Build/lint frontend telah lulus pada `BUILD-001`/`BUILD-002`; `DEVICE-001` dan CP3 telah PASS berdasarkan konfirmasi smoke test manual pengguna. **T08 sekarang boleh dimulai**. Next task adalah persistensi lokal dan aturan editor, tanpa mengubah interaction model yang sudah dikunci. Bila runtime menemukan defect, perbaiki hanya frontend/scaffold terkait tanpa mengubah interaction model yang sudah dikunci.
+T08 telah DONE dengan `DATA-001` PASS pada revision `deb5b1e`. **Next executable task adalah T09**: impor URI nyata, metadata/orientasi/audio track, playback, decode PCM, relink, serta error tanpa audio/codec. Jangan mulai evaluasi ASR T10 sebelum T09 teruji.
 
 ### Handoff repository — 2026-10-06
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.
@@ -194,4 +204,4 @@ Build/lint frontend telah lulus pada `BUILD-001`/`BUILD-002`; `DEVICE-001` dan C
 - Sudah diuji setelah handoff: `BUILD-001` PASS pada GitHub Actions dan `BUILD-002` PASS pada Windows lokal; validator, assembleDebug, dan lintDebug seluruhnya sukses.
 - Sudah diuji: `DEVICE-001` PASS berdasarkan smoke test manual pengguna; CP3 PASS dan T05–T07 ditutup DONE sebagai frontend demo.
 - Aturan handoff: jangan membuat catatan planning Markdown baru di root; perbarui source of truth yang relevan di `.agents/`.
-- Task berikutnya: mulai T08 persistensi lokal dan aturan editor.
+- Task berikutnya: T09 impor/pemutar/decode audio nyata; T08 sudah DONE.

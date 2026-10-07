@@ -1,6 +1,6 @@
 # Kontrak Data Lokal
 
-Status: skema logis usulan v1, belum berupa database/migrasi yang berjalan. Room schema export dan migration test dibuat pada T08. Dokumen ini memiliki kontrak data; architecture.md memiliki alur penggunaannya.
+Status: schema Room v1 telah diimplementasikan pada T08 dan diekspor ke `core/database/schemas/app.subloka.core.database.SubLokaDatabase/1.json`. Ini adalah baseline migrasi. Belum ada migration antarversi karena belum ada schema version 2. Dokumen ini tetap memiliki kontrak data; architecture.md memiliki alur penggunaannya.
 
 ## Konvensi dan invariant
 
@@ -56,4 +56,4 @@ Readability/overflow warning dihitung dari teks, timing, style, dan ukuran frame
 
 ## Migrasi dan backup
 
-Mulai schema version 1 pada implementasi, ekspor schema Room ke version control. Setiap perubahan persisten membutuhkan migration path, fixture data lama, dan tes tidak kehilangan bilingual text/style. Destructive migration dilarang untuk data pengguna. Tidak ada cloud backup pada MVP; backup Android untuk database/media/transkrip dinonaktifkan melalui konfigurasi yang diuji. Ekspor proyek sebagai arsip merupakan fitur masa depan, berbeda dengan SRT.
+Schema version 1 sudah aktif dan export Room disimpan di version control. Karena v1 adalah versi pertama, tidak ada migration v0→v1. Setiap perubahan menuju version 2+ wajib memiliki migration path dari fixture lama dan tes tidak kehilangan bilingual text/style. Destructive migration dilarang untuk data pengguna. Tidak ada cloud backup pada MVP; backup Android untuk database/media/transkrip dinonaktifkan melalui konfigurasi yang diuji. Ekspor proyek sebagai arsip merupakan fitur masa depan, berbeda dengan SRT.

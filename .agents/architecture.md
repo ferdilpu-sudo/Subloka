@@ -1,13 +1,13 @@
 # Arsitektur Aplikasi
 
-Status: rancangan baseline; belum diimplementasikan. Tidak ada backend server. Seluruh komputasi konten lokal; jaringan hanya untuk penyiapan model yang disetujui pengguna.
+Status: baseline diimplementasikan sampai T08 untuk frontend, domain, dan persistence lokal. Media/ASR/translation/export produksi masih mengikuti task berikutnya. Tidak ada backend server; seluruh komputasi konten dirancang lokal dan jaringan hanya untuk penyiapan model yang disetujui pengguna.
 
 ## Stack dan batas kepastian
 
 | Komponen | Pilihan rancangan | Gate |
 |---|---|---|
 | UI | Kotlin, Jetpack Compose, ViewModel/StateFlow | T02, T04–T07 |
-| Penyimpanan | Room dan preferensi lokal | T08 |
+| Penyimpanan | Room 2.8.5 untuk project/caption/style; preference tambahan belum diperlukan | T08 DONE |
 | Pemutar / ekspor | Media3 player dan Transformer | T09, T14 |
 | Decode audio | Android extractor/decoder + konversi PCM eksplisit | T09 |
 | ASR | whisper.cpp multilingual melalui JNI | T10–T11 |
@@ -18,7 +18,7 @@ T02 menetapkan baseline: AGP 9.4.0, Gradle 9.6.0, Kotlin/Compose compiler 2.3.21
 
 ## Struktur berdasarkan tanggung jawab
 
-Rencana modul Gradle: `app` sebagai composition root; `core:domain` kontrak/model murni; `core:database` Room; `core:media` URI/decode/player adapter; `core:subtitle-renderer` layout subtitle; `core:designsystem` token/komponen bersama; `engine:asr` native; `engine:translation` SDK lokal. Fitur: `feature:projects`, `feature:models`, `feature:editor`, `feature:export`. Processing adalah state/job yang dipresentasikan di konteks project/editor, bukan feature destination terpisah. Nama namespace final ditetapkan T02.
+Struktur Gradle aktual sampai T08: `app` sebagai composition root; `core:domain` kontrak/model murni; `core:database` Room + persistence facade; `core:media` URI/decode/player adapter; `core:subtitle-renderer` layout subtitle; `core:designsystem` token/komponen bersama; `engine:asr` native; `engine:translation` SDK lokal. Fitur: `feature:projects`, `feature:models`, `feature:editor`, `feature:export`. Processing adalah state/job yang dipresentasikan di konteks project/editor, bukan feature destination terpisah. Nama namespace final ditetapkan T02.
 
 Modul tidak berarti setiap folder/fungsi perlu Gradle module. Pecah lebih jauh hanya karena isolasi native, kontrak, atau alasan perubahan yang konkret. Fitur projects menangani metadata proyek; editor menangani revisi subtitle; database hanya adapter persistensi, bukan pemilik aturan editorial.
 

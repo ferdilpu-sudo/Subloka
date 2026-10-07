@@ -2,7 +2,7 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current implementation is a **frontend demo shell**. Caption generation, translation, media decoding, persistence, and export engines are intentionally not connected yet. Demo states are labeled in the UI and must not be interpreted as real inference.
+Current implementation has the **frontend demo plus local Room persistence/editor rules**. Media import/playback, speech recognition, offline translation engine, and real export are not connected yet. Demo inference/export states remain labeled and must not be interpreted as real processing.
 
 ## Product direction
 
@@ -32,13 +32,14 @@ Android CI has verified the frontend scaffold on GitHub Actions:
 - verified build evidence: [Android CI run #9](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37462634099)
 - wrapper bootstrap evidence: [Bootstrap Gradle Wrapper run #1](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37463131375)
 
-The frontend also passed the user-confirmed DEVICE-001 manual smoke test and CP3 acceptance gate. This still does **not** prove media processing, offline inference, persistence, or real export; those remain later tasks in `.agents/testing.md`.
+The frontend also passed the user-confirmed DEVICE-001 manual smoke test and CP3 acceptance gate. T08 persistence passed domain/Room integration tests and schema-fixture verification on Android CI run #15. This still does **not** prove media processing, offline inference, or real export.
 
 ## Modules
 
 - `app` — composition root, navigation state, demo fixtures.
 - `core:domain` — UI-facing product models and invariants used by the demo.
 - `core:designsystem` — SubLoka theme and reusable semantic UI pieces.
+- `core:database` — Room v1, repository adapters, persistence facade, and schema fixture.
 - `feature:projects` — Projects, New Project, offline model setup, processing states.
 - `feature:editor` — Caption/Timing/Style editor workspaces and adaptive composition.
 - `feature:export` — final export choices and blocked-state explanation.
@@ -70,4 +71,4 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04–T07 are **DONE** as the frontend demo baseline and CP3 is **PASS**. The next implementation task is **T08: local persistence and editor rules**. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T08 are **DONE** and CP3 is **PASS**. The next implementation task is **T09: real media import/player/audio decode**. See `.agents/plan.md` and `.agents/testing.md`.

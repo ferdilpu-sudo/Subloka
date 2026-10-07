@@ -1,6 +1,6 @@
 # Pengujian, Gate, dan Bukti
 
-Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Build dan lint Android frontend telah berhasil dijalankan melalui GitHub Actions dan Windows lokal; smoke test runtime perangkat untuk frontend demo telah dikonfirmasi PASS oleh pengguna. Pemeriksaan statis lokal tetap dicatat terpisah agar bukti compile tidak disamakan dengan bukti usability/runtime.
+Dokumen ini membedakan strategi yang belum dijalankan dari bukti aktual. Tanggal baseline 2026-10-06. Build dan lint Android frontend telah berhasil dijalankan melalui GitHub Actions dan Windows lokal; smoke test runtime perangkat untuk frontend demo telah dikonfirmasi PASS oleh pengguna. T08 persistence/domain juga telah lulus unit/integration test serta verifikasi Room schema fixture pada CI. Pemeriksaan statis lokal tetap dicatat terpisah agar bukti compile tidak disamakan dengan bukti usability/runtime.
 
 ## Klasifikasi hasil
 
@@ -281,3 +281,19 @@ Dokumen/task yang diperbarui:
 - Actual: pengguna menyatakan secara eksplisit `DEVICE-001 PASS + CP3`.
 - Result: **PASS**.
 - Dampak: frontend demo diterima untuk melanjutkan ke T08. Status ini tidak menyatakan engine lokal, persistence, media decode, ASR, translation, atau export nyata sudah tersedia.
+
+
+### DATA-001 — T08 persistence dan editor rules
+
+- Task: T08.
+- Tanggal: 2026-10-07.
+- Revision: `deb5b1ebfe87254535a5a5845fa368cb6e6c8829`.
+- Lingkungan: GitHub Actions `ubuntu-latest`; JDK 21; Android SDK API 37.0; Gradle Wrapper 9.6.0; Room 2.8.5; Robolectric integration test.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37469858314
+- Langkah aktual: validator → `:core:domain:testDebugUnitTest` → `:core:database:testDebugUnitTest` → verifikasi tidak ada drift pada `core/database/schemas` → `:app:assembleDebug` → `:app:lintDebug`.
+- Expected: invariant timeline diuji; source edit membuat translation stale dan revision naik; data tetap ada setelah reopen database; overlap ditolak tanpa mutasi; split/merge menghasilkan ID baru dan translation stale; machine translation CAS menolak revision lama dan melindungi manual edit; style tersimpan; restore/undo-style snapshot tetap menaikkan project revision; schema v1 tersimpan di version control.
+- Actual: seluruh step CI selesai `success`; domain tests PASS, Room integration tests PASS, Room schema fixture PASS, assemble PASS, lint PASS.
+- Result: **PASS**.
+- Artefak bukti: `core/database/schemas/app.subloka.core.database.SubLokaDatabase/1.json`.
+- Batas: schema saat ini baru version 1 sehingga belum ada jalur migrasi antarversi yang dapat diuji. Fixture v1 ini menjadi input wajib untuk migration test ketika version 2 diperkenalkan. T08 juga tidak membuktikan URI/media decode, ASR, translation engine, atau real export.
+- Dampak: T08 dapat ditutup DONE; T09 menjadi task berikutnya.
