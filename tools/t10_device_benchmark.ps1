@@ -245,10 +245,12 @@ foreach ($Model in $Models) {
         $Process = Start-Process -FilePath $Adb -ArgumentList $AdbProcessArgs -NoNewWindow -PassThru -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
         $PeakRssKb = 0
         while (!$Process.HasExited) {
-            $PidText = (& $Adb @AdbArgs shell "pidof whisper-cli" 2>$null).Trim()
+            $PidOutput = & $Adb @AdbArgs shell "pidof whisper-cli" 2>$null
+            $PidText = if ($null -eq $PidOutput) { "" } else { ($PidOutput -join " ").Trim() }
             if ($PidText) {
                 $RemotePid = ($PidText -split "\s+")[0]
-                $RssLine = (& $Adb @AdbArgs shell "grep VmRSS /proc/$RemotePid/status" 2>$null) -join " "
+                $RssOutput = & $Adb @AdbArgs shell "grep VmRSS /proc/$RemotePid/status" 2>$null
+                $RssLine = if ($null -eq $RssOutput) { "" } else { ($RssOutput -join " ").Trim() }
                 if ($RssLine -match "(\d+)\s+kB") {
                     $PeakRssKb = [Math]::Max($PeakRssKb, [int]$Matches[1])
                 }
