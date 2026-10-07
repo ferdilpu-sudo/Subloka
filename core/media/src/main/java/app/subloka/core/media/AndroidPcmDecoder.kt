@@ -119,7 +119,7 @@ internal class AndroidPcmDecoder(
         maxOutputBytes: Long?,
         onChunk: (PcmChunk) -> Unit,
     ): PcmDecodeSummary {
-        val codec = MediaCodec.createDecoderByType(mime)
+        val codec = MediaCodec.createByCodecName(AndroidCodecSelector.findDecoderName(inputFormat))
         var started = false
         try {
             codec.configure(inputFormat, null, null, 0)

@@ -1,6 +1,7 @@
 package app.subloka.core.media
 
 import android.content.Context
+import android.media.MediaFormat
 import android.net.Uri
 import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
@@ -56,6 +57,22 @@ class AndroidMediaPipelineInstrumentedTest {
         val relink = mediaSource.verifyRelink(descriptor, Uri.fromFile(duplicate).toString())
         assertTrue(relink.accepted)
         assertEquals(descriptor.fingerprintSha256, relink.candidate.fingerprintSha256)
+    }
+
+    @Test
+    fun rejectsUnsupportedAudioCodecBeforeDecode() {
+        val unsupported = MediaFormat.createAudioFormat(
+            "audio/x-subloka-unsupported",
+            16_000,
+            1,
+        )
+
+        try {
+            AndroidCodecSelector.findDecoderName(unsupported)
+            fail("Expected MediaSourceException")
+        } catch (error: MediaSourceException) {
+            assertEquals(MediaErrorCode.UNSUPPORTED_MEDIA, error.code)
+        }
     }
 
     @Test
