@@ -382,3 +382,16 @@ Dokumen/task yang diperbarui:
 - Blocker: belum ada hasil dataset manusia 30 ujaran per bahasa + 30 translation segment per arah dan belum ada RTF/RAM/thermal dari perangkat fisik.
 - Syarat buka: jalankan physical benchmark dan review kualitas sesuai gate; jangan mengganti threshold setelah melihat hasil.
 - Dampak: T11 tetap TODO.
+
+
+### T10-HARNESS-001 — Physical benchmark harness
+
+- Task: T10 / CP4 preparation.
+- Tanggal: 2026-10-07.
+- Revision harness fix: `47641fe2533f16be664ada284787c9db7c66e86d`.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37563671752
+- Sudah diuji: PowerShell parser CI PASS untuk `tools/t10_device_benchmark.ps1`. Cross-compile arm64 whisper-cli sebelumnya PASS pada T10 Engine Evaluation run `37563402825` dengan NDK 28.2.13676358.
+- Sudah dibuat: benchmark script Windows/ADB, pinned tiny/base download+SHA-256, dataset count enforcement, device metadata capture, WER/RTF dan sampled peak RSS output.
+- Belum terverifikasi: script belum dieksekusi end-to-end pada Windows + perangkat fisik pengguna dengan dataset gate manusia.
+- Result: **PASS untuk syntax/build harness; BLOCKED untuk benchmark fisik**.
+- Dampak: CP4 tetap BLOCKED dan T11 tetap TODO.

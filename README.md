@@ -75,4 +75,4 @@ T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an
 
 ## T10 physical benchmark
 
-T10 includes `tools/t10_device_benchmark.ps1` for arm64 Android evaluation of pinned Whisper tiny/base through ADB. It validates model checksums, builds whisper.cpp v1.9.4 with NDK 28.2.13676358, enforces the minimum dataset counts, and writes WER/RTF/RSS results. Synthetic/emulator smoke results are not accepted as CP4 quality evidence.
+T10 includes `tools/t10_device_benchmark.ps1` for arm64 Android evaluation of pinned Whisper tiny/base through ADB. It validates model checksums, builds whisper.cpp v1.9.4 with NDK 28.2.13676358, enforces the minimum dataset counts, and writes WER/RTF/RSS results. Synthetic/emulator smoke results are not accepted as CP4 quality evidence. Start from `tools/t10_dataset.example.json`, prepare the required human-recorded dataset, then on Windows run `./tools/t10_device_benchmark.ps1 -DatasetManifest <path-to-manifest.json>` with an arm64 Android device connected through ADB.
