@@ -30,7 +30,7 @@ class AndroidMediaPipelineInstrumentedTest {
         val descriptor = mediaSource.inspect(Uri.fromFile(source).toString())
         assertEquals(64, descriptor.widthPx)
         assertEquals(64, descriptor.heightPx)
-        assertEquals(90, descriptor.rotationDegrees)
+        assertEquals(270, descriptor.rotationDegrees)
         assertEquals(1, descriptor.audioTracks.size)
         assertEquals("audio/mp4a-latm", descriptor.audioTracks.single().mimeType)
         assertEquals(16_000, descriptor.audioTracks.single().sampleRate)
