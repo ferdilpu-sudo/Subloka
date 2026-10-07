@@ -78,6 +78,26 @@ $Cmake = Join-Path $Sdk "cmake\$CmakeVersion\bin\cmake.exe"
 $Ninja = Join-Path $Sdk "cmake\$CmakeVersion\bin\ninja.exe"
 $Toolchain = Join-Path $Sdk "ndk\$NdkVersion\build\cmake\android.toolchain.cmake"
 
+function Find-AndroidCli {
+    $CommandLineTools = Join-Path $Sdk "cmdline-tools"
+    $Candidates = @()
+
+    if (Test-Path $CommandLineTools) {
+        $Candidates += Get-ChildItem -Path $CommandLineTools -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -in @("android.bat", "android.exe") } |
+            Select-Object -ExpandProperty FullName
+    }
+
+    $PathCommand = Get-Command android -ErrorAction SilentlyContinue
+    if ($PathCommand -and $PathCommand.Source) {
+        $Candidates += $PathCommand.Source
+    }
+
+    return $Candidates |
+        Sort-Object -Unique -Descending |
+        Select-Object -First 1
+}
+
 function Find-SdkManager {
     $CommandLineTools = Join-Path $Sdk "cmdline-tools"
     if (!(Test-Path $CommandLineTools)) { return $null }
@@ -89,22 +109,35 @@ function Find-SdkManager {
 
 $NeedNativeToolchain = !(Test-Path $Cmake) -or !(Test-Path $Ninja) -or !(Test-Path $Toolchain)
 if ($NeedNativeToolchain) {
+    $AndroidCli = Find-AndroidCli
     $SdkManager = Find-SdkManager
-    if (!$SdkManager) {
+
+    if ($AndroidCli) {
+        Write-Host "Menggunakan Android CLI: $AndroidCli"
+        & $AndroidCli "--sdk=$Sdk" "sdk" "install" "ndk/$NdkVersion" "cmake/$CmakeVersion" | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            throw "Instalasi NDK/CMake melalui Android CLI gagal."
+        }
+    } elseif ($SdkManager) {
+        Write-Host "Menggunakan sdkmanager klasik: $SdkManager"
+        & $SdkManager --install "ndk;$NdkVersion" "cmake;$CmakeVersion" | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            throw "Instalasi NDK/CMake melalui sdkmanager gagal."
+        }
+    } else {
         throw @"
-Android SDK Command-line Tools belum ditemukan di:
-$Sdk\cmdline-tools
+Android SDK package manager belum ditemukan.
+
+Dicari:
+- Android CLI baru: android.bat/android.exe
+- sdkmanager klasik: sdkmanager.bat
+- SDK root: $Sdk
 
 NDK $NdkVersion atau CMake $CmakeVersion juga belum lengkap.
-Buka Android Studio > Settings > Languages & Frameworks > Android SDK > SDK Tools,
-centang "Android SDK Command-line Tools (latest)", lalu Apply.
-Setelah itu jalankan script ini lagi.
+Buka Android Studio > Tools > SDK Manager > SDK Tools,
+pasang Android SDK Command-line Tools (latest), lalu jalankan script ini lagi.
 "@
     }
-
-    Write-Host "Menggunakan sdkmanager: $SdkManager"
-    & $SdkManager "ndk;$NdkVersion" "cmake;$CmakeVersion" | Out-Host
-    if ($LASTEXITCODE -ne 0) { throw "Instalasi NDK/CMake melalui sdkmanager gagal." }
 }
 
 foreach ($RequiredTool in @($Cmake, $Ninja, $Toolchain)) {
