@@ -7,10 +7,16 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import app.subloka.core.domain.MediaErrorCode
 import app.subloka.core.domain.MediaSourceException
 import app.subloka.core.domain.PcmSampleFormat
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -60,6 +66,41 @@ class AndroidMediaPipelineInstrumentedTest {
         val relink = mediaSource.verifyRelink(descriptor, duplicate.toString())
         assertTrue(relink.accepted)
         assertEquals(descriptor.fingerprintSha256, relink.candidate.fingerprintSha256)
+    }
+
+    @Test
+    fun playbackControllerPreparesContentUri() {
+        val source = fixture("playback-av.mp4", ROTATED_AV_MP4)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val ready = CountDownLatch(1)
+        val failure = AtomicReference<PlaybackException?>(null)
+        lateinit var controller: MediaPlaybackController
+
+        instrumentation.runOnMainSync {
+            controller = MediaPlaybackController(context)
+            controller.player.addListener(
+                object : Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_READY) {
+                            ready.countDown()
+                        }
+                    }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        failure.set(error)
+                        ready.countDown()
+                    }
+                },
+            )
+            controller.load(source.toString())
+        }
+
+        assertTrue("Player did not become ready", ready.await(10, TimeUnit.SECONDS))
+        failure.get()?.let { throw AssertionError("Player failed to prepare content URI", it) }
+
+        instrumentation.runOnMainSync {
+            controller.close()
+        }
     }
 
     @Test
