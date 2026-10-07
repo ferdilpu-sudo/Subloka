@@ -297,3 +297,19 @@ Dokumen/task yang diperbarui:
 - Artefak bukti: `core/database/schemas/app.subloka.core.database.SubLokaDatabase/1.json`.
 - Batas: schema saat ini baru version 1 sehingga belum ada jalur migrasi antarversi yang dapat diuji. Fixture v1 ini menjadi input wajib untuk migration test ketika version 2 diperkenalkan. T08 juga tidak membuktikan URI/media decode, ASR, translation engine, atau real export.
 - Dampak: T08 dapat ditutup DONE; T09 menjadi task berikutnya.
+
+
+### MEDIA-001 — T09 real media pipeline
+
+- Task: T09.
+- Tanggal: 2026-10-07.
+- Revision: `900d7af443d0e4c61a39f96eaef27aca49d51b77`.
+- Workflow: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37560614944
+- Lingkungan: GitHub Actions; build job + Android 11/API 30 x86_64 emulator; Media3 1.11.1; Android MediaExtractor/MediaCodec.
+- Fixture: MP4 H.264 + AAC 16 kHz mono dengan rotation metadata; duplicate fixture melalui URI berbeda; MP4 tanpa audio; synthetic unsupported audio format.
+- Langkah: unit test relink; compile androidTest; instrumented media test via `content://`; inspect metadata; decode AAC→PCM dengan byte cap; compare source bytes sebelum/sesudah; verify relink; reject no-audio/unsupported codec; prepare Media3 playback sampai `Player.STATE_READY`; assemble/lint.
+- Expected: metadata/orientasi/audio track valid; PCM non-empty dengan sample rate/channel benar; source tidak dimodifikasi; relink hanya menerima fingerprint sama; error domain benar; player dapat prepare URI.
+- Actual: seluruh build job dan `media-device` job PASS. Media3 mencapai READY; PCM decode menghasilkan data; source fixture tetap byte-identik.
+- Result: **PASS**.
+- Batas: emulator tidak membuktikan thermal/performance perangkat fisik atau seluruh codec OEM/VFR. Multi-track selection UX belum menjadi coverage gate. Coverage kompatibilitas luas tetap T15.
+- Dampak: T09 DONE; T10 boleh dimulai.

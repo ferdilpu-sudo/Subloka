@@ -17,7 +17,8 @@ Folder `.agents/` adalah source of truth untuk spesifikasi, keputusan, rencana, 
 | UI demo T05–T07 | **DONE**; compile/lint dan DEVICE-001 smoke test lulus; CP3 PASS |
 | Emulator / perangkat fisik | DEVICE-001 **PASS** berdasarkan smoke test manual pengguna |
 | Persistence lokal T08 | **DONE**; Room v1, autosave/editor rules, reopen, revision dan schema fixture teruji |
-| Media / ASR / translation engine / export nyata | Belum diintegrasikan dan belum diverifikasi |
+| Media T09 | **DONE**; content URI, metadata/rotation/audio, PCM decode, relink, error gate dan Media3 playback teruji pada Android 11 emulator |
+| ASR / translation engine / export nyata | Belum diintegrasikan dan belum diverifikasi |
 | Akurasi, performa dan kompatibilitas | Belum diverifikasi |
 
 Bukti teknis terbaru: `DATA-001` pada GitHub Actions run #15, revision `deb5b1ebfe87254535a5a5845fa368cb6e6c8829`; domain tests, Room integration tests, schema fixture, assemble dan lint PASS. Ini belum membuktikan media/ASR/translation/export produksi.
@@ -89,16 +90,16 @@ Urutan baca agent: `../README.md` → `README.md` → `AGENTS.md` → `rules.md`
 
 ## Arah teknis
 
-Baseline frontend: Kotlin built-in AGP + Jetpack Compose, minSdk 26, compile/target SDK 37. Room 2.8.5 persistence telah terintegrasi pada T08. Dependency fase berikutnya: Media3 1.11.1 untuk T09, ML Kit Translate 17.0.3, dan whisper.cpp v1.9.4 kandidat T10. Ukuran model, ABI final, media compatibility, dan kemampuan ekspor tetap menunggu gate teknis.
+Baseline frontend: Kotlin built-in AGP + Jetpack Compose, minSdk 26, compile/target SDK 37. Room 2.8.5 persistence telah terintegrasi pada T08. Media3 1.11.1 telah terintegrasi pada T09. Fase T10 mengevaluasi ML Kit Translate 17.0.3 dan whisper.cpp v1.9.4 sebagai kandidat offline. Ukuran model, ABI final, media compatibility, dan kemampuan ekspor tetap menunggu gate teknis.
 
 ## Melanjutkan implementasi
 
 1. Baca seluruh pedoman dan kode aktual.
 2. T04–T08 dan CP3 telah selesai.
-3. Next task adalah **T09: impor/pemutar/decode audio nyata**.
-4. Implementasikan URI/relink, metadata/orientasi/audio-track discovery, player, decode PCM bertahap, dan error media sesuai architecture.
-5. Uji file tanpa audio, rotated video, codec/input yang tidak didukung, dan pastikan video sumber tidak dimodifikasi.
-6. Jangan mulai evaluasi ASR T10 sebelum T09 lulus.
+3. T09 media baseline telah lulus pada Android 11 emulator.
+4. Next task adalah **T10: evaluasi engine dan model offline**.
+5. Ukur kandidat ASR/translation EN↔ID, readiness/download, lisensi, kualitas, latency/RAM dan batas perangkat dengan fixture yang terdokumentasi.
+6. Jangan mulai T11 sebelum CP4 lulus atau keputusan BLOCKED dicatat.
 
 GitHub Actions telah membuktikan build/lint frontend dan T08 persistence tests. Evidence terbaru berada di testing.md sebagai `DATA-001`.
 

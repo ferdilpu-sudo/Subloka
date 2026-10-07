@@ -21,8 +21,8 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T06 | UI editor Caption/Timing/Style | T05 | Caption default; bounded preview; bilingual edit; stale translation actions; timing nudge/input; style MVP; keyboard/adaptive state; undo/redo UI teruji | DONE |
 | T07 | UI processing dan export | T06 | Processing sebagai project state; progress/cancel/interrupted/error; export options + blocked reasons; fake adapter; CP3 tinjauan UI selesai | DONE |
 | T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | DONE |
-| T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | IN_PROGRESS |
-| T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | TODO |
+| T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | DONE |
+| T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | IN_PROGRESS |
 | T11 | Pipeline ASR produksi | T10, CP4 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | TODO |
 | T12 | Pipeline translation produksi | T11 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | TODO |
 | T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
@@ -194,8 +194,17 @@ Nama produk, perangkat target, toolchain, model, benchmark, profil codec, breakp
 - Blocker/risiko: tidak ada blocker T08. Jangan menganggap Room PASS sebagai bukti URI/media pipeline.
 - Next task: T09 — impor/pemutar/decode audio nyata.
 
+### T09 / DONE / 2026-10-07
+- Dependensi/checkpoint: T08 DONE.
+- Sudah dibuat: `core:media`; OpenDocument `content://` flow; persistable read permission; SHA-256 fingerprint; metadata/orientation/audio-track discovery; Media3 playback; MediaExtractor/MediaCodec PCM decode; relink verification; structured media errors.
+- Sudah diuji: `MEDIA-001` PASS pada GitHub Actions run #31, revision `900d7af443d0e4c61a39f96eaef27aca49d51b77`; Android 11 emulator menjalankan media pipeline lewat `content://`.
+- Bukti perilaku: rotated MP4 dibaca; AAC 16 kHz mono didekode menjadi PCM; source bytes tetap identik; duplicate URI dengan fingerprint sama diterima untuk relink; no-audio ditolak; unsupported codec ditolak; Media3 player mencapai `STATE_READY`.
+- Belum terverifikasi: variasi codec/perangkat di luar fixture gate, VFR edge case, multi-audio selection UX, dan performa decode video panjang pada perangkat fisik. Ini tidak menghalangi T09 karena kontrak dasar media telah terbukti; coverage luas masuk T15.
+- Acceptance: seluruh kriteria T09 terpenuhi untuk baseline media.
+- Next task: T10 — evaluasi engine/model offline dan CP4.
+
 ### Handoff saat ini
-T08 telah DONE dengan `DATA-001` PASS pada revision `deb5b1e`. **Next executable task adalah T09**: impor URI nyata, metadata/orientasi/audio track, playback, decode PCM, relink, serta error tanpa audio/codec. Jangan mulai evaluasi ASR T10 sebelum T09 teruji.
+T09 telah DONE dengan `MEDIA-001` PASS pada Android 11 emulator. **T10 sekarang IN_PROGRESS** untuk evaluasi engine/model offline, model readiness, lisensi, kualitas, resource, dan CP4. Jangan memulai T11 pipeline ASR produksi sebelum CP4 lulus atau keputusan BLOCKED dicatat.
 
 ### Handoff repository — 2026-10-06
 - Tujuan: menyiapkan source tree untuk repository `ferdilpu-sudo/Subloka` dan menjadikan `.agents/` satu-satunya lokasi catatan coding-agent Markdown.

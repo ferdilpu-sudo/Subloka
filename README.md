@@ -32,7 +32,7 @@ Android CI has verified the frontend scaffold on GitHub Actions:
 - verified build evidence: [Android CI run #9](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37462634099)
 - wrapper bootstrap evidence: [Bootstrap Gradle Wrapper run #1](https://github.com/ferdilpu-sudo/Subloka/actions/runs/37463131375)
 
-The frontend also passed the user-confirmed DEVICE-001 manual smoke test and CP3 acceptance gate. T08 persistence passed domain/Room integration tests and schema-fixture verification on Android CI run #15. This still does **not** prove media processing, offline inference, or real export.
+The frontend also passed the user-confirmed DEVICE-001 manual smoke test and CP3 acceptance gate. T08 persistence passed domain/Room integration tests and schema-fixture verification on Android CI run #15. T09 also proves the baseline real media path on an Android 11 emulator. This still does **not** prove offline ASR/translation quality, physical-device performance, or real export.
 
 ## Modules
 
@@ -71,4 +71,4 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04–T08 are **DONE** and CP3 is **PASS**. The next implementation task is **T09: real media import/player/audio decode**. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. The next task is **T10: offline engine/model evaluation and CP4**. See `.agents/plan.md` and `.agents/testing.md`.
