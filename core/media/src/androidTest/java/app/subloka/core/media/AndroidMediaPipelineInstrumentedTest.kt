@@ -1,15 +1,16 @@
 package app.subloka.core.media
 
+import android.content.ContentValues
 import android.content.Context
 import android.media.MediaFormat
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.subloka.core.domain.MediaErrorCode
 import app.subloka.core.domain.MediaSourceException
 import app.subloka.core.domain.PcmSampleFormat
-import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -25,10 +26,12 @@ class AndroidMediaPipelineInstrumentedTest {
     fun inspectsRotatedMp4DecodesAacRelinksAndPreservesSource() = runBlocking {
         val source = fixture("rotated-av.mp4", ROTATED_AV_MP4)
         val duplicate = fixture("rotated-av-copy.mp4", ROTATED_AV_MP4)
-        val before = source.readBytes()
+        val before = readBytes(source)
         val mediaSource = AndroidMediaSource(context)
 
-        val descriptor = mediaSource.inspect(Uri.fromFile(source).toString())
+        val descriptor = mediaSource.inspect(source.toString())
+        assertEquals("rotated-av.mp4", descriptor.displayName)
+        assertTrue((descriptor.sizeBytes ?: 0L) > 0L)
         assertEquals(64, descriptor.widthPx)
         assertEquals(64, descriptor.heightPx)
         assertEquals(270, descriptor.rotationDegrees)
@@ -52,9 +55,9 @@ class AndroidMediaPipelineInstrumentedTest {
         assertTrue(emittedBytes > 0)
         assertTrue(summary.bytesDecoded > 0)
         assertTrue(summary.truncated)
-        assertTrue(before.contentEquals(source.readBytes()))
+        assertTrue(before.contentEquals(readBytes(source)))
 
-        val relink = mediaSource.verifyRelink(descriptor, Uri.fromFile(duplicate).toString())
+        val relink = mediaSource.verifyRelink(descriptor, duplicate.toString())
         assertTrue(relink.accepted)
         assertEquals(descriptor.fingerprintSha256, relink.candidate.fingerprintSha256)
     }
@@ -81,17 +84,38 @@ class AndroidMediaPipelineInstrumentedTest {
         val mediaSource = AndroidMediaSource(context)
 
         try {
-            mediaSource.inspect(Uri.fromFile(source).toString())
+            mediaSource.inspect(source.toString())
             fail("Expected MediaSourceException")
         } catch (error: MediaSourceException) {
             assertEquals(MediaErrorCode.NO_AUDIO, error.code)
         }
     }
 
-    private fun fixture(name: String, base64: String): File =
-        File(context.cacheDir, name).apply {
-            writeBytes(Base64.decode(base64, Base64.DEFAULT))
+    private fun fixture(name: String, base64: String): Uri {
+        val resolver = context.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, name)
+            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/SubLokaTests")
+            put(MediaStore.Video.Media.IS_PENDING, 1)
         }
+        val uri = requireNotNull(
+            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values),
+        )
+        resolver.openOutputStream(uri, "w")!!.use { output ->
+            output.write(Base64.decode(base64, Base64.DEFAULT))
+        }
+        resolver.update(
+            uri,
+            ContentValues().apply { put(MediaStore.Video.Media.IS_PENDING, 0) },
+            null,
+            null,
+        )
+        return uri
+    }
+
+    private fun readBytes(uri: Uri): ByteArray =
+        context.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
 
     private companion object {
         const val ROTATED_AV_MP4 = "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"
