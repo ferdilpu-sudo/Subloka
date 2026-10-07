@@ -3,6 +3,7 @@ package app.subloka.engine.asr
 import app.subloka.core.domain.ManagedModelDescriptor
 import app.subloka.core.domain.ModelReadinessState
 import java.security.MessageDigest
+import java.nio.file.Files
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -12,7 +13,7 @@ import org.junit.Test
 class WhisperModelStoreTest {
     @Test
     fun validModelIsInstalledAtomicallyAndBecomesReady() = runTest {
-        val dir = createTempDir(prefix = "subloka-model-test-")
+        val dir = Files.createTempDirectory("subloka-model-test-").toFile()
         try {
             val bytes = "valid whisper fixture".encodeToByteArray()
             val model = descriptor(bytes)
@@ -32,7 +33,7 @@ class WhisperModelStoreTest {
 
     @Test
     fun checksumMismatchDoesNotPublishPartialModel() = runTest {
-        val dir = createTempDir(prefix = "subloka-model-test-")
+        val dir = Files.createTempDirectory("subloka-model-test-").toFile()
         try {
             val expectedBytes = "expected".encodeToByteArray()
             val model = descriptor(expectedBytes)
