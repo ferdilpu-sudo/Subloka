@@ -24,6 +24,52 @@ if (!(Test-Path $Adb)) {
     throw "adb.exe tidak ditemukan: $Adb. Pastikan Android SDK Platform-Tools terpasang."
 }
 
+$Dataset = Get-Content $ManifestPath -Raw | ConvertFrom-Json
+if (!$Dataset.samples) { throw "Manifest harus memiliki array samples." }
+
+$AllowedLanguages = @("en", "id")
+$AllowedCategories = @("clean", "challenging")
+$SeenIds = @{}
+
+foreach ($Sample in $Dataset.samples) {
+    if (!$Sample.id -or $SeenIds.ContainsKey([string]$Sample.id)) {
+        throw "Setiap sample harus memiliki id unik. Duplikat/kosong: $($Sample.id)"
+    }
+    $SeenIds[[string]$Sample.id] = $true
+
+    if ($AllowedLanguages -notcontains [string]$Sample.language) {
+        throw "Language sample $($Sample.id) harus en atau id."
+    }
+    if ($AllowedCategories -notcontains [string]$Sample.category) {
+        throw "Category sample $($Sample.id) harus clean atau challenging."
+    }
+
+    $Reference = [string]$Sample.reference
+    if ([string]::IsNullOrWhiteSpace($Reference) -or $Reference -match "^__FILL_" -or $Reference -match "Replace with|Ganti dengan") {
+        throw "Reference transcript belum diisi/review untuk sample $($Sample.id)."
+    }
+
+    $Duration = [double]$Sample.durationSeconds
+    if ($Duration -le 0) {
+        throw "durationSeconds belum valid untuk sample $($Sample.id)."
+    }
+
+    $AudioPath = [System.IO.Path]::GetFullPath((Join-Path (Split-Path $ManifestPath) ([string]$Sample.audio)))
+    if (!(Test-Path $AudioPath)) {
+        throw "Audio sample tidak ditemukan untuk $($Sample.id): $AudioPath"
+    }
+}
+
+foreach ($Lang in $AllowedLanguages) {
+    $Clean = @($Dataset.samples | Where-Object { $_.language -eq $Lang -and $_.category -eq "clean" }).Count
+    $Challenging = @($Dataset.samples | Where-Object { $_.language -eq $Lang -and $_.category -eq "challenging" }).Count
+    if ($Clean -lt 20 -or $Challenging -lt 10) {
+        throw "Dataset $Lang belum memenuhi gate 20 clean + 10 challenging. Saat ini clean=$Clean challenging=$Challenging"
+    }
+}
+
+Write-Host "Dataset preflight PASS: $($Dataset.samples.Count) samples."
+
 $Cmake = Join-Path $Sdk "cmake\$CmakeVersion\bin\cmake.exe"
 $Ninja = Join-Path $Sdk "cmake\$CmakeVersion\bin\ninja.exe"
 $Toolchain = Join-Path $Sdk "ndk\$NdkVersion\build\cmake\android.toolchain.cmake"
@@ -104,16 +150,6 @@ foreach ($Model in $Models) {
     }
     $Actual = (Get-FileHash $Path -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($Actual -ne $Model.Sha) { throw "Checksum model $($Model.Name) tidak cocok." }
-}
-
-$Dataset = Get-Content $ManifestPath -Raw | ConvertFrom-Json
-if (!$Dataset.samples) { throw "Manifest harus memiliki array samples." }
-foreach ($Lang in @("en", "id")) {
-    $Clean = @($Dataset.samples | Where-Object { $_.language -eq $Lang -and $_.category -eq "clean" }).Count
-    $Challenging = @($Dataset.samples | Where-Object { $_.language -eq $Lang -and $_.category -eq "challenging" }).Count
-    if ($Clean -lt 20 -or $Challenging -lt 10) {
-        throw "Dataset $Lang belum memenuhi gate 20 clean + 10 challenging. Saat ini clean=$Clean challenging=$Challenging"
-    }
 }
 
 $AdbArgs = @()

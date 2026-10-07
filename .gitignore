@@ -8,3 +8,5 @@ captures/
 .externalNativeBuild/
 .cxx/
 .t10-benchmark/
+/t10-dataset.json
+/t10-audio/
