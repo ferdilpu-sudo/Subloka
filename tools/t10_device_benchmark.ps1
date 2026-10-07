@@ -11,23 +11,59 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $WorkDir = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $WorkDir))
 $ManifestPath = [System.IO.Path]::GetFullPath($DatasetManifest)
 $Sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA "Android\Sdk" }
-$SdkManager = Join-Path $Sdk "cmdline-tools\latest\bin\sdkmanager.bat"
 $Adb = Join-Path $Sdk "platform-tools\adb.exe"
 $NdkVersion = "28.2.13676358"
 $CmakeVersion = "3.22.1"
 $Remote = "/data/local/tmp/subloka-t10"
 $ModelRevision = "80da2d8bfee42b0e836fc3a9890373e5defc00a6"
 
-if (!(Test-Path $SdkManager)) { throw "sdkmanager.bat tidak ditemukan: $SdkManager" }
-if (!(Test-Path $Adb)) { throw "adb.exe tidak ditemukan: $Adb" }
-if (!(Test-Path $ManifestPath)) { throw "Dataset manifest tidak ditemukan: $ManifestPath" }
-
-New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
-& $SdkManager "ndk;$NdkVersion" "cmake;$CmakeVersion" | Out-Host
+if (!(Test-Path $ManifestPath)) {
+    throw "Dataset manifest tidak ditemukan: $ManifestPath. Path pada contoh hanyalah placeholder; gunakan path JSON dataset nyata."
+}
+if (!(Test-Path $Adb)) {
+    throw "adb.exe tidak ditemukan: $Adb. Pastikan Android SDK Platform-Tools terpasang."
+}
 
 $Cmake = Join-Path $Sdk "cmake\$CmakeVersion\bin\cmake.exe"
 $Ninja = Join-Path $Sdk "cmake\$CmakeVersion\bin\ninja.exe"
 $Toolchain = Join-Path $Sdk "ndk\$NdkVersion\build\cmake\android.toolchain.cmake"
+
+function Find-SdkManager {
+    $CommandLineTools = Join-Path $Sdk "cmdline-tools"
+    if (!(Test-Path $CommandLineTools)) { return $null }
+
+    return Get-ChildItem -Path $CommandLineTools -Filter "sdkmanager.bat" -File -Recurse -ErrorAction SilentlyContinue |
+        Sort-Object FullName -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+
+$NeedNativeToolchain = !(Test-Path $Cmake) -or !(Test-Path $Ninja) -or !(Test-Path $Toolchain)
+if ($NeedNativeToolchain) {
+    $SdkManager = Find-SdkManager
+    if (!$SdkManager) {
+        throw @"
+Android SDK Command-line Tools belum ditemukan di:
+$Sdk\cmdline-tools
+
+NDK $NdkVersion atau CMake $CmakeVersion juga belum lengkap.
+Buka Android Studio > Settings > Languages & Frameworks > Android SDK > SDK Tools,
+centang "Android SDK Command-line Tools (latest)", lalu Apply.
+Setelah itu jalankan script ini lagi.
+"@
+    }
+
+    Write-Host "Menggunakan sdkmanager: $SdkManager"
+    & $SdkManager "ndk;$NdkVersion" "cmake;$CmakeVersion" | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "Instalasi NDK/CMake melalui sdkmanager gagal." }
+}
+
+foreach ($RequiredTool in @($Cmake, $Ninja, $Toolchain)) {
+    if (!(Test-Path $RequiredTool)) {
+        throw "Native toolchain belum lengkap setelah setup: $RequiredTool"
+    }
+}
+
+New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
 
 $SourceArchive = Join-Path $WorkDir "whisper-v1.9.4.tar.gz"
 $SourceDir = Join-Path $WorkDir "whisper.cpp-1.9.4"
@@ -138,8 +174,8 @@ foreach ($Model in $Models) {
         while (!$Process.HasExited) {
             $PidText = (& $Adb @AdbArgs shell "pidof whisper-cli" 2>$null).Trim()
             if ($PidText) {
-                $Pid = ($PidText -split "\s+")[0]
-                $RssLine = (& $Adb @AdbArgs shell "grep VmRSS /proc/$Pid/status" 2>$null) -join " "
+                $RemotePid = ($PidText -split "\s+")[0]
+                $RssLine = (& $Adb @AdbArgs shell "grep VmRSS /proc/$RemotePid/status" 2>$null) -join " "
                 if ($RssLine -match "(\d+)\s+kB") {
                     $PeakRssKb = [Math]::Max($PeakRssKb, [int]$Matches[1])
                 }
