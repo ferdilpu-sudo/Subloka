@@ -101,3 +101,23 @@ jobs:
           profile: pixel_4
           disable-animations: true
           script: ./gradlew --stacktrace :engine:translation:connectedDebugAndroidTest
+
+  android-benchmark-binary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install pinned Android NDK
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - name: Cross-compile whisper-cli for arm64 Android
+        shell: bash
+        run: |
+          bash tools/t10_build_android_whisper.sh "$RUNNER_TEMP/t10-android"

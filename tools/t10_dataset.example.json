@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "note": "Contoh format saja. CP4 membutuhkan sekurangnya 20 clean + 10 challenging per bahasa dengan audio manusia dan reference yang ditinjau.",
+  "samples": [
+    {
+      "id": "en-clean-01",
+      "language": "en",
+      "category": "clean",
+      "audio": "audio/en-clean-01.wav",
+      "reference": "Replace with reviewed English transcript.",
+      "durationSeconds": 3
+    },
+    {
+      "id": "id-clean-01",
+      "language": "id",
+      "category": "clean",
+      "audio": "audio/id-clean-01.wav",
+      "reference": "Ganti dengan transkrip Indonesia yang sudah ditinjau.",
+      "durationSeconds": 3
+    }
+  ]
+}
