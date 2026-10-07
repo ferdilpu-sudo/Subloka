@@ -373,6 +373,9 @@ def main() -> int:
     if len(samples) != 60:
         raise RuntimeError(f"Expected 60 sample, actual {len(samples)}.")
 
+    for sample in samples:
+        sample["audio"] = Path(sample["audio"]).relative_to(repo_root).as_posix()
+
     manifest_payload = {
         "version": 1,
         "source": {
