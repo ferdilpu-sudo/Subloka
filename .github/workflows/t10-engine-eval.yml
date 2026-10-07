@@ -46,6 +46,19 @@ jobs:
             echo "- whisper.cpp engine candidate: v1.9.4"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Install synthetic-speech tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y espeak-ng ffmpeg
+
+      - name: Run whisper.cpp bilingual synthetic smoke
+        shell: bash
+        run: |
+          bash tools/t10_whisper_synthetic_smoke.sh \
+            "$RUNNER_TEMP/whisper-models" \
+            "$RUNNER_TEMP/whisper-smoke"
+          cat "$RUNNER_TEMP/whisper-smoke/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
   translation-device:
     runs-on: ubuntu-latest
     timeout-minutes: 35
