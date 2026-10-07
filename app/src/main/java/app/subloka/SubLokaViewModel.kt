@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
+import app.subloka.core.domain.MediaDescriptor
+import app.subloka.core.domain.SourceLanguage
 import app.subloka.demo.DemoData
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -39,6 +41,9 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     private val _saveState = MutableStateFlow(PersistenceSaveState.LOADING)
     val saveState: StateFlow<PersistenceSaveState> = _saveState.asStateFlow()
 
+    private val _sourceUri = MutableStateFlow<String?>(null)
+    val sourceUri: StateFlow<String?> = _sourceUri.asStateFlow()
+
     init {
         viewModelScope.launch {
             loadOrSeedDemoProject()
@@ -68,6 +73,41 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun persistMediaSelection(
+        media: MediaDescriptor,
+        sourceLanguage: SourceLanguage,
+        onComplete: (Boolean) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                val current = projectRepository.find(DemoData.PROJECT_ID) ?: DemoData.persistentProject
+                val now = System.currentTimeMillis()
+                projectRepository.upsert(
+                    current.copy(
+                        title = media.displayName.substringBeforeLast('.').ifBlank { current.title },
+                        sourceUri = media.uri,
+                        sourceDisplayName = media.displayName,
+                        sourceSizeBytes = media.sizeBytes,
+                        sourceFingerprint = media.fingerprintSha256,
+                        durationUs = media.durationUs,
+                        widthPx = media.widthPx,
+                        heightPx = media.heightPx,
+                        rotationDegrees = media.rotationDegrees,
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = sourceLanguage.target,
+                        contentRevision = current.contentRevision + 1,
+                        updatedAtMs = now,
+                    ),
+                )
+                _sourceUri.value = media.uri
+                onComplete(true)
+            } catch (_: Throwable) {
+                _saveState.value = PersistenceSaveState.FAILED
+                onComplete(false)
+            }
+        }
+    }
+
     fun flush(onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             val barrier = CompletableDeferred<Boolean>()
@@ -88,8 +128,10 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
                 projectRepository.upsert(DemoData.persistentProject)
                 captionRepository.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
             }
+            val project = requireNotNull(projectRepository.find(DemoData.PROJECT_ID))
             _segments.value = captionRepository.list(DemoData.PROJECT_ID)
             _style.value = projectRepository.getStyle(DemoData.PROJECT_ID)
+            _sourceUri.value = project.sourceUri.takeUnless { it.startsWith("demo://") }
             _saveState.value = PersistenceSaveState.SAVED
         } catch (_: Throwable) {
             saveFailureSinceLastBarrier = true

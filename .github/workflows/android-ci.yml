@@ -62,6 +62,12 @@ jobs:
       - name: Database integration tests
         run: ./gradlew --stacktrace :core:database:testDebugUnitTest
 
+      - name: Media unit tests
+        run: ./gradlew --stacktrace :core:media:testDebugUnitTest
+
+      - name: Compile media device tests
+        run: ./gradlew --stacktrace :core:media:assembleDebugAndroidTest
+
       - name: Verify Room schema fixture
         shell: bash
         run: |

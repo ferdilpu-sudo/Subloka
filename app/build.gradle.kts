@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:database"))
+    implementation(project(":core:media"))
     implementation(project(":feature:projects"))
     implementation(project(":feature:editor"))
     implementation(project(":feature:export"))

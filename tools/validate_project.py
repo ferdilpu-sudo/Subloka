@@ -14,6 +14,7 @@ required = [
     "app/build.gradle.kts",
     "app/src/main/java/app/subloka/MainActivity.kt",
     "core/database/build.gradle.kts",
+    "core/media/build.gradle.kts",
     "core/database/src/main/java/app/subloka/core/database/SubLokaDatabase.kt",
     "feature/editor/src/main/java/app/subloka/feature/editor/EditorScreen.kt",
     ".agents/plan.md",
@@ -24,7 +25,7 @@ for rel in required:
         errors.append(f"missing required file: {rel}")
 
 settings = (ROOT / "settings.gradle.kts").read_text(encoding="utf-8")
-for module in [":app", ":core:domain", ":core:designsystem", ":core:database", ":feature:projects", ":feature:editor", ":feature:export"]:
+for module in [":app", ":core:domain", ":core:designsystem", ":core:database", ":core:media", ":feature:projects", ":feature:editor", ":feature:export"]:
     if f'include("{module}")' not in settings:
         errors.append(f"module not included: {module}")
 

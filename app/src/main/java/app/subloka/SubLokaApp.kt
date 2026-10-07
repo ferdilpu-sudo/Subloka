@@ -1,5 +1,7 @@
 package app.subloka
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,14 +33,21 @@ private sealed interface DemoRoute {
 fun SubLokaApp(
     modifier: Modifier = Modifier,
     persistence: SubLokaViewModel = viewModel(),
+    media: SubLokaMediaViewModel = viewModel(),
 ) {
     var route by remember { mutableStateOf<DemoRoute>(DemoRoute.Projects) }
     val persistedSegments by persistence.segments.collectAsState()
     val persistedStyle by persistence.style.collectAsState()
     val saveState by persistence.saveState.collectAsState()
+    val sourceUri by persistence.sourceUri.collectAsState()
+    val mediaSelection by media.selection.collectAsState()
 
     var editorSegments by remember { mutableStateOf(DemoData.segments) }
     var editorStyle by remember { mutableStateOf(CaptionStyle()) }
+
+    val documentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) media.select(uri)
+    }
 
     LaunchedEffect(persistedSegments) {
         if (persistedSegments.isNotEmpty()) {
@@ -52,15 +61,31 @@ fun SubLokaApp(
     when (route) {
         DemoRoute.Projects -> ProjectsScreen(
             projects = listOf(DemoData.project),
-            onNewProject = { route = DemoRoute.NewProject },
+            onNewProject = {
+                media.clear()
+                route = DemoRoute.NewProject
+            },
             onOpenProject = { route = DemoRoute.Editor },
             modifier = modifier,
         )
-        DemoRoute.NewProject -> NewProjectScreen(
-            onBack = { route = DemoRoute.Projects },
-            onContinue = { route = DemoRoute.ModelSetup },
-            modifier = modifier,
-        )
+        DemoRoute.NewProject -> {
+            val selected = (mediaSelection as? MediaSelectionState.Ready)?.descriptor
+            NewProjectScreen(
+                selectedMedia = selected,
+                mediaLoading = mediaSelection == MediaSelectionState.Loading,
+                mediaError = (mediaSelection as? MediaSelectionState.Error)?.message,
+                onPickVideo = { documentPicker.launch(arrayOf("video/*")) },
+                onBack = { route = DemoRoute.Projects },
+                onContinue = { sourceLanguage ->
+                    if (selected != null) {
+                        persistence.persistMediaSelection(selected, sourceLanguage) { success ->
+                            if (success) route = DemoRoute.ModelSetup
+                        }
+                    }
+                },
+                modifier = modifier,
+            )
+        }
         DemoRoute.ModelSetup -> ModelSetupScreen(
             onReady = { route = DemoRoute.Processing },
             modifier = modifier,
@@ -74,6 +99,7 @@ fun SubLokaApp(
         DemoRoute.Editor -> EditorScreen(
             initialSegments = editorSegments,
             initialStyle = editorStyle,
+            mediaUri = sourceUri,
             saveStatusText = saveState.label(),
             saveFailed = saveState == PersistenceSaveState.FAILED,
             onSegmentsPersist = { segments ->

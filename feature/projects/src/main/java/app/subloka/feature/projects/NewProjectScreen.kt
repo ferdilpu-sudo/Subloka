@@ -23,15 +23,19 @@ import androidx.compose.ui.unit.dp
 import app.subloka.core.designsystem.DemoBadge
 import app.subloka.core.designsystem.PrimaryAction
 import app.subloka.core.designsystem.SubLokaColors
+import app.subloka.core.domain.MediaDescriptor
 import app.subloka.core.domain.SourceLanguage
 
 @Composable
 fun NewProjectScreen(
+    selectedMedia: MediaDescriptor?,
+    mediaLoading: Boolean,
+    mediaError: String?,
+    onPickVideo: () -> Unit,
     onBack: () -> Unit,
     onContinue: (SourceLanguage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var videoSelected by remember { mutableStateOf(false) }
     var sourceLanguage by remember { mutableStateOf(SourceLanguage.ENGLISH) }
 
     Column(
@@ -51,15 +55,32 @@ fun NewProjectScreen(
             shape = RoundedCornerShape(12.dp),
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(if (videoSelected) "Traveling.mp4" else "Belum ada video", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    if (videoSelected) "03:42 · 1080p · portrait" else "Pilih satu video dari perangkat.",
+                    when {
+                        mediaLoading -> "Memeriksa video…"
+                        selectedMedia != null -> selectedMedia.displayName
+                        else -> "Belum ada video"
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    when {
+                        mediaLoading -> "Membaca metadata, audio track, dan fingerprint lokal."
+                        selectedMedia != null -> mediaSummary(selectedMedia)
+                        else -> "Pilih satu video dari perangkat."
+                    },
                     color = SubLokaColors.TextSecondary,
                 )
             }
         }
 
-        if (videoSelected) {
+        if (mediaError != null) {
+            Surface(color = SubLokaColors.Error.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp)) {
+                Text(mediaError, modifier = Modifier.padding(12.dp), color = SubLokaColors.Error)
+            }
+        }
+
+        if (selectedMedia != null) {
             Text("Bahasa audio", style = MaterialTheme.typography.titleMedium)
             LanguageRadio(SourceLanguage.ENGLISH, sourceLanguage == SourceLanguage.ENGLISH) { sourceLanguage = SourceLanguage.ENGLISH }
             LanguageRadio(SourceLanguage.INDONESIA, sourceLanguage == SourceLanguage.INDONESIA) { sourceLanguage = SourceLanguage.INDONESIA }
@@ -73,13 +94,33 @@ fun NewProjectScreen(
         }
 
         PrimaryAction(
-            text = if (videoSelected) "Buat Caption" else "Pilih video",
-            onClick = {
-                if (videoSelected) onContinue(sourceLanguage) else videoSelected = true
+            text = when {
+                mediaLoading -> "Memeriksa video…"
+                selectedMedia != null -> "Buat Caption"
+                else -> "Pilih video"
             },
+            onClick = {
+                if (selectedMedia != null) onContinue(sourceLanguage) else onPickVideo()
+            },
+            enabled = !mediaLoading,
             modifier = Modifier.fillMaxWidth(),
         )
     }
+}
+
+private fun mediaSummary(media: MediaDescriptor): String {
+    val seconds = media.durationUs / 1_000_000
+    val minutes = seconds / 60
+    val remainingSeconds = seconds % 60
+    val orientation = if (media.rotationDegrees == 90 || media.rotationDegrees == 270) "portrait" else "landscape"
+    return "%02d:%02d · %dx%d · %s · %d audio".format(
+        minutes,
+        remainingSeconds,
+        media.widthPx,
+        media.heightPx,
+        orientation,
+        media.audioTracks.size,
+    )
 }
 
 @Composable

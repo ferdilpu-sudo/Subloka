@@ -35,6 +35,7 @@ import java.util.UUID
 fun EditorScreen(
     initialSegments: List<CaptionSegment>,
     initialStyle: CaptionStyle,
+    mediaUri: String?,
     saveStatusText: String,
     saveFailed: Boolean,
     onSegmentsPersist: (List<CaptionSegment>) -> Unit,
@@ -152,7 +153,7 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(segment = selected, compactHeight = false)
+                        VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = false)
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
@@ -172,7 +173,7 @@ fun EditorScreen(
                     )
                 }
             } else {
-                VideoPreview(segment = selected, compactHeight = keyboardLikelyVisible)
+                VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
                     workspace = workspace,
