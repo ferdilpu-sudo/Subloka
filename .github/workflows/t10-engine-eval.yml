@@ -1,0 +1,90 @@
+name: T10 Engine Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/asr/**"
+      - "engine/translation/**"
+      - "tools/t10_wer.py"
+      - ".github/workflows/t10-engine-eval.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  whisper-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify pinned multilingual Whisper models
+        shell: bash
+        run: |
+          set -euo pipefail
+          REV="80da2d8bfee42b0e836fc3a9890373e5defc00a6"
+          mkdir -p "$RUNNER_TEMP/whisper-models"
+          cd "$RUNNER_TEMP/whisper-models"
+
+          curl -L --fail --retry 3 -o ggml-tiny.bin \
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/$REV/ggml-tiny.bin?download=true"
+          echo "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21  ggml-tiny.bin" | sha256sum -c -
+
+          curl -L --fail --retry 3 -o ggml-base.bin \
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/$REV/ggml-base.bin?download=true"
+          echo "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe  ggml-base.bin" | sha256sum -c -
+
+          {
+            echo "## Whisper model artifacts"
+            echo
+            stat --printf="- %n: %s bytes\n" ggml-tiny.bin ggml-base.bin
+            echo "- Source model revision: $REV"
+            echo "- whisper.cpp engine candidate: v1.9.4"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  translation-device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Configure Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Android 17 compile SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Download ML Kit models and run EN-ID translation smoke
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_4
+          disable-animations: true
+          script: ./gradlew --stacktrace :engine:translation:connectedDebugAndroidTest

@@ -86,6 +86,18 @@ Perangkat target harus ditetapkan T01. Minimum gate rilis: satu HP fisik mewakil
 
 Video uji performa: 30 detik, 3 menit, dan satu video 10 menit pada perangkat sasaran, jika cukup ruang. Catat codec, resolusi, fps, jumlah audio channel, sample rate, versi OS, RAM, chipset, temperatur bila tersedia, model, thread count, waktu proses, peak memory, ruang sementara dan crash. Dukungan durasi lebih panjang tidak boleh disimpulkan tanpa uji.
 
+## Protokol evaluasi T10 / CP4
+
+Kandidat ASR adalah whisper.cpp v1.9.4 multilingual dengan model `tiny` dan `base`. Artifact model dipin ke revision Hugging Face `80da2d8bfee42b0e836fc3a9890373e5defc00a6`; SHA-256 `tiny` = `be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21`, `base` = `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`. Synthetic speech hanya smoke test fungsi dan **tidak** masuk dataset kualitas CP4.
+
+Translation candidate adalah ML Kit on-device Translation 17.0.3, hanya pair EN↔ID. Model dikelola SDK melalui `RemoteModelManager`; aplikasi tidak mengarang path/hash internal model ML Kit.
+
+Dataset CP4 minimum tetap 30 ujaran per bahasa untuk ASR (20 clean + 10 challenging) dan 30 segmen per arah untuk translation. Perangkat fisik wajib untuk angka RTF/RAM/thermal. Emulator hanya membuktikan API/readiness/smoke.
+
+Pengukuran ASR per model/perangkat: WER per bahasa, RTF, thread count, wall time, peak memory bila stabil, crash/OOM/ANR, thermal bila tersedia. Translation: ACCEPT/MAJOR_MEANING_ERROR/NEGATION_ERROR/NUMBER_OR_NAME_ERROR, median/p95 latency setelah model siap.
+
+CP4 tidak boleh PASS dari model checksum, build native, synthetic TTS, atau emulator saja. T11 tetap tertahan sampai benchmark fisik + review kualitas memenuhi gate atau keputusan eksplisit setelah FAIL/BLOCKED.
+
 ## Gate kualitas baseline (target, belum hasil)
 
 - Transkripsi bersih: WER agregat per bahasa ≤20% pada dataset acuan; normalisasi case/punctuation harus ditetapkan sebelum uji. Laporkan juga hasil slang/noise, jangan mencampurnya untuk menutupi kelemahan satu bahasa.

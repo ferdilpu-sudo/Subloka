@@ -28,6 +28,8 @@ Status keputusan: ACCEPTED = kebutuhan/keputusan telah disepakati; PROPOSED = ar
 | ADR-022 | Nama kerja produk **SubLoka**; applicationId sementara `app.subloka.caption` | ACCEPTED | Pendek, mudah diucapkan, mengomunikasikan subtitle + lokal; ID masih boleh berubah sebelum distribusi publik |
 | ADR-023 | Baseline Android frontend memakai AGP 9.4.0 / Gradle 9.6.0 / Kotlin 2.3.21 / compile-target 37 / min 26 | ACCEPTED | Versi stabil saat eksekusi; minSdk 26 tetap mencakup perangkat uji Android 11 dan mengurangi kompatibilitas lama |
 | ADR-024 | Frontend T04–T07 memakai fake adapter dan disclosure `DEMO` permanen sampai engine nyata terhubung | ACCEPTED | Memungkinkan validasi flow tanpa mengarang keberhasilan ASR/translation/export |
+| ADR-025 | T10 membandingkan whisper.cpp v1.9.4 multilingual `tiny` dan `base`; synthetic smoke tidak boleh menutup CP4 | PROPOSED | Upstream Android merekomendasikan tiny/base; model dipin dengan SHA-256; keputusan final menunggu WER/resource perangkat fisik |
+| ADR-026 | T10 mengevaluasi ML Kit Translation 17.0.3 EN↔ID dengan explicit model readiness | PROPOSED | EN/ID didukung on-device; input diproses lokal, tetapi SDK dapat melakukan model/update/metrics traffic sehingga disclosure privasi harus presisi |
 
 ## Rationale keputusan teknis
 

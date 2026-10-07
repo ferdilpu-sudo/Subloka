@@ -10,8 +10,8 @@ Status: baseline diimplementasikan sampai T08 untuk frontend, domain, dan persis
 | Penyimpanan | Room 2.8.5 untuk project/caption/style; preference tambahan belum diperlukan | T08 DONE |
 | Pemutar / ekspor | Media3 player dan Transformer | T09, T14 |
 | Decode audio | Android extractor/decoder + konversi PCM eksplisit | T09 |
-| ASR | whisper.cpp multilingual melalui JNI | T10–T11 |
-| Translate | ML Kit on-device EN↔ID | T10, T12 |
+| ASR | whisper.cpp v1.9.4 multilingual; T10 model readiness tiny/base, JNI produksi T11 | T10–T11 |
+| Translate | ML Kit on-device EN↔ID 17.0.3; explicit RemoteModelManager readiness | T10, T12 |
 | Job | Koordinator lokal, runner foreground sesuai aturan OS | T13 |
 
 T02 menetapkan baseline: AGP 9.4.0, Gradle 9.6.0, Kotlin/Compose compiler 2.3.21, Compose BOM 2026.09.00, minSdk 26, compile/target SDK 37, Media3 1.11.1, Room 2.8.5, ML Kit Translate 17.0.3. whisper.cpp v1.9.4 menjadi kandidat evaluasi T10, bukan engine yang dianggap lulus. NDK baseline kandidat 28.2.13676358 mengikuti default AGP 9.4 saat native stage dimulai; ABI awal evaluasi arm64-v8a, perlu keputusan setelah benchmark. Sony SO-03L Android 11 dicatat sebagai perangkat uji primer yang pernah tersedia, tetapi koneksi/performa pada proyek ini belum diverifikasi.

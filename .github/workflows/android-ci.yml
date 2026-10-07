@@ -65,6 +65,12 @@ jobs:
       - name: Media unit tests
         run: ./gradlew --stacktrace :core:media:testDebugUnitTest
 
+      - name: ASR model-store unit tests
+        run: ./gradlew --stacktrace :engine:asr:testDebugUnitTest
+
+      - name: Compile translation device tests
+        run: ./gradlew --stacktrace :engine:translation:assembleDebugAndroidTest
+
       - name: Compile media device tests
         run: ./gradlew --stacktrace :core:media:assembleDebugAndroidTest
 
