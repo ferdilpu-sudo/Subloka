@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "evidence": "User-finalized listening review of six Indonesian FLEURS WAV samples; not a CP4 gate adjustment",
+  "decision_date": "2026-10-08",
+  "original_review_csv_sha256": "88df1defbbf4d3a3f2b86dbc84980921617d18ac29464531afdc6e67a4464576",
+  "finalized_review_csv_sha256": "ed4eb43e80db1b699a2af56f0cafef6daa6981592545e54c21d5fdaafd4af0aa",
+  "unchanged_dataset_manifest_sha256": "9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444",
+  "is_post_hoc_audio_quality_review": true,
+  "baseline_samples_removed": 0,
+  "baseline_reference_texts_changed": 0,
+  "official_id_clean_base_wer": 0.2861,
+  "cp4_status": "BLOCKED",
+  "samples": [
+    {
+      "sample": "id-clean-07",
+      "status": "AUDIO_AMBIGUOUS",
+      "source": "review CSV",
+      "note": "cara berbicara tidak jelas, tidak baiknya jangan dipakai"
+    },
+    {
+      "sample": "id-clean-12",
+      "status": "AUDIO_AMBIGUOUS",
+      "source": "review CSV",
+      "note": "cara mengucapkan kata tidak jelas, sebaiknya jangan dipakai"
+    },
+    {
+      "sample": "id-clean-02",
+      "status": "AUDIO_AMBIGUOUS",
+      "source": "explicit user confirmation after CSV",
+      "note": "pengucapanya tidak jelas, sebaiknya jangan dipakai"
+    },
+    {
+      "sample": "id-clean-08",
+      "status": "REF_MATCHES_AUDIO",
+      "source": "review CSV",
+      "note": ""
+    },
+    {
+      "sample": "id-clean-17",
+      "status": "AUDIO_AMBIGUOUS",
+      "source": "explicit user confirmation after CSV",
+      "note": "pengucapan ambigu, sebaiknya jangan dipakai"
+    },
+    {
+      "sample": "id-clean-19",
+      "status": "AUDIO_AMBIGUOUS",
+      "source": "explicit user confirmation after CSV",
+      "note": "pengucapan tidak jelas, sebaiknya jangan dipakai"
+    }
+  ],
+  "interpretation": "Five reviewer-ambiguous WAVs remain in the frozen 20-sample Indonesian clean CP4 baseline. Do not drop, relabel, or change references based on post-hoc review. Diagnostic gain A/B is non-gating."
+}

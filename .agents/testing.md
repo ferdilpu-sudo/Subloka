@@ -528,3 +528,12 @@ Dokumen/task yang diperbarui:
 - Scope: listener status reviewed; six WAVs/CSV previously inspected for waveform and format only. No subsequent independent listening or changed model evaluation is implied.
 - Result: **USER LISTENING REVIEW PARTIALLY FINALIZED; BENCHMARK BASELINE UNCHANGED; CP4 BLOCKED/T11 TODO**. Next: ask explicit status decision for three UNREVIEWED rows; paired original/gain A/B remains diagnostic and should be recorded separately.
 
+
+### T10-ASR-LISTENING-FINAL-001 — User-confirmed status update (no post-hoc gate edits)
+- Source: user-uploaded `subloka-t10-six-wav-listening-review.csv` SHA256 `88df1defbbf4d3a3f2b86dbc84980921617d18ac29464531afdc6e67a4464576`; explicit chat confirmation dated 2026-10-08 that `id-clean-02, id-clean-17, id-clean-19` are `AUDIO_AMBIGUOUS`. Final preserving original CSV schema SHA256 `ed4eb43e80db1b699a2af56f0cafef6daa6981592545e54c21d5fdaafd4af0aa`.
+- Final six statuses: AUDIO_AMBIGUOUS `07,12,02,17,19` (5); REF_MATCHES_AUDIO `08` (1); UNREVIEWED 0; corrected_reference all empty. `.agents/evidence/t10-asr-listening-review-final.json` is versioned decision evidence, **not** a new gold transcription.
+- Explicit separation: **5 listener-ambiguous examples remain in frozen baseline**, including all 20 Indonesian clean entries and the existing hypotheses. Official Base ID-clean WER remains 105 errors / 367 reference words = 0.2861; CP4 still BLOCKED.
+- Gain-only A/B test harness created for low-amplitude `02` and `12` (both user-labeled ambiguous): pinned waveform hashes and no overwrite of original WAV, gain +17.2/+8.5 dB respectively, 1 dBFS peak headroom. Runs 4 inference trials with same Whisper Base and immutable reference; Android code verified via file `result.exit`. Each run records hypothesis, measured runtime, battery temp, diagnostic WER, and exit statuses into a unique git-ignored session folder.
+- Planned interpretation: paired hypothesis differences are indications for further experiments, not evidence that model reliably improves across unseen Indonesian speech; fixed sample-set is just TWO recordings and review marks reference reliability limited. No filters/noise reduction or hidden sample exclusion applied.
+- Current phase **TOOL ADDED, CI RUN PENDING, PHYSICAL DEVICE NOT_RUN**. Next: verify CI; user may run preflight + device A/B and share `summary.json` to continue T10 ASR WER strategy.
+

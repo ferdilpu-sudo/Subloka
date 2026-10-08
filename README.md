@@ -161,3 +161,18 @@ python tools/t10_asr_error_audit.py .t10-benchmark/asr-results.csv t10-dataset.j
 
 The generated `asr-error-summary.json` reports micro/macro WER, edit counts and original SHA-256s; `id-clean-base-audio-review.csv` starts with `UNREVIEWED` for every clip. Outputs refuse to overwrite a nonempty destination folder. **Audio is NOT read** by this script: references, especially odd-sounding FLEURS translations, must be verified by listening to the original WAV before correction. Recomputed WER matches 119/120 archived rows; the one `base/en-challenging-06` row differs (archived 0.2326 versus recomputed 0.2093), not affecting the Indonesian clean baseline. Do not silently fix archived evidence or game the metric. CP4 remains BLOCKED.
 
+
+### T10 listening review final and gain-only diagnostic
+
+Six priority Indonesian clean WAVs were human-reviewed: `id-clean-07`, `id-clean-12`, `id-clean-02`, `id-clean-17`, and `id-clean-19` are `AUDIO_AMBIGUOUS`; `id-clean-08` is `REF_MATCHES_AUDIO`. The decisions are archived in `.agents/evidence/t10-asr-listening-review-final.json`. **The official FLEURS reference text and 20-sample Indonesian clean baseline are not changed**; Whisper Base ID-clean WER remains 28.61% against the 20% CP4 target.
+
+An **optional, non-gating** diagnostic compares amplitude-only WAV gain with each original for the two low-level clips `id-clean-02` and `id-clean-12`, one trial of each condition per sample. It uses the existing pinned Whisper Base model/binary and checks Android offline mode and battery temperature before running. It needs original WAVs in `t10-audio/id-clean/`, plus cached artifacts from the prior benchmark.
+
+```powershell
+git pull origin main
+python tools/t10_asr_gain_ab.py --preflight-only
+python tools/t10_asr_gain_ab.py
+```
+
+The four diagnostic runs write `.t10-benchmark/gain-ab-<timestamp>/summary.json` and `runs.csv`. Reported WER is labeled against a **listener-ambiguous reference**, never official CP4. No new baseline, no dataset edits, no sample exclusions, and no claim that volume gain improves SNR or ASR quality without further evidence.
+
