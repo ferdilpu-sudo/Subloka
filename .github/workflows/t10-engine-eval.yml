@@ -10,6 +10,7 @@ on:
       - "tools/t10_wer.py"
       - "tools/t10_device_benchmark.ps1"
       - "tools/t10_asr_stability.ps1"
+      - "tools/test_t10_asr_stability_adb.ps1"
       - "tools/t10_translation_device_benchmark.ps1"
       - "tools/t10_translation_review.py"
       - "tools/test_t10_translation_review.py"
@@ -110,6 +111,17 @@ jobs:
           profile: pixel_4
           disable-animations: true
           script: ./gradlew --stacktrace :engine:translation:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.engine.translation.MlKitTranslationInstrumentedTest
+
+  asr-adb-windows-regression:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Regression test ADB stderr under Windows PowerShell 5.1
+        shell: powershell
+        run: .\tools\test_t10_asr_stability_adb.ps1
 
   android-benchmark-binary:
     runs-on: ubuntu-latest

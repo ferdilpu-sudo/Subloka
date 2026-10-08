@@ -440,3 +440,13 @@ Dokumen/task yang diperbarui:
 - Batas: ini *repeated short utterances*, bukan 10-minute video end-to-end. `COLLECTED_NOT_GATE_PASS` berarti file berhasil dikumpulkan, bukan aplikasi bebas OOM/ANR atau CP4 PASS. CI memeriksa syntax/script tanpa menjalankan perangkat; belum ada thermal actual dari Sony.
 - Result: **IMPLEMENTED / DEVICE NOT_RUN**, gate CP4 tetap **BLOCKED**; tidak memulai T11.
 
+
+### T10-ASR-STABILITY-ADB-001 — Windows native stderr regression
+- Task: T10 / CP4; date: 2026-10-08; revision: commit yang menerapkan perbaikan native ADB stderr.
+- Environment user: Windows PowerShell, physical Sony SO-03L Android 11 arm64; device airplane/Wi-Fi-off preflight. Model Whisper base Indonesian multilingual v1.9.4.
+- Actual preflight: PASS, 30 WAV, battery 36.7°C. Actual benchmark: **ABORTED** setelah `whisper-cli: 1 file pushed, 0 skipped. 117.3 MB/s (27661368 bytes in 0.225s)`; `completed_runs=0`; output lokal `.t10-benchmark/thermal-20261008T120059Z-5a0b61/summary.json`. Tidak ada thermal/performance result yang dapat dinilai. Ini bukan crash engine atau threshold thermal.
+- Penyebab kode: `Adb-Raw` menangkap stderr native memakai `2>&1` ketika `ErrorActionPreference=Stop`; pada Windows PowerShell 5.1 pesan transfer sukses dapat menjadi terminating ErrorRecord sebelum exit code diperiksa. Pembaruan memisahkan pesan stderr dari keberhasilan yang didasarkan pada exit code, melindungi probe `pidof` yang normalnya mengembalikan nonzero saat idle, dan tetap mempertahankan error native sesungguhnya.
+- Sudah dibuat: regression script `tools/test_t10_asr_stability_adb.ps1` dengan mock Windows `.cmd` untuk ADB stderr exit 0/7 dan opsi `-AllowFailure`. Ditambahkan job CI khusus `windows-latest` menjalankan `shell: powershell`; parser PowerShell existing tetap berjalan.
+- Actual hasil tes regresi: **NOT_RUN / CI PENDING** saat commit; pengujian fisik perbaikan juga **NOT_RUN** sampai hasil berikutnya diberikan. Jangan menyebut PASS sebelum workflow dan sesi perangkat berhasil.
+- Next: cek job `asr-adb-windows-regression`, lalu jalankan kembali preflight dan benchmark 5 menit. Output lama disimpan terpisah; `CP4=BLOCKED`, `T11=TODO`.
+

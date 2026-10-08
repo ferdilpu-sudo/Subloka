@@ -131,3 +131,8 @@ Run the non-inference preflight, then the default 5-minute continuous repeated-u
 
 The script refuses to start if battery temperature is 40°C or higher, and attempts to stop inference when it reaches 43°C. It saves device-only evidence under a unique `.t10-benchmark/thermal-*/` directory: `summary.json`, `runs.csv`, `telemetry.csv`. The logged temperature is **battery temperature**, not CPU temperature, and RSS is sampled (possibly unavailable). If interrupted, treat `ABORTED` as an inconclusive result. Keep the device in a normal ventilated position, monitor it during the test, and do not treat this five-minute short-utterance loop as a ten-minute-video E2E test or a CP4 PASS. The initial Indonesian ASR quality and ID→EN translation-quality blockers remain.
 
+
+### Windows PowerShell 5.1 ADB stderr fix (T10)
+
+If an earlier stability run ended `ABORTED` after a successful `adb push` reporting `1 file pushed`, the issue was caused by handling native stderr with PowerShell `ErrorActionPreference=Stop`, not by a Whisper/thermal failure. Pull the latest `main`, rerun `-PreflightOnly` and then `-RunMinutes 5 -Model base -Language id`. The helper now uses ADB's actual native exit status. A Windows PowerShell 5.1 mock-native regression test runs in T10 Engine Evaluation CI. Preserve prior `thermal-*/` output; it must remain `ABORTED`.
+

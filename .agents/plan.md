@@ -262,3 +262,10 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Acceptance untuk langkah ini: review output perangkat minimal satu sesi `base/id` 5 menit; perhatikan pemanasan, variasi RTF awal/akhir, RSS, thermal stop, crash, dan battery-power context. Jika perlu, lanjutkan tes video nyata 30 s/3 min/10 min sesuai testing.md dengan scope T10/T15 yang jelas.
 - Status **T10/CP4 BLOCKED**, **T11 TODO**. Blocker utama tetap ASR ID clean 28.61% >20%, kualitas translation ID→EN 25/30 <27/30, referensi ID belum sepenuhnya diverifikasi, gate timing/thermal belum selesai. Next: jalankan preflight dan sesi stability di Sony, kirim `summary.json` dan beberapa baris `runs.csv`.
 
+
+### T10-ASR-STABILITY-ADB-STDERR-FIX / IMPLEMENTED / 2026-10-08
+- Bukti user Sony SO-03L Windows PowerShell: `-PreflightOnly` PASS untuk Whisper `base/id` / 30 WAV / arm64 offline, suhu awal baterai 36.7°C. Saat `-RunMinutes 5`, sesi `thermal-20261008T120059Z-5a0b61` berakhir `ABORTED` dengan `completed_runs=0` setelah `adb push` berhasil mengirim binary `whisper-cli` (27,661,368 bytes). Pesan progress transfer ADB tercatat sebagai exception di Windows PowerShell sebelum inference; **tidak ada bukti suhu naik/OOM/kegagalan ASR**.
+- Root cause teknis: helper `Adb-Raw` memakai `2>&1` sementara `$ErrorActionPreference="Stop"`. Windows PowerShell 5.1 dapat mempromosikan stderr native (pesan progress `adb push` sekalipun exit=0) menjadi terminating error. Perbaikan: gunakan scoped `ErrorActionPreference=Continue` saat memanggil ADB, filter ErrorRecord dari stdout, periksa exit code native, pulihkan preference, dan izinkan nonzero hanya untuk probe seperti `pidof`.
+- Test regresi `tools/test_t10_asr_stability_adb.ps1`: mock batch menghasilkan stderr normal + exit 0, stderr error + exit 7, serta opsi `-AllowFailure`. CI Windows PowerShell 5.1 dan parser syntax CI tersedia; **hasil CI / uji ulang fisik belum tersedia pada saat perubahan ditulis**.
+- Tidak menimpa evidence sesi ABORTED; sesi ulang akan memakai nama folder baru. **CP4 BLOCKED, T11 TODO**; next `git pull`, preflight, sesi lima menit; kirim `summary.json` + ringkasan `runs.csv`.
+

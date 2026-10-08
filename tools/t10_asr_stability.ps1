@@ -49,17 +49,34 @@ if (!(Test-Path $Adb)) { throw "ADB tidak tersedia. Instal Android SDK Platform-
 
 $DeviceArgs = @()
 if ($DeviceSerial) { $DeviceArgs = @("-s", $DeviceSerial) }
-function Adb-Raw([string[]]$Arguments) {
-    $result = @(& $Adb @DeviceArgs @Arguments 2>&1)
-    if ($LASTEXITCODE -ne 0) {
-        throw "ADB gagal ($($Arguments -join ' ')): $($result -join ' ')"
+function Adb-Raw {
+    param(
+        [string[]]$Arguments,
+        [switch]$AllowFailure
+    )
+    # Windows PowerShell 5.1 converts native stderr (including successful
+    # 'adb push: 1 file pushed') into ErrorRecord. With Stop it aborts
+    # before checking the real native exit code. Capture stderr non-fatally.
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = @(& $Adb @DeviceArgs @Arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousPreference
     }
-    return $result
+    $script:T10AdbLastExitCode = $exitCode
+    if ($exitCode -ne 0 -and -not $AllowFailure) {
+        throw "ADB gagal exit=$exitCode ($($Arguments -join ' ')): $($output -join ' ')"
+    }
+    # Keep stdout as data; stderr is diagnostic only (not a fatal PowerShell error).
+    return @($output | Where-Object {
+        $_ -isnot [System.Management.Automation.ErrorRecord]
+    })
 }
 
 function Get-BatterySnapshot {
-    $raw = @(& $Adb @DeviceArgs shell dumpsys battery 2>$null)
-    if ($LASTEXITCODE -ne 0) { throw "dumpsys battery tidak dapat dibaca." }
+    $raw = @(Adb-Raw -Arguments @("shell", "dumpsys battery"))
     $text = $raw -join [Environment]::NewLine
     if ($text -notmatch '(?m)^\s*temperature:\s*(-?\d+)\s*$') {
         throw "Sensor battery.temperature tidak dilaporkan; pengujian panas ditolak."
@@ -79,13 +96,13 @@ function Get-BatterySnapshot {
 }
 
 function Get-RemoteRssKb {
-    $remoteIds = @(& $Adb @DeviceArgs shell "pidof whisper-cli" 2>$null)
-    if ($LASTEXITCODE -ne 0 -or $remoteIds.Count -eq 0) { return $null }
+    $remoteIds = @(Adb-Raw -Arguments @("shell", "pidof whisper-cli") -AllowFailure)
+    if ($script:T10AdbLastExitCode -ne 0 -or $remoteIds.Count -eq 0) { return $null }
     $text = ($remoteIds -join " ").Trim()
     if ($text -notmatch '^\s*(\d+)') { return $null }
     $remoteProcessId = $Matches[1]
-    $status = @(& $Adb @DeviceArgs shell "grep VmRSS /proc/$remoteProcessId/status 2>/dev/null" 2>$null)
-    if ($LASTEXITCODE -ne 0) { return $null }
+    $status = @(Adb-Raw -Arguments @("shell", "grep VmRSS /proc/$remoteProcessId/status 2>/dev/null") -AllowFailure)
+    if ($script:T10AdbLastExitCode -ne 0) { return $null }
     if (($status -join " ") -match 'VmRSS:\s*(\d+)\s*kB') {
         return [int]$Matches[1]
     }
@@ -93,11 +110,11 @@ function Get-RemoteRssKb {
 }
 
 function Stop-RemoteWhisper {
-    $remoteIds = @(& $Adb @DeviceArgs shell "pidof whisper-cli" 2>$null)
-    if ($LASTEXITCODE -ne 0) { return }
+    $remoteIds = @(Adb-Raw -Arguments @("shell", "pidof whisper-cli") -AllowFailure)
+    if ($script:T10AdbLastExitCode -ne 0) { return }
     foreach ($candidate in (($remoteIds -join " ") -split '\s+')) {
         if ($candidate -match '^\d+$') {
-            & $Adb @DeviceArgs shell "kill -TERM $candidate" 2>$null | Out-Null
+            Adb-Raw -Arguments @("shell", "kill -TERM $candidate") -AllowFailure | Out-Null
         }
     }
 }
@@ -230,8 +247,8 @@ try {
             $timer.Stop()
             Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
         }
-        $hasOutput = @(& $Adb @DeviceArgs shell "test -s $RemoteDir/result.txt" 2>$null)
-        $outputExit = $LASTEXITCODE
+        $hasOutput = @(Adb-Raw -Arguments @("shell", "test -s $RemoteDir/result.txt") -AllowFailure)
+        $outputExit = $script:T10AdbLastExitCode
         if ($proc.ExitCode -ne 0 -or $outputExit -ne 0) {
             throw "Inference FAIL run=$LastRun, adb_exit=$($proc.ExitCode), result_exists=$($outputExit -eq 0)."
         }
@@ -284,6 +301,10 @@ try {
     $rssValues = @($Runs | Where-Object { $null -ne $_.peak_rss_kb } | ForEach-Object { [int]$_.peak_rss_kb })
     $peakRss = if ($rssValues.Count -gt 0) { ($rssValues | Measure-Object -Maximum).Maximum } else { $null }
     $ResolvedSerial = if ($DeviceSerial) { $DeviceSerial } else { (($ready[0] -split '\s+')[0]) }
+    $DeviceModel = "unavailable"
+    $AndroidRelease = "unavailable"
+    try { $DeviceModel = ((Adb-Raw -Arguments @("shell", "getprop ro.product.model")) -join " ").Trim() } catch {}
+    try { $AndroidRelease = ((Adb-Raw -Arguments @("shell", "getprop ro.build.version.release")) -join " ").Trim() } catch {}
     $summary = [ordered]@{
         evidence = "T10 ASR repeated-utterance thermal/stability PROXY; not E2E 10-minute video"
         status = $Status
@@ -305,8 +326,8 @@ try {
         battery_usb_powered_start = $InitialBattery.usb_powered
         thermal_stop_threshold_c = $StopTemperatureC
         device_serial = $ResolvedSerial
-        device_model = ((& $Adb @DeviceArgs shell getprop ro.product.model 2>$null) -join " ").Trim()
-        android_release = ((& $Adb @DeviceArgs shell getprop ro.build.version.release 2>$null) -join " ").Trim()
+        device_model = $DeviceModel
+        android_release = $AndroidRelease
         offline_preflight = "airplane_mode_on=1;wifi_on=0"
         limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
     }
