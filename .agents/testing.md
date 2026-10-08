@@ -467,3 +467,9 @@ Dokumen/task yang diperbarui:
 - Pengujian setelah patch: Windows mock regression CLI perlu berjalan di CI; Sony physical retest **NOT_RUN** hingga output baru diterima. Jangan menyimpulkan kestabilan thermal dari dua sesi ABORTED.
 - CP4 masih BLOCKED; T11 TODO.
 
+
+### T10-ASR-STABILITY-EXIT-002 — Parser regresi patch klasifikasi proses
+- Run: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37775966597, T10 Engine Evaluation; `android-benchmark-binary` FAIL sebelum build native karena PowerShell parser membaca `$RunNumber:` sebagai variable reference tidak valid.
+- Diagnosis: bug format pesan helper baru, bukan kerusakan binary, model, dataset atau ketidakstabilan perangkat.
+- Koreksi: gunakan `${RunNumber}:` dalam dua pesan `Write-Warning`. Hasil CI setelah koreksi: NOT_RUN pada saat pencatatan; tunggu run berikutnya. CP4 tetap BLOCKED.
+

@@ -95,11 +95,11 @@ function Resolve-T10InferenceCompletion {
     # object. A real transcript file is completion evidence, but unknown/nonzero
     # ADB status must NEVER be represented as a verified successful exit.
     if ($null -eq $AdbExitCode -or [string]$AdbExitCode -eq "") {
-        Write-Warning "Run $RunNumber: transcript exists, but ADB exit code is unavailable. Recording unverified exit."
+        Write-Warning "Run ${RunNumber}: transcript exists, but ADB exit code is unavailable. Recording unverified exit."
         return "RESULT_PRESENT_EXIT_UNKNOWN"
     }
     if ([int]$AdbExitCode -ne 0) {
-        Write-Warning "Run $RunNumber: transcript exists, but ADB exited $AdbExitCode. Recording unverified exit."
+        Write-Warning "Run ${RunNumber}: transcript exists, but ADB exited $AdbExitCode. Recording unverified exit."
         return "RESULT_PRESENT_ADB_NONZERO"
     }
     return "RESULT_PRESENT_EXIT_ZERO"

@@ -281,3 +281,9 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Fix: menunggu proses ADB selesai dengan batas tunggu dan kill fallback pada abort; cek exit code sebagai nullable; mewajibkan transcript result.txt tidak kosong; membedakan `RESULT_PRESENT_EXIT_ZERO`, `RESULT_PRESENT_EXIT_UNKNOWN`, `RESULT_PRESENT_ADB_NONZERO`. Run dengan exit tidak jelas tetap dicatat untuk metrik, tetapi summary menjadi `COLLECTED_WITH_UNVERIFIED_ADB_EXIT`, tidak dinyatakan PASS. Log stdout/stderr per-run disimpan ketika exit tidak terverifikasi atau output absen, dan dibersihkan untuk exit=0+transcript.
 - Regression: `tools/test_t10_asr_stability_adb.ps1` diperluas menguji exit 0/null/nonzero dengan hasil nonempty serta abort bila transcript kosong; Windows CI harus membuktikan tes ini. Bukti sesi lama disimpan; `CP4 BLOCKED`, `T11 TODO`. Next: pull, jalankan ulang lima menit dalam kondisi offline dan perangkat diawasi, lalu periksa `summary.json` dan `runs.csv` dari sesi baru.
 
+
+### T10-ASR-STABILITY-EXIT-PARSER / IMPLEMENTED / 2026-10-08
+- CI pertama untuk patch exit verification (commit `cc994ce`) melaporkan parse failure PowerShell pada `tools/t10_asr_stability.ps1`: `Variable reference is not valid. ':' was not followed by a valid variable name character`. Penyebab: string log `"$RunNumber:"` dalam helper baru.
+- Hotfix mengganti interpolasi dengan `"${RunNumber}:"`, tidak mengubah parameter, model, durasi, atau logic klasifikasi inference.
+- Perubahan belum diklaim PASS hingga parser dan Windows regression CI rerun. Perangkat fisik juga belum diuji ulang; T10/CP4 BLOCKED, T11 TODO.
+
