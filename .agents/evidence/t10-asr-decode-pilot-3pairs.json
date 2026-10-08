@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-08",
+  "source": "user-provided analysis block from local Sony SO-03L --max-pairs 3 pilot; full summary.json, events and telemetry not submitted in this turn",
+  "status": "PARTIAL_ANALYSIS_ONLY",
+  "experiment": "T10 Whisper Base Indonesian clean control vs -bs 1, paired frozen dataset",
+  "official_cp4_status": "BLOCKED",
+  "paired_samples": 3,
+  "runs_collected": 6,
+  "reference_words_pilot": 53,
+  "control_errors": 15,
+  "beam1_errors": 17,
+  "control_micro_wer": 0.2830188679245283,
+  "beam1_micro_wer": 0.32075471698113206,
+  "beam1_minus_control_wer": 0.03773584905660377,
+  "paired_hypotheses_changed": 3,
+  "control_matches_archived_hypothesis": 3,
+  "pairs": [
+    {
+      "sample": "id-clean-01",
+      "control_errors": 4,
+      "beam1_errors": 4,
+      "delta_errors": 0,
+      "control_rtf": 1.2004,
+      "beam1_rtf": 1.1973,
+      "hypotheses_identical": false,
+      "control_equals_archived": true
+    },
+    {
+      "sample": "id-clean-02",
+      "control_errors": 8,
+      "beam1_errors": 9,
+      "delta_errors": 1,
+      "control_rtf": 1.1327,
+      "beam1_rtf": 1.3249,
+      "hypotheses_identical": false,
+      "control_equals_archived": true,
+      "listener_review": "AUDIO_AMBIGUOUS"
+    },
+    {
+      "sample": "id-clean-03",
+      "control_errors": 3,
+      "beam1_errors": 4,
+      "delta_errors": 1,
+      "control_rtf": 1.2877,
+      "beam1_rtf": 1.0674,
+      "hypotheses_identical": false,
+      "control_equals_archived": true
+    }
+  ],
+  "baseline": {
+    "unchanged": true,
+    "errors": 105,
+    "words": 367,
+    "wer": 0.28610354223433243,
+    "target_max": 0.2
+  },
+  "missing_for_operational_readiness": [
+    "summary.status",
+    "summary.stop_reason",
+    "summary.battery_last_c",
+    "summary.events",
+    "full runs.csv/telemetry"
+  ],
+  "interpretation": "Beam1 has 2 more word edits than default over 53 words (3.77 percentage points worse), with no sample improved in this 3-pair pilot; n=3 does not establish population-level inferiority. Default hypotheses exactly reproduce 3/3 archived samples. Do not update engine/gate or infer thermal safe without summary metadata.",
+  "decision": "Record negative/neutral pilot; consider completing 17 remaining pairs only after confirming no abort/thermal issue and original session evidence integrity, in manageable stages. Avoid production promotion of -bs 1 based on pilot."
+}

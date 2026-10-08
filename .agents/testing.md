@@ -557,3 +557,11 @@ Dokumen/task yang diperbarui:
 - Tests: Python pure unit regression `tools/test_t10_asr_decode_ab.py` integrated into GitHub Actions. **Actual result: NOT_RUN (CI and physical tests pending)** at code submission. Do not claim beam size 1 is better or gate passed without independent device results.
 - Outcome T10 CP4: **BLOCKED**; translation ID→EN 83.33% still misses target >=90%, full video E2E and thermal gates outstanding; T11 TODO.
 
+
+### T10-ASR-DECODE-PILOT-001 — Device pilot negative accuracy delta, operational metadata pending
+- User reported `analysis` only: `paired_samples=3`, `runs_collected=6`, `paired_reference_words=53`, control word errors 15 vs candidate -bs 1 errors 17, delta +2/53=3.7736 percentage points. Control micro-WER 0.2830188679, candidate 0.3207547170.
+- Per-clip errors control→beam1: `id-clean-01 4→4`, `id-clean-02 8→9`, `id-clean-03 3→4`. 3/3 text hypotheses differ, 3/3 control exactly match archived baseline hypotheses. Control RTF 1.2004/1.1327/1.2877; beam1 RTF 1.1973/1.3249/1.0674 (order listed 01/02/03). Variance prohibits robust runtime conclusions.
+- Actual user text did not include `summary.status`, `stop_reason`, `battery_last_c`, `events`, or raw `runs.csv`. Six recorded runs alone do NOT prove thermal condition or no exception at session end. Need metadata to decide safe resume; no thermal check claimed PASS from missing data.
+- Existing code tests from `b3fda1c`: GitHub Actions T10 Engine Evaluation PASS https://github.com/ferdilpu-sudo/Subloka/actions/runs/37796038607; Android CI PASS https://github.com/ferdilpu-sudo/Subloka/actions/runs/37796038850. No code changed in this evidence-only commit.
+- Result: 3-pair **diagnostic pilot shows NO improvement from beam1**; remain underpowered to reject variant for entire 20-sample dataset. Never trim ambiguity-marked ID-clean clips to improve gate. No production decoding change or CP4 gate PASS. Next: full summary status, thermal and stop_reason; if safe, resume same session in stages (`--max-pairs 4`). CP4 BLOCKED / T11 TODO.
+

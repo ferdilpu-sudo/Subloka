@@ -198,3 +198,10 @@ python tools/t10_asr_decode_ab.py --resume ".\.t10-benchmark\decode-ab-YYYYMMDDT
 
 The script checks offline/arm64/battery conditions, attempts safe interruption at battery >=43°C, and writes `summary.json`, `runs.csv`, stderr/stdout logs to `.t10-benchmark/decode-ab-*`. `PARTIAL_EXPERIMENT_NOT_CP4` is expected for the short pilot; `COMPLETE_EXPERIMENT_NOT_CP4` indicates data collected across 20 pairs, **not an official gate pass**. Frozen official Base ID clean remains 105/367 errors (28.61% WER); CP4 BLOCKED and T11 TODO. Do not infer accuracy improvement before comparing complete paired WER and inspecting transcripts.
 
+
+### T10 decoding A/B pilot (3 of 20 pairs)
+
+First physical Sony pilot returned six ASR runs (3 paired samples) with exact frozen-control transcript reproduction **3/3**. On 53 reference words, Whisper Base control had **15 edits (28.30% micro-WER)** versus `-bs 1` with **17 edits (32.08%)**, or **+2 edits/+3.77 percentage points worse** in this small subset. All three hypotheses differed, but no sample improved (deltas 0, +1, +1). Per-sample RTF moved in both directions. Evidence: `.agents/evidence/t10-asr-decode-pilot-3pairs.json`. This is too small for a conclusion about all 20 clips; no decoding change is promoted. Baseline stays 105/367 (28.61%) and CP4 remains BLOCKED.
+
+**Before continuing**, inspect the original session's `summary.json` for `status`, `stop_reason`, `battery_last_c` and events; this user-provided excerpt included only the `analysis` object, not the thermal/session outcome. If safely `PARTIAL_EXPERIMENT_NOT_CP4` with no stop reason and device cool, continue the **same** session in stages with e.g. `python tools/t10_asr_decode_ab.py --resume ".\.t10-benchmark\decode-ab-<actual-session>" --max-pairs 4`. Do not create a new session or delete previous pilot evidence. CI for harness commit `b3fda1c` passed: Android CI and T10 Engine Evaluation.
+
