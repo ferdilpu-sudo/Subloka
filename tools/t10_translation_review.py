@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+"""T10 translation review: create a human-review CSV and report CP4 evidence.
+
+Use independently judged outcomes; this tool does not grade ML Kit automatically.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import hashlib
+import json
+import math
+import statistics
+import sys
+from collections import Counter
+from pathlib import Path
+
+STATUS = {
+    "ACCEPT",
+    "MAJOR_MEANING_ERROR",
+    "NEGATION_ERROR",
+    "NUMBER_OR_NAME_ERROR",
+}
+REQUIRED = (
+    "sample", "source_language", "target_language", "source_text",
+    "translation", "latency_ms", "error",
+)
+FIELDS = (*REQUIRED, "status", "notes")
+
+
+def load(path: Path) -> list[dict[str, str]]:
+    with path.open("r", encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        if not reader.fieldnames or not set(REQUIRED).issubset(reader.fieldnames):
+            raise ValueError(f"Missing columns: {sorted(set(REQUIRED) - set(reader.fieldnames or []))}")
+        rows = list(reader)
+    return rows
+
+
+def verify(rows: list[dict[str, str]]) -> None:
+    if len(rows) != 60:
+        raise ValueError(f"Expected 60 rows, found {len(rows)}")
+    ids = [r["sample"] for r in rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError("Duplicate sample IDs")
+    counts = Counter((r["source_language"], r["target_language"]) for r in rows)
+    if counts != {("en", "id"): 30, ("id", "en"): 30}:
+        raise ValueError(f"Expected 30 EN->ID and 30 ID->EN; got {dict(counts)}")
+    for r in rows:
+        if not r["source_text"].strip():
+            raise ValueError(f"Empty source: {r['sample']}")
+        try:
+            value = float(r["latency_ms"])
+        except ValueError as exc:
+            raise ValueError(f"Invalid latency for {r['sample']}") from exc
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"Invalid latency for {r['sample']}")
+
+
+def fingerprint(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def init(raw: Path, review: Path) -> None:
+    rows = load(raw)
+    verify(rows)
+    if review.exists():
+        raise FileExistsError(f"Review exists; refusing overwrite: {review}")
+    review.parent.mkdir(parents=True, exist_ok=True)
+    with review.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=FIELDS)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({**row, "status": "", "notes": ""})
+    print(f"Created: {review}")
+    print(f"Raw CSV SHA-256: {fingerprint(raw)}")
+    print("Review all 60 rows; allowed status: " + ", ".join(sorted(STATUS)))
+
+
+def p95_nearest_rank(values: list[float]) -> float:
+    ordered = sorted(values)
+    return ordered[math.ceil(0.95 * len(ordered)) - 1]
+
+
+def report(review: Path, json_path: Path | None) -> bool:
+    rows = load(review)
+    verify(rows)
+    results = {}
+    for source, target in [("en", "id"), ("id", "en")]:
+        direction = f"{source}->{target}"
+        subset = [r for r in rows if r["source_language"] == source]
+        latencies = [float(r["latency_ms"]) for r in subset]
+        completed = [r for r in subset if r.get("status", "").strip() in STATUS]
+        invalid = [r["sample"] for r in subset if r.get("status", "").strip() and r["status"].strip() not in STATUS]
+        if invalid:
+            raise ValueError(f"Invalid review status for {invalid}")
+        errors = [r["sample"] for r in subset if r["error"].strip() or not r["translation"].strip()]
+        outcomes = Counter(r.get("status", "").strip() for r in completed)
+        accepted = outcomes["ACCEPT"]
+        good = (
+            len(completed) == 30
+            and not errors
+            and accepted >= 27
+            and outcomes["NEGATION_ERROR"] == 0
+            and outcomes["NUMBER_OR_NAME_ERROR"] == 0
+        )
+        results[direction] = {
+            "samples": 30,
+            "reviewed": len(completed),
+            "accepted": accepted,
+            "acceptance_percent": round(100.0 * accepted / 30, 2),
+            "major_meaning_errors": outcomes["MAJOR_MEANING_ERROR"],
+            "negation_errors": outcomes["NEGATION_ERROR"],
+            "number_or_name_errors": outcomes["NUMBER_OR_NAME_ERROR"],
+            "engine_or_empty_outputs": errors,
+            "median_latency_ms": round(statistics.median(latencies), 3),
+            "p95_latency_ms": round(p95_nearest_rank(latencies), 3),
+            "status": "PASS" if good else "NOT_PASS",
+        }
+    payload = {
+        "evidence_type": "T10 human-reviewed ML Kit translation results",
+        "review_csv_sha256": fingerprint(review),
+        "offline_mode": "Must be verified and documented manually; not asserted by this report",
+        "directions": results,
+    }
+    for name, result in results.items():
+        print(
+            f"{name}: {result['status']} | reviewed {result['reviewed']}/30 | "
+            f"ACCEPT {result['accepted']}/30 ({result['acceptance_percent']:.1f}%) | "
+            f"negation {result['negation_errors']} | "
+            f"number/name {result['number_or_name_errors']} | "
+            f"engine/empty {len(result['engine_or_empty_outputs'])} | "
+            f"median {result['median_latency_ms']:.1f} ms | "
+            f"p95 {result['p95_latency_ms']:.1f} ms"
+        )
+    if json_path is not None:
+        if json_path.exists():
+            raise FileExistsError(f"Refusing overwrite: {json_path}")
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"Report saved: {json_path}")
+    return all(x["status"] == "PASS" for x in results.values())
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    make = sub.add_parser("init", help="Create blank human review CSV from device output")
+    make.add_argument("raw", type=Path)
+    make.add_argument("review", type=Path)
+    review = sub.add_parser("report", help="Validate scores and summarize both directions")
+    review.add_argument("review", type=Path)
+    review.add_argument("--json", dest="json_path", type=Path)
+    args = parser.parse_args()
+    try:
+        if args.cmd == "init":
+            init(args.raw, args.review)
+            return 0
+        return 0 if report(args.review, args.json_path) else 2
+    except (ValueError, FileNotFoundError, FileExistsError, csv.Error) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

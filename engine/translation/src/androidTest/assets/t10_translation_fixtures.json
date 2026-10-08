@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "description": "T10 authored translation evaluation inputs, 30 per direction. Freeze and audit inputs before running quality gate.",
+  "samples": [
+    {
+      "id": "en-01",
+      "language": "en",
+      "text": "Rina has three red books, but she does not want to sell them."
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "text": "The meeting starts at 8:30 tomorrow morning."
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "text": "Please turn off the lights before leaving the room."
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "text": "I have never visited Bali during the rainy season."
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "text": "The bus arrived fifteen minutes later than expected."
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "text": "We bought two tickets for 125,000 rupiah each."
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "text": "Do not delete the original video file."
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "text": "The package will be delivered on Friday, October 16."
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "text": "She said the invoice was paid, not canceled."
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "text": "My brother is learning Indonesian at university."
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "text": "The doctor asked us to return next week."
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "text": "The restaurant is open until ten at night."
+    },
+    {
+      "id": "en-13",
+      "language": "en",
+      "text": "I left my phone on the kitchen table."
+    },
+    {
+      "id": "en-14",
+      "language": "en",
+      "text": "Although it was raining, they continued the trip."
+    },
+    {
+      "id": "en-15",
+      "language": "en",
+      "text": "Only three out of the seven students passed the test."
+    },
+    {
+      "id": "en-16",
+      "language": "en",
+      "text": "You can change the subtitle timing without changing its text."
+    },
+    {
+      "id": "en-17",
+      "language": "en",
+      "text": "The train to Bandung leaves from platform four."
+    },
+    {
+      "id": "en-18",
+      "language": "en",
+      "text": "This is not the final version of the report."
+    },
+    {
+      "id": "en-19",
+      "language": "en",
+      "text": "The battery dropped from 80 percent to 25 percent."
+    },
+    {
+      "id": "en-20",
+      "language": "en",
+      "text": "Please call Maya if the delivery is delayed."
+    },
+    {
+      "id": "en-21",
+      "language": "en",
+      "text": "We will meet at the library after lunch."
+    },
+    {
+      "id": "en-22",
+      "language": "en",
+      "text": "The second speaker disagreed with the first suggestion."
+    },
+    {
+      "id": "en-23",
+      "language": "en",
+      "text": "How long does it take to translate a ten-minute video?"
+    },
+    {
+      "id": "en-24",
+      "language": "en",
+      "text": "He speaks quietly, so the recording is difficult to hear."
+    },
+    {
+      "id": "en-25",
+      "language": "en",
+      "text": "I wanted coffee, but the shop only had tea."
+    },
+    {
+      "id": "en-26",
+      "language": "en",
+      "text": "Their house is beside the bridge, not behind it."
+    },
+    {
+      "id": "en-27",
+      "language": "en",
+      "text": "The camera recorded in portrait mode at 30 frames per second."
+    },
+    {
+      "id": "en-28",
+      "language": "en",
+      "text": "Can you repeat the last sentence more slowly?"
+    },
+    {
+      "id": "en-29",
+      "language": "en",
+      "text": "We should save the edits before closing the app."
+    },
+    {
+      "id": "en-30",
+      "language": "en",
+      "text": "If the model is missing, the translation must not start."
+    },
+    {
+      "id": "id-01",
+      "language": "id",
+      "text": "Rina mempunyai tiga buku merah, tetapi dia tidak ingin menjualnya."
+    },
+    {
+      "id": "id-02",
+      "language": "id",
+      "text": "Rapat dimulai besok pagi pukul delapan tiga puluh."
+    },
+    {
+      "id": "id-03",
+      "language": "id",
+      "text": "Tolong matikan lampu sebelum meninggalkan ruangan."
+    },
+    {
+      "id": "id-04",
+      "language": "id",
+      "text": "Saya belum pernah mengunjungi Bali saat musim hujan."
+    },
+    {
+      "id": "id-05",
+      "language": "id",
+      "text": "Bus tiba lima belas menit lebih lambat dari perkiraan."
+    },
+    {
+      "id": "id-06",
+      "language": "id",
+      "text": "Kami membeli dua tiket seharga seratus dua puluh lima ribu rupiah per tiket."
+    },
+    {
+      "id": "id-07",
+      "language": "id",
+      "text": "Jangan hapus berkas video asli."
+    },
+    {
+      "id": "id-08",
+      "language": "id",
+      "text": "Paket akan dikirim pada hari Jumat, tanggal enam belas Oktober."
+    },
+    {
+      "id": "id-09",
+      "language": "id",
+      "text": "Dia mengatakan tagihannya sudah dibayar, bukan dibatalkan."
+    },
+    {
+      "id": "id-10",
+      "language": "id",
+      "text": "Adik saya sedang belajar bahasa Inggris di sekolah."
+    },
+    {
+      "id": "id-11",
+      "language": "id",
+      "text": "Dokter meminta kami kembali minggu depan."
+    },
+    {
+      "id": "id-12",
+      "language": "id",
+      "text": "Restoran ini buka sampai pukul sepuluh malam."
+    },
+    {
+      "id": "id-13",
+      "language": "id",
+      "text": "Saya meninggalkan ponsel di atas meja dapur."
+    },
+    {
+      "id": "id-14",
+      "language": "id",
+      "text": "Meskipun hujan, mereka tetap melanjutkan perjalanan."
+    },
+    {
+      "id": "id-15",
+      "language": "id",
+      "text": "Hanya tiga dari tujuh siswa yang lulus ujian."
+    },
+    {
+      "id": "id-16",
+      "language": "id",
+      "text": "Kamu bisa mengubah waktu subtitle tanpa mengubah teksnya."
+    },
+    {
+      "id": "id-17",
+      "language": "id",
+      "text": "Kereta menuju Bandung berangkat dari peron empat."
+    },
+    {
+      "id": "id-18",
+      "language": "id",
+      "text": "Ini bukan versi terakhir dari laporan tersebut."
+    },
+    {
+      "id": "id-19",
+      "language": "id",
+      "text": "Daya baterai turun dari delapan puluh persen menjadi dua puluh lima persen."
+    },
+    {
+      "id": "id-20",
+      "language": "id",
+      "text": "Hubungi Maya jika pengirimannya terlambat."
+    },
+    {
+      "id": "id-21",
+      "language": "id",
+      "text": "Kita akan bertemu di perpustakaan setelah makan siang."
+    },
+    {
+      "id": "id-22",
+      "language": "id",
+      "text": "Pembicara kedua tidak setuju dengan usulan pertama."
+    },
+    {
+      "id": "id-23",
+      "language": "id",
+      "text": "Berapa lama waktu yang diperlukan untuk menerjemahkan video sepuluh menit?"
+    },
+    {
+      "id": "id-24",
+      "language": "id",
+      "text": "Dia berbicara pelan sehingga rekamannya sulit didengar."
+    },
+    {
+      "id": "id-25",
+      "language": "id",
+      "text": "Saya ingin kopi, tetapi kedai itu hanya menyediakan teh."
+    },
+    {
+      "id": "id-26",
+      "language": "id",
+      "text": "Rumah mereka berada di samping jembatan, bukan di belakangnya."
+    },
+    {
+      "id": "id-27",
+      "language": "id",
+      "text": "Kamera merekam secara vertikal dengan tiga puluh bingkai per detik."
+    },
+    {
+      "id": "id-28",
+      "language": "id",
+      "text": "Bisakah kamu mengulang kalimat terakhir dengan lebih lambat?"
+    },
+    {
+      "id": "id-29",
+      "language": "id",
+      "text": "Kita harus menyimpan perubahan sebelum menutup aplikasi."
+    },
+    {
+      "id": "id-30",
+      "language": "id",
+      "text": "Jika model belum tersedia, proses penerjemahan tidak boleh dimulai."
+    }
+  ]
+}

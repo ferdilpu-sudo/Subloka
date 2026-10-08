@@ -397,3 +397,14 @@ Dokumen/task yang diperbarui:
 - Belum terverifikasi: script belum dieksekusi end-to-end pada Windows + perangkat fisik pengguna dengan dataset gate manusia.
 - Result: **PASS untuk syntax/build harness; BLOCKED untuk benchmark fisik**.
 - Dampak: CP4 tetap BLOCKED dan T11 tetap TODO.
+
+### T10-TRANSLATION-HARNESS-001 — Persiapan evaluasi 60 segmen
+- Task: T10 / CP4; tanggal: 2026-10-08.
+- Dibuat: `engine/translation/src/androidTest/java/app/subloka/engine/translation/MlKitTranslationBenchmarkTest.kt`, `engine/translation/src/androidTest/assets/t10_translation_fixtures.json`, `tools/t10_translation_review.py`, `tools/test_t10_translation_review.py`.
+- Expected: 30 EN→ID + 30 ID→EN, tidak mengunduh model selama benchmark offline, ekspor CSV mentah, manual review, acceptance ≥27/30 tiap arah, nol error negasi/angka/nama material, serta median/p95 latency.
+- Sudah diuji saat pembuatan paket: Python unittest `python -m unittest discover -s tools -p test_t10_translation_review.py`: 5 test PASS; parsing fixture: 60 ID unik, masing-masing 30 per bahasa. Hasil adalah pemeriksaan harness lokal, **bukan** hasil kualitas model.
+- Belum diuji: kompilasi instrumented test pada repository/CI, inference pada perangkat fisik dengan mode pesawat, review manusia 60 output, hasil latensi/thermal.
+- Eksekusi: unduh model dengan test `MlKitTranslationInstrumentedTest` secara online, aktifkan mode pesawat secara manual, lalu jalankan `MlKitTranslationBenchmarkTest`. Cari `RESULT_PATH=` pada log `SubLokaT10`; `adb pull` CSV ke `.t10-benchmark`. Buat review via `python tools/t10_translation_review.py init RAW.csv REVIEW.csv`, nilai semua status, lalu `python tools/t10_translation_review.py report REVIEW.csv --json SUMMARY.json`.
+- Nilai audit ASR yang dilaporkan pengguna: Sony SO-03L/Android 11, corpus WER Base EN-clean 9.79%, ID-clean 28.61%, Tiny EN-clean 12.35%, ID-clean 44.14%; ID-clean 7 jelas/13 kurang jelas; Base jelas 13.22%, kurang jelas 36.18%; RTF Base rata-rata ID 1.026/1.071. Referensi 14 verified, 4 not reviewed, 2 uncertain. File mentah dan hash hanya berada di mesin pengguna; angka belum diverifikasi dari artefak mentah dalam repository.
+- Result: **PREPARED** untuk evaluasi translation; CP4 **BLOCKED**, T11 **TODO**.
+

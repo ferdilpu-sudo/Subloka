@@ -225,3 +225,13 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Sudah diuji: `DEVICE-001` PASS berdasarkan smoke test manual pengguna; CP3 PASS dan T05–T07 ditutup DONE sebagai frontend demo.
 - Aturan handoff: jangan membuat catatan planning Markdown baru di root; perbarui source of truth yang relevan di `.agents/`.
 - Task berikutnya: T09 impor/pemutar/decode audio nyata; T08 sudah DONE.
+
+### T10-TRANSLATION-HARNESS / PREPARED / 2026-10-08
+- Tujuan: membuat evaluator ML Kit EN↔ID 30 segmen per arah tanpa mengubah engine produksi.
+- Sudah dibuat (commit ini): test `MlKitTranslationBenchmarkTest`, fixture 60 sumber kalimat, generator review CSV dan report acceptance/latensi, serta 5 unit test evaluator.
+- Bukti lokal saat persiapan patch: `python -m unittest discover -s tools -p test_t10_translation_review.py` mengembalikan 5 test PASS pada paket pengembangan; suite Android belum dijalankan dengan patch repo ini.
+- Baseline ASR yang dilaporkan pengguna di Sony SO-03L Android 11 (arm64): corpus WER Base EN-clean 9.79%, ID-clean 28.61%; Tiny EN-clean 12.35%, ID-clean 44.14%. Audit manual ID-clean: 7 jelas, 13 kurang jelas; corpus WER Base subset jelas 13.22%, kurang jelas 36.18%. Mean RTF Base ID jelas 1.026, kurang jelas 1.071. Ini evidence yang dilaporkan pengguna, belum ada file mentah perangkat pada repository.
+- File evidence lokal pengguna: `.t10-benchmark/asr-results.csv`, `asr-summary.csv`, `device.json`, `id-clean-audit.csv`, dan `evidence-hashes.csv`. Jangan commit media pribadi atau file mentah tanpa review privasi.
+- Batas: 14 referensi ID-clean diverifikasi, 4 belum dinilai, 2 belum dapat dipastikan; baseline ID clean 28.61% masih FAIL terhadap target 20%. Translation quality offline, thermal, timing, dan total resource produksi belum diverifikasi.
+- CP4 tetap BLOCKED; T11 TODO. Setelah `git pull`, jalankan instrumented test pada Sony dalam mode pesawat (sesudah download model online), review 60 output secara manusia, lalu selesaikan gate lain. Tidak mengklaim perubahan ini membuat CP4 PASS.
+

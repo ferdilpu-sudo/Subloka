@@ -76,3 +76,16 @@ T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an
 ## T10 physical benchmark
 
 T10 includes `tools/t10_device_benchmark.ps1` for arm64 Android evaluation of pinned Whisper tiny/base through ADB. It validates model checksums, builds whisper.cpp v1.9.4 with NDK 28.2.13676358, enforces the minimum dataset counts, and writes WER/RTF/RSS results. Synthetic/emulator smoke results are not accepted as CP4 quality evidence. Start from `tools/t10_dataset.example.json`, prepare the required human-recorded dataset, then on Windows run `./tools/t10_device_benchmark.ps1 -DatasetManifest <path-to-manifest.json>` with an arm64 Android device connected through ADB.
+
+## T10 translation quality evaluation (prepared)
+
+The offline ML Kit quality harness is in `engine/translation/src/androidTest/`; it reads 30 authored EN inputs and 30 authored Indonesian inputs and exports device translations for human evaluation. Review and freeze the input fixture before evaluating its outputs. This is **not** a translation quality PASS.
+
+Run the offline benchmark on a physical Android device **only after downloading models online** with the existing `MlKitTranslationInstrumentedTest`. Switch the device to airplane mode (Wi-Fi and cellular off), then:
+
+```powershell
+.\gradlew.bat :engine:translation:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=app.subloka.engine.translation.MlKitTranslationBenchmarkTest'
+adb logcat -d -s 'SubLokaT10:I' '*:S'
+```
+
+Find `RESULT_PATH=` in logcat; use `adb pull` to copy the CSV. Run `python tools/t10_translation_review.py init RAW.csv REVIEW.csv`, score all 60 translations manually, and run `python tools/t10_translation_review.py report REVIEW.csv --json SUMMARY.json`. See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.
