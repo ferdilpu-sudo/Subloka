@@ -537,3 +537,13 @@ Dokumen/task yang diperbarui:
 - Planned interpretation: paired hypothesis differences are indications for further experiments, not evidence that model reliably improves across unseen Indonesian speech; fixed sample-set is just TWO recordings and review marks reference reliability limited. No filters/noise reduction or hidden sample exclusion applied.
 - Current phase **TOOL ADDED, CI RUN PENDING, PHYSICAL DEVICE NOT_RUN**. Next: verify CI; user may run preflight + device A/B and share `summary.json` to continue T10 ASR WER strategy.
 
+
+### T10-ASR-GAIN-AB-SONY-001 — Paired amplitude-only diagnostic (user-reported result)
+- Date: 2026-10-08; input: JSON body from Sony SO-03L experiment in chat; machine-readable **aggregate without hypotheses** archived in `.agents/evidence/t10-asr-gain-ab-sonyoct08.json`. Not an official CP4 dataset update; raw device-generated `summary.json`/`runs.csv` remain on user's workstation.
+- Device and engine: SO-03L Android 11, offline_verified=true; Whisper Base pinned SHA256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`; frozen manifest SHA256 `9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444`; volume-adjusted WAV hashes are separately recorded in JSON evidence.
+- Execution evidence: 4 runs completed, `remote_whisper_exit=0` and `host_adb_exit=0` for all four, status `DIAGNOSTIC_COLLECTED_NOT_CP4`, stop_reason null; battery 37.7°C initial, 38.5°C final, no thermal stop.
+- id-clean-02: original WER 0.4444 vs gain +17.2 dB WER 0.4444, different hypothesis, Δ=0.0000; RTF original 0.8154, gain 0.8822.
+- id-clean-12: original WER 0.6667 vs gain +8.453 dB WER 0.7333, different hypothesis, Δ=+0.0666 (gain worse); RTF original 0.8578, gain 0.8239.
+- Note `WER` above is evaluated against **original immutable but reviewer-AUDIO_AMBIGUOUS references**; should not be interpreted as true accuracy of these 2 recordings or as a full-sample benchmark. No randomized repetitions, n=2, performance timing confounded by sequence and startup.
+- Outcome: **NO OBSERVED ACCURACY BENEFIT FROM GAIN-ONLY** for this narrowly defined comparison; do not introduce automatic gain into engine as a proven WER fix. Freeze `asr-results.csv`, `t10-dataset.json`, original audio and CP4 thresholds. Full official ID-clean Base 105/367=28.61% WER and translation ID→EN 83.33% remain NOT_PASS. CP4 BLOCKED/T11 TODO.
+

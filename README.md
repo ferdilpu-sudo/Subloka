@@ -176,3 +176,8 @@ python tools/t10_asr_gain_ab.py
 
 The four diagnostic runs write `.t10-benchmark/gain-ab-<timestamp>/summary.json` and `runs.csv`. Reported WER is labeled against a **listener-ambiguous reference**, never official CP4. No new baseline, no dataset edits, no sample exclusions, and no claim that volume gain improves SNR or ASR quality without further evidence.
 
+
+### T10 gain-only result (Sony, diagnostic only)
+
+On Sony SO-03L (Android 11, offline), four A/B Whisper Base inference runs completed with **both Android Whisper exit 0 and ADB host exit 0**, without reaching the 43°C battery thermal threshold (37.7→38.5°C). The two listener-ambiguous samples did **not** show a WER benefit from changing volume alone: `id-clean-02` 44.44% → 44.44% at +17.2 dB; `id-clean-12` 66.67% → 73.33% at +8.453 dB (worse). Hypotheses changed in both pairs. See `.agents/evidence/t10-asr-gain-ab-sonyoct08.json` for provenance and run metrics. These tiny one-shot comparisons cannot establish population-level effects, and gain-only does not improve SNR. **No model, preprocessing, dataset, baseline, or gate changes have been made.** Next focus: controlled whole-set ASR quality experiments against the unchanged 20-clip benchmark, not additional gain-only trials.
+

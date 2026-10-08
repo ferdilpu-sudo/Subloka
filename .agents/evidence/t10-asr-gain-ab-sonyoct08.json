@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "task": "T10 ASR gain-only A/B diagnostic — Sony SO-03L",
+  "recorded_date": "2026-10-08",
+  "evidence_source": "user-provided summary.json content in conversation; raw session files remain on physical-device workstation",
+  "evidence_type": "T10 two-clip original/gain A/B diagnostic; NOT official CP4 benchmark",
+  "status": "DIAGNOSTIC_COLLECTED_NOT_CP4",
+  "stop_reason": null,
+  "model": "Whisper Base multilingual",
+  "model_sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+  "dataset_sha256": "9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444",
+  "device": "Sony SO-03L Android 11",
+  "offline_preflight_reported": true,
+  "original_frozen": true,
+  "listener_status": "Both id-clean-02 and id-clean-12 marked AUDIO_AMBIGUOUS",
+  "runs_with_android_whisper_exit_zero": 4,
+  "runs_with_host_adb_exit_zero": 4,
+  "run_count": 4,
+  "battery_start_c": 37.7,
+  "battery_last_c": 38.5,
+  "battery_thermal_stop_c": 43,
+  "pairs": [
+    {
+      "sample": "id-clean-02",
+      "actual_gain_db": 17.2,
+      "original_wer_diagnostic": 0.4444,
+      "gain_wer_diagnostic": 0.4444,
+      "delta_wer_diagnostic": 0,
+      "hypothesis_changed": true,
+      "original_rtf": 0.8154,
+      "gain_rtf": 0.8822,
+      "original_sha256": "c810ca538df450bcfe4d671c61f6e71d954abbb250ee3896f04b3070bfd8bb88",
+      "gain_sha256": "14792b784ce88c48591644ae2cfe4521f93cc5a5bc104afbf67674075f07be22"
+    },
+    {
+      "sample": "id-clean-12",
+      "actual_gain_db": 8.453,
+      "original_wer_diagnostic": 0.6667,
+      "gain_wer_diagnostic": 0.7333,
+      "delta_wer_diagnostic": 0.0666,
+      "hypothesis_changed": true,
+      "original_rtf": 0.8578,
+      "gain_rtf": 0.8239,
+      "original_sha256": "8969b16c001e41e8f6bcff8468740915df28e9df87565c4eacd5e1e8742e5cce",
+      "gain_sha256": "d718f98d67855df469044be08ea239cec93cfba61f79e025eeb445f85e68aabf"
+    }
+  ],
+  "verdict": "No observed WER benefit for either of the two listener-ambiguous WAVs. Gain-only amplitude normalization is not supported as a standalone ASR accuracy fix by this small test.",
+  "inference_limitations": "Only 2 listener-ambiguous sample pairs and 4 cold-start inference runs; results not generalizable. No randomized order or repeated trials; runtime RTF cannot support performance gain claim. Gain does not improve SNR. WER compared against archived, listener-ambiguous FLEURS references is diagnostic. No direct audio transcription verification of WAV or review of raw session CSV in this turn.",
+  "unchanged_official_baseline": {
+    "dataset": "20 FLEURS Indonesian clean clips",
+    "model": "Base",
+    "micro_wer": 0.2861,
+    "errors": 105,
+    "reference_words": 367,
+    "threshold": 0.2,
+    "cp4": "BLOCKED",
+    "t11": "TODO"
+  },
+  "next_step": "Do not promote gain-only to engine; investigate decoding/model variants with frozen T10 references and unchanged 20-clip full-set scoring, or collect an independent pre-registered, clearer separate benchmark."
+}
