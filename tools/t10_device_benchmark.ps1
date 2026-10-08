@@ -239,9 +239,15 @@ foreach ($Model in $Models) {
         Invoke-Adb @("push", $Audio, "$Remote/input.wav")
         $Stdout = Join-Path $WorkDir "_stdout.txt"
         $Stderr = Join-Path $WorkDir "_stderr.txt"
-        Remove-Item $Stdout,$Stderr -Force -ErrorAction SilentlyContinue
+        $HypothesisFile = Join-Path $WorkDir "_hyp.txt"
+        Remove-Item $Stdout,$Stderr,$HypothesisFile -Force -ErrorAction SilentlyContinue
+        Invoke-Adb @("shell", "rm -f $Remote/result.txt")
 
-        $AdbProcessArgs = @($AdbArgs + @("shell", "cd $Remote && ./whisper-cli -m model.bin -f input.wav -l $($Sample.language) -nt"))
+        # Android shell/ADB exit status is not a sufficient benchmark oracle by itself.
+        # whisper-cli writes the transcript only after whisper_full_parallel succeeds.
+        # Use the generated result file as completion evidence, while retaining the
+        # adb exit code for diagnostics.
+        $AdbProcessArgs = @($AdbArgs + @("shell", "cd $Remote && ./whisper-cli -m model.bin -f input.wav -l $($Sample.language) -nt -ng -nfa -otxt -of result"))
         $Watch = [System.Diagnostics.Stopwatch]::StartNew()
         $Process = Start-Process -FilePath $Adb -ArgumentList $AdbProcessArgs -NoNewWindow -PassThru -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
         $PeakRssKb = 0
@@ -249,10 +255,10 @@ foreach ($Model in $Models) {
             $PidOutput = & $Adb @AdbArgs shell "pidof whisper-cli" 2>$null
             $PidText = if ($null -eq $PidOutput) { "" } else { ($PidOutput -join " ").Trim() }
             if ($PidText) {
-                $RemotePid = ($PidText -split "\s+")[0]
+                $RemotePid = ($PidText -split "s+")[0]
                 $RssOutput = & $Adb @AdbArgs shell "if [ -r /proc/$RemotePid/status ]; then grep VmRSS /proc/$RemotePid/status 2>/dev/null; fi" 2>$null
                 $RssLine = if ($null -eq $RssOutput) { "" } else { ($RssOutput -join " ").Trim() }
-                if ($RssLine -match "(\d+)\s+kB") {
+                if ($RssLine -match "(d+)s+kB") {
                     $PeakRssKb = [Math]::Max($PeakRssKb, [int]$Matches[1])
                 }
             }
@@ -260,11 +266,25 @@ foreach ($Model in $Models) {
         }
         $Process.WaitForExit()
         $Watch.Stop()
-        if ($Process.ExitCode -ne 0) {
-            throw "whisper-cli gagal untuk $($Model.Name)/$($Sample.id): $(Get-Content $Stderr -Raw)"
+
+        $RemoteResultCheck = & $Adb @AdbArgs shell "test -s $Remote/result.txt" 2>$null
+        $HasRemoteResult = ($LASTEXITCODE -eq 0)
+        if (!$HasRemoteResult) {
+            $StderrText = if (Test-Path $Stderr) { Get-Content $Stderr -Raw } else { "" }
+            throw "whisper-cli gagal untuk $($Model.Name)/$($Sample.id) (exit=$($Process.ExitCode)): $StderrText"
         }
 
-        $Hypothesis = (Get-Content $Stdout -Raw).Trim()
+        & $Adb @AdbArgs pull "$Remote/result.txt" $HypothesisFile | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            throw "Gagal mengambil hasil transkripsi untuk $($Model.Name)/$($Sample.id) dari device."
+        }
+        Invoke-Adb @("shell", "rm -f $Remote/result.txt")
+
+        if ($Process.ExitCode -ne 0) {
+            Write-Warning "whisper-cli menghasilkan transcript untuk $($Model.Name)/$($Sample.id), tetapi adb melaporkan exit=$($Process.ExitCode). Result file dipakai sebagai completion evidence."
+        }
+
+        $Hypothesis = (Get-Content $HypothesisFile -Raw).Trim()
         if (!$Hypothesis) { throw "Transkripsi kosong untuk $($Model.Name)/$($Sample.id)" }
         $Wer = Get-Wer ([string]$Sample.reference) $Hypothesis
         $ElapsedSec = $Watch.Elapsed.TotalSeconds
