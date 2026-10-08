@@ -255,10 +255,10 @@ foreach ($Model in $Models) {
             $PidOutput = & $Adb @AdbArgs shell "pidof whisper-cli" 2>$null
             $PidText = if ($null -eq $PidOutput) { "" } else { ($PidOutput -join " ").Trim() }
             if ($PidText) {
-                $RemotePid = ($PidText -split "s+")[0]
+                $RemotePid = ($PidText -split "\s+")[0]
                 $RssOutput = & $Adb @AdbArgs shell "if [ -r /proc/$RemotePid/status ]; then grep VmRSS /proc/$RemotePid/status 2>/dev/null; fi" 2>$null
                 $RssLine = if ($null -eq $RssOutput) { "" } else { ($RssOutput -join " ").Trim() }
-                if ($RssLine -match "(d+)s+kB") {
+                if ($RssLine -match "(\d+)\s+kB") {
                     $PeakRssKb = [Math]::Max($PeakRssKb, [int]$Matches[1])
                 }
             }
