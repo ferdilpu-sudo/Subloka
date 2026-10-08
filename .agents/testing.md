@@ -484,3 +484,8 @@ Dokumen/task yang diperbarui:
 - Fix **dibuat tetapi belum diuji perangkat**: `New-T10RemoteInferenceCommand` menjalankan Whisper melalui Android sh dan menulis `result.exit` (nilai shell `$?`) yang dibaca kembali lewat ADB. Status `RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_UNKNOWN`, `RESULT_PRESENT_REMOTE_EXIT_UNKNOWN`, `RESULT_PRESENT_REMOTE_NONZERO` dibedakan; nonzero remote menghentikan sesi, selalu menuntut transcript nonempty. `summary.json` baru mencantumkan `verified_remote_whisper_exit_zero_runs` dan `unverified_remote_whisper_exit_runs`; unit/regression tests Windows dan POSIX shell menutupi nilai 0, nonzero, missing, malformed. Tidak memalsukan ADB exit status host.
 - Result: **PERFORMANCE/THERMAL EVIDENCE COLLECTED, PROCESS EXIT UNVERIFIED; CP4 BLOCKED**. Next: CI parser/regression results lalu validasi singkat 2 menit sebelum uji lima menit terverifikasi.
 
+
+### T10-ASR-REMOTE-EXIT-002 — Parser failure sebelum regression
+- GitHub Actions https://github.com/ferdilpu-sudo/Subloka/actions/runs/37778559881; Windows job `asr-adb-windows-regression` FAIL pada parse `$LastRun:`, dan `android-benchmark-binary` FAIL pada validation syntax; tidak menyiratkan engine gagal.
+- Koreksi: `throw ("Inference FAIL run={0}: ..." -f $LastRun, $remoteExit, $stderr)`, no engine/data changes. **Device retest NOT_RUN**, CI setelah koreksi belum diuji pada saat patch. Status CP4 BLOCKED.
+

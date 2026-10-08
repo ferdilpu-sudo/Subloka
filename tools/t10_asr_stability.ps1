@@ -334,7 +334,7 @@ try {
         $remoteExit = Parse-T10RemoteExit -Lines $markerLines -ReadExitCode $markerReadExit
         $completion = Resolve-T10InferenceCompletion -AdbExitCode $adbExit -RemoteExitCode $remoteExit -TranscriptPresent ($outputExit -eq 0) -RunNumber $LastRun -StderrLog $stderr
         if ($completion -eq "RESULT_PRESENT_REMOTE_NONZERO") {
-            throw "Inference FAIL run=$LastRun: Android Whisper process returned exit=$remoteExit, with transcript present. See $stderr."
+            throw ("Inference FAIL run={0}: Android Whisper process returned exit={1}, with transcript present. See {2}." -f $LastRun, $remoteExit, $stderr)
         }
         if ($completion -eq "RESULT_PRESENT_EXIT_ZERO") {
             Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue

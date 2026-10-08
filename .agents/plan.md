@@ -295,3 +295,7 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Improvement harness: shell Android sekarang menyimpan kode keluar Whisper di `result.exit` per run; setiap run juga mensyaratkan `result.txt` nonempty, menyimpan remote vs Windows ADB exit masing-masing, melabeli ketidakpastian, menyimpan evidence lokal, dan tetap menghentikan run jika remote Whisper exit nonzero. Tes regresi PowerShell Windows + eksekusi shell POSIX mock ditambahkan ke CI. **Status fix: IMPLEMENTED / CI PENDING / PHYSICAL RECHECK NOT_RUN.**
 - Next: cek CI, lakukan uji 2 menit validasi remote exit marker, kemudian jika sukses pertimbangkan 5 menit lagi. CP4 **BLOCKED** dan T11 **TODO** karena ASR ID clean WER 28.61% >20%, translation ID→EN 25/30 <27/30, peninjauan referensi ID/timing serta E2E thermal belum selesai.
 
+
+### T10-ASR-REMOTE-EXIT-PARSER / IMPLEMENTED / 2026-10-08
+- Run CI `37778559881` untuk commit `ea65032`: job Windows regression dan Android benchmark binary berhenti pada parser PowerShell `InvalidVariableReferenceWithDrive` dari pesan baru `run=$LastRun:`. Parse fail sebelum model/device, bukan kegagalan inference; koreksi memakai format string `-f` agar tidak ada interpolasi `$var:` lagi. Tunggu CI commit berikutnya; uji Sony belum diulang, CP4 tetap BLOCKED.
+
