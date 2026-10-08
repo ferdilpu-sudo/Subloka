@@ -473,3 +473,14 @@ Dokumen/task yang diperbarui:
 - Diagnosis: bug format pesan helper baru, bukan kerusakan binary, model, dataset atau ketidakstabilan perangkat.
 - Koreksi: gunakan `${RunNumber}:` dalam dua pesan `Write-Warning`. Hasil CI setelah koreksi: NOT_RUN pada saat pencatatan; tunggu run berikutnya. CP4 tetap BLOCKED.
 
+
+### T10-ASR-STABILITY-5MIN-001 — Physical five-minute repeated-utterance evaluation
+- Task: T10/CP4; tanggal: 2026-10-08; user-provided JSON `summary.json` lokal `.t10-benchmark/thermal-*/` pada Sony SO-03L Android 11, offline mode verified by scripted preflight (airplane=1/Wi-Fi=0), USB powered=true.
+- Revision pengumpulan: script sebelum penambahan `result.exit` remote marker; engine whisper.cpp v1.9.4, Base multilingual SHA-256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`, manifest hash `9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444`.
+- Expected: 5 menit ASR workload di fisik, data RTF/RSS/suhu dan status exit yang dapat diverifikasi.
+- Actual: `elapsed_session_s=300.06`, `completed_runs=23`, `unverified_adb_exit_runs=23`, `stop_reason=null`, `status=COLLECTED_WITH_UNVERIFIED_ADB_EXIT`; median RTF=1.0539, p95 nearest-rank RTF=1.2304, peak observed RSS 378888 KiB (≈370 MiB). Temperatur baterai 36.5°C→39.2°C (puncak/akhir), +2.7°C; ambang 43°C tidak tercapai. Tidak ada thermal stop tercatat, tetapi tidak dapat menyimpulkan tidak ada throttle CPU tanpa metrik tambahan.
+- Bukti: user-provided summary JSON in chat; CSV run/telemetry dan device/system log belum diinspeksi independen. `result.txt` nonempty pada tiap run menurut harness, tetapi `Start-Process.ExitCode` blank pada seluruh 23, sehingga verification kernel/ADB process completion belum tersedia. Jangan mengubah label menjadi PASS.
+- Penafsiran: median RTF >1 berarti pipeline uji lebih lambat daripada realtime, termasuk startup binary/model per-run, ADB overhead dan sampling; tidak langsung membuktikan runtime end-user app. Sampled RSS bisa kehilangan peak; suhu baterai bukan suhu CPU dan USB power bisa memengaruhi pemanasan.
+- Fix **dibuat tetapi belum diuji perangkat**: `New-T10RemoteInferenceCommand` menjalankan Whisper melalui Android sh dan menulis `result.exit` (nilai shell `$?`) yang dibaca kembali lewat ADB. Status `RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_UNKNOWN`, `RESULT_PRESENT_REMOTE_EXIT_UNKNOWN`, `RESULT_PRESENT_REMOTE_NONZERO` dibedakan; nonzero remote menghentikan sesi, selalu menuntut transcript nonempty. `summary.json` baru mencantumkan `verified_remote_whisper_exit_zero_runs` dan `unverified_remote_whisper_exit_runs`; unit/regression tests Windows dan POSIX shell menutupi nilai 0, nonzero, missing, malformed. Tidak memalsukan ADB exit status host.
+- Result: **PERFORMANCE/THERMAL EVIDENCE COLLECTED, PROCESS EXIT UNVERIFIED; CP4 BLOCKED**. Next: CI parser/regression results lalu validasi singkat 2 menit sebelum uji lima menit terverifikasi.
+

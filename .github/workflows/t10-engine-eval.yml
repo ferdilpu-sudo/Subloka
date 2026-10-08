@@ -11,6 +11,7 @@ on:
       - "tools/t10_device_benchmark.ps1"
       - "tools/t10_asr_stability.ps1"
       - "tools/test_t10_asr_stability_adb.ps1"
+      - "tools/test_t10_asr_remote_exit.ps1"
       - "tools/t10_translation_device_benchmark.ps1"
       - "tools/t10_translation_review.py"
       - "tools/test_t10_translation_review.py"
@@ -179,6 +180,10 @@ jobs:
             $errors | ForEach-Object { Write-Error $_.Message }
             exit 1
           }
+
+      - name: Test Android-style Whisper exit marker using POSIX shell
+        shell: pwsh
+        run: ./tools/test_t10_asr_remote_exit.ps1
 
       - name: Validate PowerShell translation harness syntax
         shell: pwsh

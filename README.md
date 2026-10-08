@@ -141,3 +141,10 @@ If an earlier stability run ended `ABORTED` after a successful `adb push` report
 
 On some Windows PowerShell 5.1 sessions, `Start-Process -PassThru` can expose no usable `ExitCode` after the remote Whisper transcript is written. The stability harness now requires a nonempty remote result but records the ADB result as `RESULT_PRESENT_EXIT_UNKNOWN` (or `RESULT_PRESENT_ADB_NONZERO` when applicable), without falsely claiming an exit-zero PASS. `summary.json` contains `unverified_adb_exit_runs`; `runs.csv` contains `completion_evidence` and `adb_exit_code`. Logs for unverified or failed runs stay under the private, git-ignored `thermal-*/` directory for local diagnostics. A run with no nonempty transcript still aborts. Old `ABORTED` sessions are never overwritten.
 
+
+### T10 five-minute Sony stability result (provisional)
+
+Physical Sony SO-03L (Android 11), Whisper Base/Indonesian, airplane mode/Wi-Fi off, USB connected: **300.06 s, 23 runs, median RTF 1.0539, p95 RTF 1.2304, observed peak process RSS 378888 KiB (~370 MiB), battery 36.5 to 39.2°C (+2.7°C)**, no 43°C thermal stop. All 23 local Windows ADB process exit codes were unavailable, so this is **performance evidence only, not fully verified inference success or a 10-minute video test**.
+
+To avoid another five-minute session before the exit marker is validated, the updated harness writes a `result.exit` marker on the **Android shell itself** and checks it separately from the Windows ADB exit. The CI suite exercises marker writing with a POSIX `sh` stub and Windows PowerShell regression. Once CI passes, use `git pull origin main`, re-run `-PreflightOnly` and do a shorter `-RunMinutes 2 -Model base -Language id` remote-exit verification before considering another full five-minute session. New `summary.json` fields distinguish verified remote exit-zero runs from unavailable host ADB exit codes. Do not relabel old data.
+

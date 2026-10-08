@@ -287,3 +287,11 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Hotfix mengganti interpolasi dengan `"${RunNumber}:"`, tidak mengubah parameter, model, durasi, atau logic klasifikasi inference.
 - Perubahan belum diklaim PASS hingga parser dan Windows regression CI rerun. Perangkat fisik juga belum diuji ulang; T10/CP4 BLOCKED, T11 TODO.
 
+
+### T10-ASR-STABILITY-5MIN-EVIDENCE / COLLECTED-PROVISIONAL / 2026-10-08
+- Pengguna menyerahkan isi `summary.json` Sony SO-03L Android 11, serial tidak dicatat ulang dalam laporan publik; whisper.cpp v1.9.4 model Base multilingual Indonesian (SHA-256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`), dataset manifest SHA-256 `9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444`. Offline preflight airplane=1/Wi-Fi=0; USB power aktif.
+- Hasil: 300.06 detik sesi, 23 run menghasilkan file transkripsi, 23/23 `unverified_adb_exit_runs` karena Windows PowerShell `Start-Process.ExitCode` null, status `COLLECTED_WITH_UNVERIFIED_ADB_EXIT`, `stop_reason=null`. Median RTF 1.0539, p95 RTF nearest-rank 1.2304; sampled peak RSS 378888 KiB (~370 MiB); suhu baterai 36.5°C awal, 39.2°C puncak/akhir (+2.7°C), tidak mencapai stop 43°C.
+- Ini bukti beban *repeated short utterances*, bukan E2E video 10 menit, CPU thermal, network audit, atau aplikasi bebas crash/ANR; jangan menyatakan 23 run fully verified karena seluruh exit code lokal masih unknown. RTF>1 berarti beban ini sedikit lebih lambat dari waktu nyata. Suhu dipengaruhi pengisian USB.
+- Improvement harness: shell Android sekarang menyimpan kode keluar Whisper di `result.exit` per run; setiap run juga mensyaratkan `result.txt` nonempty, menyimpan remote vs Windows ADB exit masing-masing, melabeli ketidakpastian, menyimpan evidence lokal, dan tetap menghentikan run jika remote Whisper exit nonzero. Tes regresi PowerShell Windows + eksekusi shell POSIX mock ditambahkan ke CI. **Status fix: IMPLEMENTED / CI PENDING / PHYSICAL RECHECK NOT_RUN.**
+- Next: cek CI, lakukan uji 2 menit validasi remote exit marker, kemudian jika sukses pertimbangkan 5 menit lagi. CP4 **BLOCKED** dan T11 **TODO** karena ASR ID clean WER 28.61% >20%, translation ID→EN 25/30 <27/30, peninjauan referensi ID/timing serta E2E thermal belum selesai.
+

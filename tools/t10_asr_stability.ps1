@@ -76,9 +76,37 @@ function Adb-Raw {
 }
 
 
+function New-T10RemoteInferenceCommand {
+    param(
+        [string]$Directory,
+        [ValidateSet("id", "en")][string]$SourceLanguage
+    )
+    if ($Directory -notmatch '^/[a-zA-Z0-9/_-]+$') {
+        throw "Unsafe remote benchmark directory."
+    }
+    # The single-quoted PS literal deliberately preserves Android shell $?/$rc.
+    # Exit code is written on-device, independent of Windows Start-Process.ExitCode.
+    return ('cd {0} && ./whisper-cli -m model.bin -f input.wav -l {1} -nt -ng -nfa -otxt -of result; rc=$?; echo $rc > result.exit; exit $rc' -f $Directory, $SourceLanguage)
+}
+
+function Parse-T10RemoteExit {
+    param(
+        [string[]]$Lines,
+        [int]$ReadExitCode
+    )
+    if ($ReadExitCode -ne 0) { return $null }
+    $value = ($Lines -join "").Trim()
+    if ($value -notmatch '^(0|[1-9]\d{0,2})$') { return $null }
+    $code = [int]$value
+    if ($code -gt 255) { return $null }
+    return $code
+}
+
+
 function Resolve-T10InferenceCompletion {
     param(
         [AllowNull()][object]$AdbExitCode,
+        [AllowNull()][object]$RemoteExitCode,
         [bool]$TranscriptPresent,
         [int]$RunNumber,
         [string]$StderrLog
@@ -88,22 +116,29 @@ function Resolve-T10InferenceCompletion {
         if (Test-Path $StderrLog) {
             $diagnostic = (@(Get-Content -LiteralPath $StderrLog -Tail 8 -ErrorAction SilentlyContinue) -join " | ")
         }
-        throw "Inference FAIL run=$RunNumber, no nonempty transcript, adb_exit=$AdbExitCode. stderr tail: $diagnostic"
+        throw "Inference FAIL run=$RunNumber, no nonempty transcript; adb_exit=$AdbExitCode remote_exit=$RemoteExitCode. stderr tail: $diagnostic"
     }
 
-    # PowerShell 5.1 may expose an empty ExitCode on a completed Start-Process
-    # object. A real transcript file is completion evidence, but unknown/nonzero
-    # ADB status must NEVER be represented as a verified successful exit.
+    # Remote exit marker, written by Android shell, verifies the inference
+    # independently from Start-Process.ExitCode (often null in PS 5.1).
+    if ($null -eq $RemoteExitCode -or [string]$RemoteExitCode -eq "") {
+        Write-Warning ("Run {0}: transcript exists but remote exit marker is missing; result remains unverified." -f $RunNumber)
+        return "RESULT_PRESENT_REMOTE_EXIT_UNKNOWN"
+    }
+    if ([int]$RemoteExitCode -ne 0) {
+        Write-Warning ("Run {0}: Whisper returned remote exit {1}, despite a nonempty result." -f $RunNumber, $RemoteExitCode)
+        return "RESULT_PRESENT_REMOTE_NONZERO"
+    }
+
     if ($null -eq $AdbExitCode -or [string]$AdbExitCode -eq "") {
-        Write-Warning "Run ${RunNumber}: transcript exists, but ADB exit code is unavailable. Recording unverified exit."
-        return "RESULT_PRESENT_EXIT_UNKNOWN"
+        return "RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_UNKNOWN"
     }
     if ([int]$AdbExitCode -ne 0) {
-        Write-Warning "Run ${RunNumber}: transcript exists, but ADB exited $AdbExitCode. Recording unverified exit."
-        return "RESULT_PRESENT_ADB_NONZERO"
+        return "RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_NONZERO"
     }
     return "RESULT_PRESENT_EXIT_ZERO"
 }
+
 
 function Get-BatterySnapshot {
     $raw = @(Adb-Raw -Arguments @("shell", "dumpsys battery"))
@@ -231,12 +266,12 @@ try {
         }
 
         Adb-Raw -Arguments @("push", $item.audio, "$RemoteDir/input.wav") | Out-Null
-        Adb-Raw -Arguments @("shell", "rm -f $RemoteDir/result.txt") | Out-Null
+        Adb-Raw -Arguments @("shell", "rm -f $RemoteDir/result.txt $RemoteDir/result.exit") | Out-Null
         # Unique local logs are kept on failure or unverified ADB exit.
         # Never upload transcript/log contents to GitHub.
         $stdout = Join-Path $OutputDir ("run-{0:D4}-stdout.log" -f $LastRun)
         $stderr = Join-Path $OutputDir ("run-{0:D4}-stderr.log" -f $LastRun)
-        $cmd = "cd $RemoteDir && ./whisper-cli -m model.bin -f input.wav -l $Language -nt -ng -nfa -otxt -of result"
+        $cmd = New-T10RemoteInferenceCommand -Directory $RemoteDir -SourceLanguage $Language
         $startArguments = @($DeviceArgs + @("shell", $cmd))
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
         $proc = Start-Process -FilePath $Adb -ArgumentList $startArguments -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
@@ -292,7 +327,15 @@ try {
         }
         $hasOutput = @(Adb-Raw -Arguments @("shell", "test -s $RemoteDir/result.txt") -AllowFailure)
         $outputExit = $script:T10AdbLastExitCode
-        $completion = Resolve-T10InferenceCompletion -AdbExitCode $adbExit -TranscriptPresent ($outputExit -eq 0) -RunNumber $LastRun -StderrLog $stderr
+        # Capture a separate Android-shell exit marker for the actual inference.
+        # Preserve the ADB cat exit status immediately (later ADB calls replace it).
+        $markerLines = @(Adb-Raw -Arguments @("shell", "cat $RemoteDir/result.exit") -AllowFailure)
+        $markerReadExit = $script:T10AdbLastExitCode
+        $remoteExit = Parse-T10RemoteExit -Lines $markerLines -ReadExitCode $markerReadExit
+        $completion = Resolve-T10InferenceCompletion -AdbExitCode $adbExit -RemoteExitCode $remoteExit -TranscriptPresent ($outputExit -eq 0) -RunNumber $LastRun -StderrLog $stderr
+        if ($completion -eq "RESULT_PRESENT_REMOTE_NONZERO") {
+            throw "Inference FAIL run=$LastRun: Android Whisper process returned exit=$remoteExit, with transcript present. See $stderr."
+        }
         if ($completion -eq "RESULT_PRESENT_EXIT_ZERO") {
             Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
         }
@@ -314,17 +357,22 @@ try {
             temp_end_c = $endBattery.temperature_c
             temp_samples = $tempReadings
             adb_exit_code = $adbExit
+            remote_exit_code = $remoteExit
             completion_evidence = $completion
         })
-        Write-Host ("Run {0} {1}: {2:N2}s, RTF={3:N2}, battery={4:N1}C, peakRSS={5}kB" -f $LastRun, $item.id, $elapsed, $rtf, $endBattery.temperature_c, $runPeakRss)
+        Write-Host ("Run {0} {1}: {2:N2}s, RTF={3:N2}, battery={4:N1}C, peakRSS={5}kB, remoteExit={6}, adbExit={7}, evidence={8}" -f $LastRun, $item.id, $elapsed, $rtf, $endBattery.temperature_c, $runPeakRss, $remoteExit, $adbExit, $completion)
         if ($endBattery.temperature_c -ge $StopTemperatureC) {
             throw "THERMAL_STOP: suhu setelah run $LastRun adalah $($endBattery.temperature_c) C (batas $StopTemperatureC C)."
         }
     }
-    $uncertain = @($Runs | Where-Object { $_.completion_evidence -ne "RESULT_PRESENT_EXIT_ZERO" }).Count
-    if ($uncertain -gt 0) {
-        $Status = "COLLECTED_WITH_UNVERIFIED_ADB_EXIT"
-        Write-Warning "$uncertain run(s) have transcripts but unverified ADB exit status; do not claim verified runtime completion."
+    $remoteUnknown = @($Runs | Where-Object { $_.completion_evidence -eq "RESULT_PRESENT_REMOTE_EXIT_UNKNOWN" }).Count
+    $adbUnknown = @($Runs | Where-Object { $_.completion_evidence -in @("RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_UNKNOWN", "RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_NONZERO") }).Count
+    if ($remoteUnknown -gt 0) {
+        $Status = "COLLECTED_WITH_UNVERIFIED_REMOTE_EXIT"
+        Write-Warning "$remoteUnknown run(s) have missing Android exit markers; inference completion is not fully verified."
+    } elseif ($adbUnknown -gt 0) {
+        $Status = "COLLECTED_REMOTE_VERIFIED_ADB_UNVERIFIED"
+        Write-Warning "$adbUnknown run(s) verified Whisper exit=0 on Android, but Windows ADB process exit remains unknown/nonzero."
     } else {
         $Status = "COLLECTED_NOT_GATE_PASS"
     }
@@ -351,7 +399,9 @@ try {
     }
     $rssValues = @($Runs | Where-Object { $null -ne $_.peak_rss_kb } | ForEach-Object { [int]$_.peak_rss_kb })
     $peakRss = if ($rssValues.Count -gt 0) { ($rssValues | Measure-Object -Maximum).Maximum } else { $null }
-    $unverifiedExitRuns = @($Runs | Where-Object { $_.completion_evidence -ne "RESULT_PRESENT_EXIT_ZERO" }).Count
+    $unverifiedExitRuns = @($Runs | Where-Object { $null -eq $_.adb_exit_code -or $_.adb_exit_code -ne 0 }).Count
+    $remoteVerifiedRuns = @($Runs | Where-Object { $null -ne $_.remote_exit_code -and $_.remote_exit_code -eq 0 }).Count
+    $remoteUnknownRuns = @($Runs | Where-Object { $null -eq $_.remote_exit_code }).Count
     $ResolvedSerial = if ($DeviceSerial) { $DeviceSerial } else { (($ready[0] -split '\s+')[0]) }
     $DeviceModel = "unavailable"
     $AndroidRelease = "unavailable"
@@ -370,6 +420,8 @@ try {
         fixture_manifest_sha256 = (Get-FileHash $ManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
         completed_runs = $Runs.Count
         unverified_adb_exit_runs = $unverifiedExitRuns
+        verified_remote_whisper_exit_zero_runs = $remoteVerifiedRuns
+        unverified_remote_whisper_exit_runs = $remoteUnknownRuns
         rtf_median = $median
         rtf_p95_nearest_rank = $p95
         observed_peak_rss_kb = $peakRss
@@ -382,7 +434,7 @@ try {
         device_model = $DeviceModel
         android_release = $AndroidRelease
         offline_preflight = "airplane_mode_on=1;wifi_on=0"
-        limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Remote transcript is inference completion evidence but exit=unknown/nonzero is explicitly unverified. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
+        limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Android shell writes result.exit separately from Windows ADB process exit. Remote exit=0 plus nonempty transcript verifies CLI process completion, but an unknown/nonzero Windows ADB exit remains explicitly unverified. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
     }
     $summary | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $OutputDir "summary.json") -Encoding UTF8
     try { Adb-Raw -Arguments @("shell", "rm -rf $RemoteDir") | Out-Null } catch { Write-Warning "Remote benchmark cache tidak berhasil dibersihkan: $RemoteDir" }

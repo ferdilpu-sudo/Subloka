@@ -24,6 +24,15 @@ $completionFunction = $ast.Find({
 if ($null -eq $completionFunction) { throw "Resolve-T10InferenceCompletion helper not found." }
 . ([scriptblock]::Create($completionFunction.Extent.Text))
 
+foreach ($functionName in @("New-T10RemoteInferenceCommand", "Parse-T10RemoteExit")) {
+    $found = $ast.Find({
+        param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq $functionName
+    }, $true)
+    if ($null -eq $found) { throw "Missing helper: $functionName" }
+    . ([scriptblock]::Create($found.Extent.Text))
+}
 
 $temp = Join-Path ([System.IO.Path]::GetTempPath()) ("t10-adb-mock-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temp | Out-Null
@@ -58,23 +67,50 @@ try {
         throw "Expected opt-in failure to preserve exit=7."
     }
 
-    # Device log showed 'adb_exit=' (null) although remote result.txt existed:
-    # classify as collected but UNVERIFIED rather than fail run=1 or assert PASS.
-    $confirmed = Resolve-T10InferenceCompletion -AdbExitCode 0 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
-    if ($confirmed -ne "RESULT_PRESENT_EXIT_ZERO") { throw "Exit 0 + transcript must verify." }
-    $unknown = Resolve-T10InferenceCompletion -AdbExitCode $null -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
-    if ($unknown -ne "RESULT_PRESENT_EXIT_UNKNOWN") { throw "Missing ExitCode with transcript classified incorrectly." }
-    $unverified = Resolve-T10InferenceCompletion -AdbExitCode 7 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
-    if ($unverified -ne "RESULT_PRESENT_ADB_NONZERO") { throw "Nonzero exit with transcript classified incorrectly." }
+    # Android's own shell must write the status independently of
+    # Windows PowerShell 5.1 Start-Process.ExitCode (null on the Sony).
+    $remoteCommand = New-T10RemoteInferenceCommand -Directory "/data/local/tmp/subloka-t10-thermal" -SourceLanguage "id"
+    if (-not $remoteCommand.Contains('rc=$?; echo $rc > result.exit; exit $rc')) {
+        throw "Android remote exit marker command is absent or interpolated by PowerShell."
+    }
+    if ((Parse-T10RemoteExit -Lines @("0") -ReadExitCode 0) -ne 0) {
+        throw "Valid remote exit zero was not parsed."
+    }
+    if ((Parse-T10RemoteExit -Lines @("17") -ReadExitCode 0) -ne 17) {
+        throw "Valid nonzero exit was not parsed."
+    }
+    if ($null -ne (Parse-T10RemoteExit -Lines @("abc") -ReadExitCode 0)) {
+        throw "Malformed exit marker must be unknown."
+    }
+    if ($null -ne (Parse-T10RemoteExit -Lines @("0") -ReadExitCode 1)) {
+        throw "ADB cat failure cannot become a verified remote exit."
+    }
+    if ($null -ne (Parse-T10RemoteExit -Lines @("256") -ReadExitCode 0)) {
+        throw "Remote exit marker outside shell range must be rejected."
+    }
+    $confirmed = Resolve-T10InferenceCompletion -AdbExitCode 0 -RemoteExitCode 0 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($confirmed -ne "RESULT_PRESENT_EXIT_ZERO") { throw "ADB+remote zero with transcript must verify." }
+    $adbUnknown = Resolve-T10InferenceCompletion -AdbExitCode $null -RemoteExitCode 0 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($adbUnknown -ne "RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_UNKNOWN") {
+        throw "Android exit zero must remain evidenced if Windows ADB code is missing."
+    }
+    $adbNonzero = Resolve-T10InferenceCompletion -AdbExitCode 7 -RemoteExitCode 0 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($adbNonzero -ne "RESULT_PRESENT_REMOTE_EXIT_ZERO_ADB_NONZERO") {
+        throw "ADB transport nonzero must remain visible."
+    }
+    $remoteUnknown = Resolve-T10InferenceCompletion -AdbExitCode 0 -RemoteExitCode $null -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($remoteUnknown -ne "RESULT_PRESENT_REMOTE_EXIT_UNKNOWN") { throw "Missing Android marker must not PASS." }
+    $remoteNonzero = Resolve-T10InferenceCompletion -AdbExitCode 0 -RemoteExitCode 17 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($remoteNonzero -ne "RESULT_PRESENT_REMOTE_NONZERO") { throw "Android nonzero must not PASS." }
     $missingWasRejected = $false
     try {
-        Resolve-T10InferenceCompletion -AdbExitCode 0 -TranscriptPresent $false -RunNumber 1 -StderrLog $Adb | Out-Null
+        Resolve-T10InferenceCompletion -AdbExitCode 0 -RemoteExitCode 0 -TranscriptPresent $false -RunNumber 1 -StderrLog $Adb | Out-Null
     } catch {
         $missingWasRejected = $_.Exception.Message -match "no nonempty transcript"
     }
-    if (-not $missingWasRejected) { throw "Missing transcript must fail regardless of exit code." }
+    if (-not $missingWasRejected) { throw "Missing transcript must fail even when both exit codes are zero." }
 
-    Write-Host "PASS: native stderr handled; exit=0/null/7 with transcript and missing transcript classified; EAP restored."
+    Write-Host "PASS: native stderr, Android exit marker, adb exit 0/null/7, transcript missing, malformed remote exit, EAP restored."
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
