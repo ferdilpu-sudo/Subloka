@@ -489,3 +489,14 @@ Dokumen/task yang diperbarui:
 - GitHub Actions https://github.com/ferdilpu-sudo/Subloka/actions/runs/37778559881; Windows job `asr-adb-windows-regression` FAIL pada parse `$LastRun:`, dan `android-benchmark-binary` FAIL pada validation syntax; tidak menyiratkan engine gagal.
 - Koreksi: `throw ("Inference FAIL run={0}: ..." -f $LastRun, $remoteExit, $stderr)`, no engine/data changes. **Device retest NOT_RUN**, CI setelah koreksi belum diuji pada saat patch. Status CP4 BLOCKED.
 
+
+### T10-ASR-STABILITY-REMOTE-001 — Remote Whisper inference exit 0 verified on Sony
+- Date: 2026-10-08. Evidence type: user-supplied `summary.json` body from latest thermal run, not an independently retrieved device artifact. Physical Sony SO-03L Android 11 arm64; USB connected; airplane mode=1/Wi-Fi=0 as checked by harness.
+- Revision: `163cbc8`; whisper.cpp v1.9.4 Base multilingual pinned model SHA256 `60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe`; dataset manifest SHA256 `9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444`.
+- Command: `.\tools\t10_asr_stability.ps1 -RunMinutes 2 -Model base -Language id`. Actual: `duration_requested_minutes=2`, `elapsed_session_s=132.86`, 9 completed runs, `verified_remote_whisper_exit_zero_runs=9`, `unverified_remote_whisper_exit_runs=0`, `unverified_adb_exit_runs=9`, `stop_reason=null`, session status `COLLECTED_REMOTE_VERIFIED_ADB_UNVERIFIED`.
+- Performance: median RTF 0.7021, p95 nearest-rank RTF 1.118, sampled peak VmRSS 378764 KiB (~369.9 MiB); battery 38.5°C initial, 39.0°C peak/last, rise 0.5°C, threshold 43°C never triggered; USB powered=true. Battery is not CPU temperature, RSS samples can miss short peaks.
+- Expected verification: nonempty `result.txt` and on-device `result.exit=0` on each run. Actual according to harness JSON: **9/9 remote exits verified**, no missing markers. Windows ADB host process ExitCode unverified on all runs and must not be labeled as passing. This addresses the earlier `23/23` ambiguous exit statuses without retrospectively rewriting their evidence.
+- Relevant CI commit `163cbc8`: T10 Engine Evaluation success https://github.com/ferdilpu-sudo/Subloka/actions/runs/37778750212, Android CI success https://github.com/ferdilpu-sudo/Subloka/actions/runs/37778750189.
+- Limitations: only repeated short Indonesian utterances over 132.86s; not a sustained 5-minute remote-verified run, not a 10-minute video E2E, not direct CPU thermal or ANR test. RTF shift versus previous 5-minute run is **not paired or controlled**, so not evidence of performance improvement. Raw `runs.csv` and `telemetry.csv` not yet examined in this assessment.
+- Result: **PASS: remote CLI exit-code verification for 9/9 runs; evidence collected for performance and battery-temperature proxy. CP4 remains BLOCKED** by Indonesian ASR WER 28.61%, translation ID→EN acceptance 83.33%, timing/resource/E2E and review remaining.
+
