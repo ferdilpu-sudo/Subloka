@@ -53,3 +53,7 @@ try {
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
+# Windows PowerShell forwards the last native exit code (7 from the deliberate
+# negative test) to the hosting action unless explicitly reset after assertions.
+$global:LASTEXITCODE = 0
+exit 0

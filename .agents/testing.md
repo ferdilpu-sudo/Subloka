@@ -450,3 +450,10 @@ Dokumen/task yang diperbarui:
 - Actual hasil tes regresi: **NOT_RUN / CI PENDING** saat commit; pengujian fisik perbaikan juga **NOT_RUN** sampai hasil berikutnya diberikan. Jangan menyebut PASS sebelum workflow dan sesi perangkat berhasil.
 - Next: cek job `asr-adb-windows-regression`, lalu jalankan kembali preflight dan benchmark 5 menit. Output lama disimpan terpisah; `CP4=BLOCKED`, `T11=TODO`.
 
+
+### T10-ASR-STABILITY-ADB-002 — First Windows regression run, test-host exit issue
+- Tanggal: 2026-10-08. Run: https://github.com/ferdilpu-sudo/Subloka/actions/runs/37774711520.
+- Actual Windows PowerShell 5.1 stdout: `PASS: native stderr on exit 0 ignored; exit 7 rejected; opt-in failure works; EAP restored.` setelah tiga assertion mock. GitHub Actions step tetap `failure` dengan exit 1, karena `$LASTEXITCODE` dari mock exit=7 dibiarkan tersimpan walaupun assertion berhasil.
+- Koreksi: reset last native exit status dan `exit 0` di akhir regression test script setelah cleanup. **Perubahan koreksi belum diverifikasi CI hingga run berikutnya.** Harness perangkat utama tidak berubah pada koreksi ini.
+- Result: regression assertions menghasilkan PASS text, workflow FAIL sebelum koreksi; tetap tidak boleh klaim full CI PASS. Sony thermal run tetap NOT_RUN setelah fix ADB. CP4 BLOCKED.
+

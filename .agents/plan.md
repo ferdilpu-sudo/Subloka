@@ -269,3 +269,8 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Test regresi `tools/test_t10_asr_stability_adb.ps1`: mock batch menghasilkan stderr normal + exit 0, stderr error + exit 7, serta opsi `-AllowFailure`. CI Windows PowerShell 5.1 dan parser syntax CI tersedia; **hasil CI / uji ulang fisik belum tersedia pada saat perubahan ditulis**.
 - Tidak menimpa evidence sesi ABORTED; sesi ulang akan memakai nama folder baru. **CP4 BLOCKED, T11 TODO**; next `git pull`, preflight, sesi lima menit; kirim `summary.json` + ringkasan `runs.csv`.
 
+
+### T10-ASR-STABILITY-ADB-TEST-RUNNER / IN_PROGRESS / 2026-10-08
+- GitHub Actions `37774711520` Windows regression menulis `PASS: native stderr on exit 0 ignored; exit 7 rejected; opt-in failure works; EAP restored.`, tetapi job exit 1 karena mock negative-test sengaja meninggalkan `$LASTEXITCODE=7` dalam host PowerShell. Ini bukan kegagalan assertion helper.
+- Perbaikan hanya pada terminasi regression script: reset `$global:LASTEXITCODE=0` dan `exit 0` setelah seluruh assertion dan cleanup berhasil. CI perlu rerun; uji fisik perangkat juga belum dijalankan ulang. CP4 BLOCKED / T11 TODO.
+
