@@ -181,3 +181,20 @@ The four diagnostic runs write `.t10-benchmark/gain-ab-<timestamp>/summary.json`
 
 On Sony SO-03L (Android 11, offline), four A/B Whisper Base inference runs completed with **both Android Whisper exit 0 and ADB host exit 0**, without reaching the 43°C battery thermal threshold (37.7→38.5°C). The two listener-ambiguous samples did **not** show a WER benefit from changing volume alone: `id-clean-02` 44.44% → 44.44% at +17.2 dB; `id-clean-12` 66.67% → 73.33% at +8.453 dB (worse). Hypotheses changed in both pairs. See `.agents/evidence/t10-asr-gain-ab-sonyoct08.json` for provenance and run metrics. These tiny one-shot comparisons cannot establish population-level effects, and gain-only does not improve SNR. **No model, preprocessing, dataset, baseline, or gate changes have been made.** Next focus: controlled whole-set ASR quality experiments against the unchanged 20-clip benchmark, not additional gain-only trials.
 
+
+### T10 full-set decoding A/B (frozen Indonesian clean, diagnostic)
+
+The gain-only experiment did not improve either of its two ambiguous clips, so the next T10 step evaluates **decoder beam size only** with the same cached Whisper Base model, unchanged CLI control settings and **all 20 original** FLEURS Indonesian clean WAVs, including clips marked `AUDIO_AMBIGUOUS`. The control uses exactly `-nt -ng -nfa -otxt -of result` and the candidate adds `-bs 1`. Order alternates AB/BA across samples to reduce sequential device-temperature bias. The tool pins the original manifest and CSV baseline hashes, and refuses altered audio/model/CLI on resume.
+
+First run a non-inference preflight and a **3-pair pilot (6 inferences)** on the physical offline Sony, then review `summary.json`. Only if the pilot behaves correctly and the phone is cool, resume the same unique session to finish all 20 paired samples:
+
+```powershell
+git pull origin main
+python tools/t10_asr_decode_ab.py --preflight-only
+python tools/t10_asr_decode_ab.py --max-pairs 3
+# Copy the decode-ab-* directory shown by the pilot; replace the example below:
+python tools/t10_asr_decode_ab.py --resume ".\.t10-benchmark\decode-ab-YYYYMMDDTHHMMSSZ-XXXXXX"
+```
+
+The script checks offline/arm64/battery conditions, attempts safe interruption at battery >=43°C, and writes `summary.json`, `runs.csv`, stderr/stdout logs to `.t10-benchmark/decode-ab-*`. `PARTIAL_EXPERIMENT_NOT_CP4` is expected for the short pilot; `COMPLETE_EXPERIMENT_NOT_CP4` indicates data collected across 20 pairs, **not an official gate pass**. Frozen official Base ID clean remains 105/367 errors (28.61% WER); CP4 BLOCKED and T11 TODO. Do not infer accuracy improvement before comparing complete paired WER and inspecting transcripts.
+

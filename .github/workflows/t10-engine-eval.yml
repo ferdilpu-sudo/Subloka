@@ -16,6 +16,8 @@ on:
       - "tools/test_t10_asr_error_audit.py"
       - "tools/t10_asr_gain_ab.py"
       - "tools/test_t10_asr_gain_ab.py"
+      - "tools/t10_asr_decode_ab.py"
+      - "tools/test_t10_asr_decode_ab.py"
       - ".agents/evidence/t10-asr-listening-review-final.json"
       - "tools/t10_translation_device_benchmark.ps1"
       - "tools/t10_translation_review.py"
@@ -212,6 +214,10 @@ jobs:
       - name: Test T10 gain-only diagnostic and frozen listening review
         shell: bash
         run: python -m unittest discover -s tools -p test_t10_asr_gain_ab.py
+
+      - name: Test frozen 20-sample decoding A/B harness
+        shell: bash
+        run: python -m unittest discover -s tools -p test_t10_asr_decode_ab.py
 
       - name: Test translation quality review evaluator
         shell: bash
