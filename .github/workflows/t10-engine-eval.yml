@@ -9,6 +9,7 @@ on:
       - "engine/translation/**"
       - "tools/t10_wer.py"
       - "tools/t10_device_benchmark.ps1"
+      - "tools/t10_asr_stability.ps1"
       - "tools/t10_translation_device_benchmark.ps1"
       - "tools/t10_translation_review.py"
       - "tools/test_t10_translation_review.py"
@@ -144,6 +145,21 @@ jobs:
           $errors = $null
           [void][System.Management.Automation.Language.Parser]::ParseFile(
             (Resolve-Path "tools/t10_device_benchmark.ps1"),
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+      - name: Validate PowerShell ASR stability harness syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "tools/t10_asr_stability.ps1"),
             [ref]$tokens,
             [ref]$errors
           )

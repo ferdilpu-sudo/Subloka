@@ -1,0 +1,318 @@
+<#
+T10 offline ASR thermal / stability sampling on a physical Android arm64 device.
+Uses the already-built whisper.cpp v1.9.4 artifact and checksum-verified model.
+This is a repeated-utterance workload, NOT a 10-minute-video E2E test or CP4 PASS.
+#>
+[CmdletBinding()]
+param(
+    [string]$DatasetManifest = "t10-dataset.json",
+    [string]$WorkDir = ".t10-benchmark",
+    [ValidateSet("base", "tiny")]
+    [string]$Model = "base",
+    [ValidateSet("id", "en")]
+    [string]$Language = "id",
+    [ValidateRange(2, 10)]
+    [int]$RunMinutes = 5,
+    [string]$DeviceSerial = "",
+    [switch]$PreflightOnly
+)
+
+$ErrorActionPreference = "Stop"
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$RemoteDir = "/data/local/tmp/subloka-t10-thermal"
+$StopTemperatureC = 43.0
+$StartTemperatureLimitC = 40.0
+$ModelChecksums = @{
+    "base" = "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"
+    "tiny" = "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21"
+}
+
+function Resolve-RepoPath([string]$Path) {
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $Path))
+}
+
+$ManifestPath = Resolve-RepoPath $DatasetManifest
+$WorkDirectory = Resolve-RepoPath $WorkDir
+$Cli = Join-Path $WorkDirectory "build-android/bin/whisper-cli"
+$ModelPath = Join-Path $WorkDirectory ("models/ggml-" + $Model + ".bin")
+$Tool = Get-Command adb -ErrorAction SilentlyContinue
+if ($null -eq $Tool) {
+    $Sdk = if ($env:ANDROID_SDK_ROOT) { $env:ANDROID_SDK_ROOT } elseif ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA "Android/Sdk" }
+    $Adb = Join-Path $Sdk "platform-tools/adb.exe"
+} else {
+    $Adb = $Tool.Source
+}
+if (!(Test-Path $Adb)) { throw "ADB tidak tersedia. Instal Android SDK Platform-Tools." }
+
+$DeviceArgs = @()
+if ($DeviceSerial) { $DeviceArgs = @("-s", $DeviceSerial) }
+function Adb-Raw([string[]]$Arguments) {
+    $result = @(& $Adb @DeviceArgs @Arguments 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        throw "ADB gagal ($($Arguments -join ' ')): $($result -join ' ')"
+    }
+    return $result
+}
+
+function Get-BatterySnapshot {
+    $raw = @(& $Adb @DeviceArgs shell dumpsys battery 2>$null)
+    if ($LASTEXITCODE -ne 0) { throw "dumpsys battery tidak dapat dibaca." }
+    $text = $raw -join [Environment]::NewLine
+    if ($text -notmatch '(?m)^\s*temperature:\s*(-?\d+)\s*$') {
+        throw "Sensor battery.temperature tidak dilaporkan; pengujian panas ditolak."
+    }
+    $tenths = [int]$Matches[1]
+    if ($tenths -lt 150 -or $tenths -gt 600) {
+        throw "Suhu baterai tidak masuk akal ($tenths dalam 0.1 C); pengujian dihentikan."
+    }
+    $plugged = "unknown"
+    if ($text -match '(?m)^\s*USB powered:\s*(true|false)\s*$') {
+        $plugged = $Matches[1]
+    }
+    return [pscustomobject]@{
+        temperature_c = [Math]::Round($tenths / 10.0, 1)
+        usb_powered = $plugged
+    }
+}
+
+function Get-RemoteRssKb {
+    $remoteIds = @(& $Adb @DeviceArgs shell "pidof whisper-cli" 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $remoteIds.Count -eq 0) { return $null }
+    $text = ($remoteIds -join " ").Trim()
+    if ($text -notmatch '^\s*(\d+)') { return $null }
+    $remoteProcessId = $Matches[1]
+    $status = @(& $Adb @DeviceArgs shell "grep VmRSS /proc/$remoteProcessId/status 2>/dev/null" 2>$null)
+    if ($LASTEXITCODE -ne 0) { return $null }
+    if (($status -join " ") -match 'VmRSS:\s*(\d+)\s*kB') {
+        return [int]$Matches[1]
+    }
+    return $null
+}
+
+function Stop-RemoteWhisper {
+    $remoteIds = @(& $Adb @DeviceArgs shell "pidof whisper-cli" 2>$null)
+    if ($LASTEXITCODE -ne 0) { return }
+    foreach ($candidate in (($remoteIds -join " ") -split '\s+')) {
+        if ($candidate -match '^\d+$') {
+            & $Adb @DeviceArgs shell "kill -TERM $candidate" 2>$null | Out-Null
+        }
+    }
+}
+
+if (!(Test-Path $ManifestPath)) { throw "Dataset manifest tidak ditemukan: $ManifestPath" }
+if (!(Test-Path $Cli)) {
+    throw "whisper-cli belum ada: $Cli. Jalankan benchmark T10 ASR awal terlebih dahulu; script ini tidak rebuild."
+}
+if (!(Test-Path $ModelPath)) {
+    throw "Model $Model belum ada: $ModelPath. Siapkan model melalui harness ASR awal."
+}
+$ActualModelChecksum = (Get-FileHash $ModelPath -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($ActualModelChecksum -ne $ModelChecksums[$Model]) { throw "SHA-256 model $Model tidak cocok; pengujian dibatalkan." }
+
+$Dataset = Get-Content $ManifestPath -Raw | ConvertFrom-Json
+$Samples = @($Dataset.samples | Where-Object { $_.language -eq $Language } | Sort-Object id)
+if ($Samples.Count -lt 1) { throw "Manifest tidak memiliki sampel untuk bahasa $Language." }
+$SampleAudio = @()
+foreach ($sample in $Samples) {
+    if ([string]::IsNullOrWhiteSpace([string]$sample.id) -or [string]::IsNullOrWhiteSpace([string]$sample.audio)) {
+        throw "Manifest memuat sampel tanpa ID atau path audio."
+    }
+    $audio = [System.IO.Path]::GetFullPath((Join-Path (Split-Path $ManifestPath) ([string]$sample.audio)))
+    if (!(Test-Path $audio)) { throw "Audio tidak ditemukan untuk $($sample.id): $audio" }
+    $seconds = [double]$sample.durationSeconds
+    if ($seconds -le 0) { throw "Durasi audio tidak valid untuk $($sample.id)" }
+    $SampleAudio += [pscustomobject]@{ id = [string]$sample.id; audio = $audio; duration_s = $seconds }
+}
+
+$ready = @(& $Adb devices | Where-Object { $_ -match '^\S+\s+device$' })
+if ($DeviceSerial) {
+    if ((@($ready | Where-Object { ($_ -split '\s+')[0] -eq $DeviceSerial })).Count -ne 1) {
+        throw "Perangkat $DeviceSerial tidak terlihat pada adb devices."
+    }
+} elseif ($ready.Count -ne 1) {
+    throw "Hubungkan tepat satu perangkat siap di ADB, atau berikan -DeviceSerial. Jumlah=$($ready.Count)"
+}
+$abi = ((Adb-Raw -Arguments @("shell", "getprop ro.product.cpu.abi")) -join " ").Trim()
+if ($abi -ne "arm64-v8a") { throw "Diperlukan arm64-v8a, terdeteksi: $abi." }
+$airplane = ((Adb-Raw -Arguments @("shell", "settings get global airplane_mode_on")) -join " ").Trim()
+$wifi = ((Adb-Raw -Arguments @("shell", "settings get global wifi_on")) -join " ").Trim()
+if ($airplane -ne "1" -or $wifi -ne "0") {
+    throw "Aktifkan mode pesawat dan matikan Wi-Fi sebelum uji (airplane=$airplane wifi=$wifi)."
+}
+$InitialBattery = Get-BatterySnapshot
+if ($InitialBattery.temperature_c -ge $StartTemperatureLimitC) {
+    throw "Suhu awal baterai $($InitialBattery.temperature_c) C terlalu tinggi; tunggu hingga di bawah $StartTemperatureLimitC C."
+}
+
+Write-Host "T10 ASR stability preflight OK | $Model/$Language | $($Samples.Count) WAV | arm64 | offline | battery=$($InitialBattery.temperature_c) C"
+Write-Host "Catatan: battery temperature bukan suhu CPU. Ini uji repeated utterance, bukan benchmark video 10 menit."
+if ($PreflightOnly) {
+    Write-Host "PREFLIGHT PASS. File dan perangkat siap; tidak ada inference dijalankan."
+    return
+}
+
+$SessionName = "thermal-" + (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ") + "-" + [Guid]::NewGuid().ToString("N").Substring(0, 6)
+$OutputDir = Join-Path $WorkDirectory $SessionName
+if (Test-Path $OutputDir) { throw "Folder output sudah ada: $OutputDir" }
+New-Item -ItemType Directory -Path $OutputDir | Out-Null
+$Runs = New-Object 'System.Collections.Generic.List[object]'
+$Telemetry = New-Object 'System.Collections.Generic.List[object]'
+$Status = "ABORTED"
+$AbortReason = $null
+$PeakTemperatureC = $InitialBattery.temperature_c
+$LastTemperatureC = $InitialBattery.temperature_c
+$SessionWatch = [System.Diagnostics.Stopwatch]::StartNew()
+$LastRun = 0
+
+try {
+    Adb-Raw -Arguments @("shell", "mkdir -p $RemoteDir") | Out-Null
+    Adb-Raw -Arguments @("push", $Cli, "$RemoteDir/whisper-cli") | Out-Null
+    Adb-Raw -Arguments @("shell", "chmod 755 $RemoteDir/whisper-cli") | Out-Null
+    Adb-Raw -Arguments @("push", $ModelPath, "$RemoteDir/model.bin") | Out-Null
+    Write-Host "Model and binary transferred to isolated remote benchmark directory."
+    $SessionWatch.Restart()
+
+    while ($SessionWatch.Elapsed.TotalMinutes -lt $RunMinutes) {
+        $LastRun++
+        $item = $SampleAudio[($LastRun - 1) % $SampleAudio.Count]
+        $startBattery = Get-BatterySnapshot
+        if ($startBattery.temperature_c -ge $StopTemperatureC) {
+            throw "THERMAL_STOP: baterai $($startBattery.temperature_c) C mencapai batas $StopTemperatureC C."
+        }
+
+        Adb-Raw -Arguments @("push", $item.audio, "$RemoteDir/input.wav") | Out-Null
+        Adb-Raw -Arguments @("shell", "rm -f $RemoteDir/result.txt") | Out-Null
+        $stdout = Join-Path $OutputDir "_stdout.tmp"
+        $stderr = Join-Path $OutputDir "_stderr.tmp"
+        $cmd = "cd $RemoteDir && ./whisper-cli -m model.bin -f input.wav -l $Language -nt -ng -nfa -otxt -of result"
+        $startArguments = @($DeviceArgs + @("shell", $cmd))
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        $proc = Start-Process -FilePath $Adb -ArgumentList $startArguments -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+        $runPeakRss = 0
+        $tempReadings = 0
+        $temperatureFailures = 0
+        try {
+            while (!$proc.HasExited) {
+                $rss = Get-RemoteRssKb
+                if ($null -ne $rss) { $runPeakRss = [Math]::Max($runPeakRss, [int]$rss) }
+                try {
+                    $battery = Get-BatterySnapshot
+                    $temperatureFailures = 0
+                    $tempReadings++
+                    $LastTemperatureC = $battery.temperature_c
+                    $PeakTemperatureC = [Math]::Max($PeakTemperatureC, $battery.temperature_c)
+                    $Telemetry.Add([pscustomobject]@{
+                        run = $LastRun
+                        elapsed_session_s = [Math]::Round($SessionWatch.Elapsed.TotalSeconds, 2)
+                        battery_temperature_c = $battery.temperature_c
+                        rss_kb = if ($null -eq $rss) { $null } else { [int]$rss }
+                    })
+                    if ($battery.temperature_c -ge $StopTemperatureC) {
+                        Stop-RemoteWhisper
+                        throw "THERMAL_STOP: baterai $($battery.temperature_c) C mencapai batas $StopTemperatureC C."
+                    }
+                } catch {
+                    if ($_.Exception.Message -match 'THERMAL_STOP') { throw }
+                    $temperatureFailures++
+                    if ($temperatureFailures -ge 3) {
+                        Stop-RemoteWhisper
+                        throw "THERMAL_STOP: 3 pembacaan suhu baterai berturut-turut gagal."
+                    }
+                }
+                Start-Sleep -Milliseconds 1000
+                $proc.Refresh()
+            }
+        } finally {
+            $proc.WaitForExit(5000) | Out-Null
+            $timer.Stop()
+            Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
+        }
+        $hasOutput = @(& $Adb @DeviceArgs shell "test -s $RemoteDir/result.txt" 2>$null)
+        $outputExit = $LASTEXITCODE
+        if ($proc.ExitCode -ne 0 -or $outputExit -ne 0) {
+            throw "Inference FAIL run=$LastRun, adb_exit=$($proc.ExitCode), result_exists=$($outputExit -eq 0)."
+        }
+        $endBattery = Get-BatterySnapshot
+        $LastTemperatureC = $endBattery.temperature_c
+        $PeakTemperatureC = [Math]::Max($PeakTemperatureC, $endBattery.temperature_c)
+        $elapsed = $timer.Elapsed.TotalSeconds
+        $rtf = $elapsed / $item.duration_s
+        $Runs.Add([pscustomobject]@{
+            run = $LastRun
+            sample = $item.id
+            model = $Model
+            language = $Language
+            duration_s = $item.duration_s
+            elapsed_s = [Math]::Round($elapsed, 3)
+            rtf = [Math]::Round($rtf, 4)
+            peak_rss_kb = if ($runPeakRss -gt 0) { $runPeakRss } else { $null }
+            temp_start_c = $startBattery.temperature_c
+            temp_end_c = $endBattery.temperature_c
+            temp_samples = $tempReadings
+            exit_code = $proc.ExitCode
+        })
+        Write-Host ("Run {0} {1}: {2:N2}s, RTF={3:N2}, battery={4:N1}C, peakRSS={5}kB" -f $LastRun, $item.id, $elapsed, $rtf, $endBattery.temperature_c, $runPeakRss)
+        if ($endBattery.temperature_c -ge $StopTemperatureC) {
+            throw "THERMAL_STOP: suhu setelah run $LastRun adalah $($endBattery.temperature_c) C (batas $StopTemperatureC C)."
+        }
+    }
+    $Status = "COLLECTED_NOT_GATE_PASS"
+} catch {
+    $AbortReason = $_.Exception.Message
+    Write-Warning "T10 stability test berhenti: $AbortReason"
+} finally {
+    $SessionWatch.Stop()
+    if ($Runs.Count -gt 0) {
+        $Runs.ToArray() | Export-Csv (Join-Path $OutputDir "runs.csv") -NoTypeInformation -Encoding UTF8
+    }
+    if ($Telemetry.Count -gt 0) {
+        $Telemetry.ToArray() | Export-Csv (Join-Path $OutputDir "telemetry.csv") -NoTypeInformation -Encoding UTF8
+    }
+    $endBattery = $null
+    try { $endBattery = Get-BatterySnapshot; $LastTemperatureC = $endBattery.temperature_c } catch {}
+    $rfts = @($Runs | ForEach-Object { [double]$_.rtf } | Sort-Object)
+    $median = $null
+    $p95 = $null
+    if ($rfts.Count -gt 0) {
+        $center = [int][Math]::Floor($rfts.Count / 2)
+        $median = if (($rfts.Count % 2) -eq 0) { ($rfts[$center - 1] + $rfts[$center]) / 2.0 } else { $rfts[$center] }
+        $p95 = $rfts[[int][Math]::Ceiling($rfts.Count * 0.95) - 1]
+    }
+    $rssValues = @($Runs | Where-Object { $null -ne $_.peak_rss_kb } | ForEach-Object { [int]$_.peak_rss_kb })
+    $peakRss = if ($rssValues.Count -gt 0) { ($rssValues | Measure-Object -Maximum).Maximum } else { $null }
+    $ResolvedSerial = if ($DeviceSerial) { $DeviceSerial } else { (($ready[0] -split '\s+')[0]) }
+    $summary = [ordered]@{
+        evidence = "T10 ASR repeated-utterance thermal/stability PROXY; not E2E 10-minute video"
+        status = $Status
+        stop_reason = $AbortReason
+        duration_requested_minutes = $RunMinutes
+        elapsed_session_s = [Math]::Round($SessionWatch.Elapsed.TotalSeconds, 2)
+        model = $Model
+        model_sha256 = $ActualModelChecksum
+        whisper_version = "v1.9.4"
+        language = $Language
+        fixture_manifest_sha256 = (Get-FileHash $ManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        completed_runs = $Runs.Count
+        rtf_median = $median
+        rtf_p95_nearest_rank = $p95
+        observed_peak_rss_kb = $peakRss
+        battery_temp_start_c = $InitialBattery.temperature_c
+        battery_temp_peak_c = $PeakTemperatureC
+        battery_temp_last_c = $LastTemperatureC
+        battery_usb_powered_start = $InitialBattery.usb_powered
+        thermal_stop_threshold_c = $StopTemperatureC
+        device_serial = $ResolvedSerial
+        device_model = ((& $Adb @DeviceArgs shell getprop ro.product.model 2>$null) -join " ").Trim()
+        android_release = ((& $Adb @DeviceArgs shell getprop ro.build.version.release 2>$null) -join " ").Trim()
+        offline_preflight = "airplane_mode_on=1;wifi_on=0"
+        limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
+    }
+    $summary | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $OutputDir "summary.json") -Encoding UTF8
+    try { Adb-Raw -Arguments @("shell", "rm -rf $RemoteDir") | Out-Null } catch { Write-Warning "Remote benchmark cache tidak berhasil dibersihkan: $RemoteDir" }
+    Write-Host "Output T10: $OutputDir"
+    Write-Host ("Status={0}, completed runs={1}, peak battery={2:N1} C, median RTF={3}" -f $Status, $Runs.Count, $PeakTemperatureC, $median)
+}
+if ($Status -ne "COLLECTED_NOT_GATE_PASS") { throw "T10 stability measurement aborted: $AbortReason. See $OutputDir/summary.json" }

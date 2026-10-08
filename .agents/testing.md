@@ -429,3 +429,14 @@ Dokumen/task yang diperbarui:
 - CI issue: T10 Engine Evaluation run `37767746650` memperlihatkan job `translation-device` FAIL, jobs `whisper-artifacts` dan `android-benchmark-binary` PASS. Workflow memanggil semua androidTest, termasuk quality benchmark yang hanya valid setelah model tersedia; workflow dipersempit ke smoke test. Fix butuh CI run berikutnya untuk verifikasi.
 - Result: **Bukti inferensi translation 60/60 diterima sebagai laporan pengguna; kualitas ID→EN NOT_PASS, EN→ID PASS provisional; CP4 tetap BLOCKED**. Belum ada bukti review bilingual independen, ASR ID clean masih gagal, timestamp gate serta thermal/stabilitas belum diuji penuh.
 
+
+### T10-ASR-STABILITY-001 — Android thermal / performance telemetry (harness disiapkan)
+- Task: T10 / CP4; tanggal: 2026-10-08.
+- Revision: commit yang menambahkan `tools/t10_asr_stability.ps1` (lihat riwayat GitHub); engine `whisper.cpp v1.9.4`, model `tiny/base` pinned SHA-256 dari `testing.md`.
+- Expected: menjalankan `base` dalam bahasa Indonesia secara offline pada Sony SO-03L dalam pengukuran berulang sekitar 5 menit, tanpa menimpa baseline; menangkap `runs.csv`, `telemetry.csv` dan `summary.json` per sesi; sensor baterai dan sampled process RSS diberi label benar. Gagal aman jika perangkat/network/sensor/model tidak siap atau terlalu panas.
+- Menunggu pelaksanaan di perangkat: `powershell -NoProfile -File tools/t10_asr_stability.ps1 -PreflightOnly` (pemeriksaan tanpa inference), kemudian `.\tools\t10_asr_stability.ps1 -RunMinutes 5 -Model base -Language id`. Pastikan baterai tidak panas sebelumnya, jaringan benar-benar mati, dan perangkat berada di permukaan berventilasi; hentikan bila muncul peringatan thermal.
+- Output target: `.t10-benchmark/thermal-<timestamp>-<id>/summary.json`, `runs.csv`, `telemetry.csv`; semuanya diabaikan `.gitignore` dan tidak dipublikasikan otomatis.
+- Acceptance evidence ini: kumpulkan actual per-run dan trend RTF serta suhu, identifikasi apakah terjadi thermal stop/performance degradation. Observasi suhu berasal dari `adb shell dumpsys battery` dalam °C; **bukan CPU/SoC die temperature**. RSS diperoleh melalui `pidof`/`/proc/<pid>/status`, bisa tidak tersedia/terlewat; jika kosong jangan klaim pengukuran RAM.
+- Batas: ini *repeated short utterances*, bukan 10-minute video end-to-end. `COLLECTED_NOT_GATE_PASS` berarti file berhasil dikumpulkan, bukan aplikasi bebas OOM/ANR atau CP4 PASS. CI memeriksa syntax/script tanpa menjalankan perangkat; belum ada thermal actual dari Sony.
+- Result: **IMPLEMENTED / DEVICE NOT_RUN**, gate CP4 tetap **BLOCKED**; tidak memulai T11.
+

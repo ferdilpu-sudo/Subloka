@@ -252,3 +252,13 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Acceptance ID→EN belum mencapai 90%; baseline ASR ID-clean 28.61% masih di atas WER 20%; review referensi ID belum lengkap, timing dan thermal/stabilitas belum selesai. **T10/CP4 tetap BLOCKED, T11 TODO.**
 - Next: tarik commit baru, pulihkan review draft dari CSV perangkat lokal, verifikasi status; selanjutnya lakukan thermal/stability dan investigasi model ASR Indonesia, tanpa mengubah threshold atau referensi baseline.
 
+
+### T10-ASR-STABILITY-HARNESS / IMPLEMENTED / 2026-10-08
+- Scope: menambah evaluasi termal/stabilitas beban ASR berulang di perangkat Sony SO-03L; tidak mengubah engine produksi, model, threshold WER, CSV ASR baseline, atau status CP4.
+- Sudah dibuat: `tools/t10_asr_stability.ps1` memakai artefak yang disiapkan oleh `tools/t10_device_benchmark.ps1` (whisper.cpp v1.9.4 arm64 + tiny/base dengan checksum pinned) serta `t10-dataset.json`. Default model `base`, bahasa `id`, durasi aktivitas inferensi 5 menit; sampel diputar berurutan/berulang. Script baru membuat folder sesi `.t10-benchmark/thermal-<UTC>-<id>` yang unik dan tidak menimpa bukti WER lama.
+- Data dikumpulkan: `summary.json` (status, durasi, versi/model/hash, median/p95 RTF, puncak RSS teramati, suhu baterai awal/puncak/akhir), `runs.csv` dan `telemetry.csv` (interval sampling saat proses berjalan). Pada kegagalan, summary tetap dicoba disimpan dan status ditandai `ABORTED`.
+- Pengaman: preflight arm64, perangkat tunggal, airplane mode/Wi-Fi mati, checksum model, WAV asli tersedia, suhu baterai awal <40°C, berhenti ketika ≥43°C atau suhu tak dapat dibaca berulang. Suhu baterai adalah **proxy**, bukan sensor CPU; uji ini tidak setara dengan memproses video 10 menit/ANR aplikasi. Tidak ada transcript pribadi atau audio yang di-commit.
+- Sudah diuji: CI T10 revision sebelumnya `54fbffa` PASS di https://github.com/ferdilpu-sudo/Subloka/actions/runs/37772412408; perubahan harness baru hanya siap diperiksa syntax PowerShell lewat CI dan belum dijalankan pada Sony. Tidak klaim PASS thermal sebelum menerima `summary.json` perangkat.
+- Acceptance untuk langkah ini: review output perangkat minimal satu sesi `base/id` 5 menit; perhatikan pemanasan, variasi RTF awal/akhir, RSS, thermal stop, crash, dan battery-power context. Jika perlu, lanjutkan tes video nyata 30 s/3 min/10 min sesuai testing.md dengan scope T10/T15 yang jelas.
+- Status **T10/CP4 BLOCKED**, **T11 TODO**. Blocker utama tetap ASR ID clean 28.61% >20%, kualitas translation ID→EN 25/30 <27/30, referensi ID belum sepenuhnya diverifikasi, gate timing/thermal belum selesai. Next: jalankan preflight dan sesi stability di Sony, kirim `summary.json` dan beberapa baris `runs.csv`.
+

@@ -117,3 +117,17 @@ python tools/t10_translation_review.py report .t10-benchmark/translation-review-
 
 The `apply-draft` command checks an order-sensitive SHA-256 digest of the 60 input/output text pairs and refuses to reuse labels if they differ. It also refuses to overwrite an existing review. The `report` command exits with code 2 while ID→EN fails; that is the expected **quality-gate failure**, not a Python runtime error. The CI translation-device job runs *only* the model-readiness smoke test; offline 60-sample evaluation remains a separate physical-device step.
 
+
+## T10 ASR thermal and stability sampling (physical device)
+
+After running `tools/t10_device_benchmark.ps1` at least once so the arm64 binary and checksum-verified models are cached in `.t10-benchmark`, connect one physical Android arm64 device. Ensure `t10-dataset.json` and its WAV files remain available; on the phone, enable airplane mode and disable Wi-Fi.
+
+Run the non-inference preflight, then the default 5-minute continuous repeated-utterance sampling (Whisper base / Indonesian):
+
+```powershell
+.\tools\t10_asr_stability.ps1 -PreflightOnly
+.\tools\t10_asr_stability.ps1 -RunMinutes 5 -Model base -Language id
+```
+
+The script refuses to start if battery temperature is 40°C or higher, and attempts to stop inference when it reaches 43°C. It saves device-only evidence under a unique `.t10-benchmark/thermal-*/` directory: `summary.json`, `runs.csv`, `telemetry.csv`. The logged temperature is **battery temperature**, not CPU temperature, and RSS is sampled (possibly unavailable). If interrupted, treat `ABORTED` as an inconclusive result. Keep the device in a normal ventilated position, monitor it during the test, and do not treat this five-minute short-utterance loop as a ten-minute-video E2E test or a CP4 PASS. The initial Indonesian ASR quality and ID→EN translation-quality blockers remain.
+
