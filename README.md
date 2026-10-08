@@ -148,3 +148,16 @@ Physical Sony SO-03L (Android 11), Whisper Base/Indonesian, airplane mode/Wi-Fi 
 
 To avoid another five-minute session before the exit marker is validated, the updated harness writes a `result.exit` marker on the **Android shell itself** and checks it separately from the Windows ADB exit. The CI suite exercises marker writing with a POSIX `sh` stub and Windows PowerShell regression. The follow-up physical Sony run has now confirmed **9/9 remote Whisper exit=0** over **132.86 s** (median RTF 0.7021, p95 1.118, observed RSS peak 378764 KiB, battery 38.5→39.0°C). Windows ADB ExitCode remained unavailable on 9/9, so the session is reported as `COLLECTED_REMOTE_VERIFIED_ADB_UNVERIFIED`; do not claim the host transport was verified. New `summary.json` fields distinguish verified remote exit-zero runs from unavailable host ADB codes. Do not relabel the older five-minute run. **CP4 remains BLOCKED**: ID clean ASR WER and ID→EN quality still miss their thresholds, and full video-E2E/timing/resource gates are incomplete. Prioritize review of Indonesian ASR reference/hypothesis errors next.
 
+
+### T10 ASR Indonesian error audit from cached benchmark
+
+User-provided FLEURS `asr-results.csv` + `t10-dataset.json` contain 120 results across two Whisper models. For 20 Indonesian clean samples, Whisper Base makes **105 word edits over 367 reference words (28.61% micro WER)** versus Tiny's 162/367 (44.14%). The Base errors include 82 substitutions, 7 deletions, and 16 insertions. Reaching the frozen 20% WER gate requires reducing errors by **at least 32**. The six highest-error recordings `id-clean-{07,12,02,08,17,19}` account for **56/105** Base errors, so listen to those original WAVs first before revising references or tuning decoding parameters.
+
+Generate a reproducible, **text-only** diagnostic review without changing source data:
+
+```powershell
+python tools/t10_asr_error_audit.py .t10-benchmark/asr-results.csv t10-dataset.json .t10-benchmark/asr-audit-v1
+```
+
+The generated `asr-error-summary.json` reports micro/macro WER, edit counts and original SHA-256s; `id-clean-base-audio-review.csv` starts with `UNREVIEWED` for every clip. Outputs refuse to overwrite a nonempty destination folder. **Audio is NOT read** by this script: references, especially odd-sounding FLEURS translations, must be verified by listening to the original WAV before correction. Recomputed WER matches 119/120 archived rows; the one `base/en-challenging-06` row differs (archived 0.2326 versus recomputed 0.2093), not affecting the Indonesian clean baseline. Do not silently fix archived evidence or game the metric. CP4 remains BLOCKED.
+
