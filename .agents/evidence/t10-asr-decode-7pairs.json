@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-08",
+  "evidence_source": "User-provided PowerShell Select-Object excerpt of summary.analysis after --resume --max-pairs 4; complete summary.json and runs.csv not supplied in this turn.",
+  "experiment": "T10 Whisper Base id-clean frozen 20-pair decoding A/B: control default flags vs -bs 1",
+  "status": "PARTIAL_ANALYSIS_ONLY",
+  "total_planned_pairs": 20,
+  "paired_samples": 7,
+  "runs_expected_for_pairs": 14,
+  "paired_reference_words": 129,
+  "control_errors": 32,
+  "beam1_errors": 32,
+  "control_micro_wer": 0.24806201550387597,
+  "beam1_micro_wer": 0.24806201550387597,
+  "delta_micro_wer": 0,
+  "previously_submitted_first_three": {
+    "paired_samples": 3,
+    "ref_words": 53,
+    "control_errors": 15,
+    "beam1_errors": 17
+  },
+  "derived_next_four": {
+    "paired_samples": 4,
+    "ref_words": 76,
+    "control_errors": 17,
+    "beam1_errors": 15,
+    "beam1_minus_control_edits": -2
+  },
+  "official_cp4_status": "BLOCKED",
+  "official_base_clean_id_baseline": {
+    "errors": 105,
+    "reference_words": 367,
+    "micro_wer": 0.28610354223433243,
+    "threshold_max": 0.2,
+    "unchanged": true
+  },
+  "missing_operational_fields": [
+    "status",
+    "stop_reason",
+    "battery_last_c",
+    "events"
+  ],
+  "conclusion": "Seven-pair candidate exactly ties control with 32/129 edits; cannot conclude -bs 1 improves or degrades all 20. Do not modify baseline or production decoder. Check safe session status and temperature before next staged resume."
+}

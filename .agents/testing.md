@@ -565,3 +565,10 @@ Dokumen/task yang diperbarui:
 - Existing code tests from `b3fda1c`: GitHub Actions T10 Engine Evaluation PASS https://github.com/ferdilpu-sudo/Subloka/actions/runs/37796038607; Android CI PASS https://github.com/ferdilpu-sudo/Subloka/actions/runs/37796038850. No code changed in this evidence-only commit.
 - Result: 3-pair **diagnostic pilot shows NO improvement from beam1**; remain underpowered to reject variant for entire 20-sample dataset. Never trim ambiguity-marked ID-clean clips to improve gate. No production decoding change or CP4 gate PASS. Next: full summary status, thermal and stop_reason; if safe, resume same session in stages (`--max-pairs 4`). CP4 BLOCKED / T11 TODO.
 
+
+### T10-ASR-DECODE-7PAIRS-001 — Paired accuracy tie, metadata not available
+- 2026-10-08, user transcript via PowerShell `summary.analysis` with seven matched pairs after `--resume --max-pairs 4` (new four inferred from prior 3-pair aggregate): control 32 errors, beam1 32 errors, micro-WER 0.24806201550387597 each (129 reference words), delta 0. Relative to first 3: additional 4 pairs add 17 control edits and 15 beam1 edits over 76 reference words. No hypothesis/per-clip values for those four submitted.
+- Evidence committed as `.agents/evidence/t10-asr-decode-7pairs.json` (provenance: user-provided excerpt, not independently pulled device `runs.csv`). Do not interpret seven-pair 24.81% as official CP4 full-set baseline (still 105/367 edits, 28.61%) or statistically justified engine change.
+- Remaining tests: 13 pairs / 26 runs. Operational blocker to resume safely: missing latest `summary.status`, `summary.stop_reason`, `summary.battery_last_c`, `summary.events`. Require healthy partial status, null stop reason, and cooldown before next staged 4-pair device run. Previous 3-pair 39.2°C end is stale for this session.
+- Result: diagnostic **TIE 32/129 vs 32/129**; T10 active; CP4 BLOCKED; T11 TODO.
+

@@ -372,3 +372,10 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Decision: no production change to beam size and no baseline edits. Request `summary.json` metadata before resuming. If session `PARTIAL_EXPERIMENT_NOT_CP4`, stop_reason null and cool/healthy phone, may continue **same session** in stages (`--resume PATH --max-pairs 4`), not a separate 20-sample baseline. If thermal or runtime issue, stop and diagnose first.
 - Official frozen Base ID-clean WER 105/367 = 28.61% (>20% gate), translation ID→EN 25/30 ACCEPT (83.33%), CP4 BLOCKED, T11 TODO; E2E video resource gate open.
 
+
+### T10-ASR-DECODE-7PAIRS-SONY / PARTIAL DIAGNOSTIC TIE / 2026-10-08
+- User after resume four additional pairs submitted `summary.analysis` excerpt: `paired_samples=7`, `control_errors=32`, `beam1_errors=32`, `control_micro_wer=beam1_micro_wer=0.2480620155`, `beam1_minus_control_micro_wer=0`. These counts imply **129 reference words** across paired `id-clean-01` to `id-clean-07`; no complete session summary or `runs.csv` supplied in the same turn. Preserved at `.agents/evidence/t10-asr-decode-7pairs.json`.
+- Relative to pilot first 3 (`15 vs 17` on 53 words), subsequent four samples contribute default `17` vs beam1 `15` edits over remaining 76 words (derived from aggregate differences). Candidate regained initial 2-edit disadvantage, now **32 vs 32** on 7 pairs. This is not evidence of improvement or equivalence for whole 20 samples.
+- User's latest output lacks session `status`, `stop_reason`, `battery_last_c` and events. Previously submitted 3-pair pilot `battery_last_c=39.2` and `PARTIAL_EXPERIMENT_NOT_CP4`, but **do not carry it forward** as proof the resumed 7-pair session is thermal safe. Before resuming check current session metadata and current device temperature (<40°C), airplane mode/Wi-Fi off.
+- If new session metadata healthy, resume **same decode-ab session** next four pairs (08–11) via `python tools/t10_asr_decode_ab.py --resume "$($session.FullName)" --max-pairs 4`, then re-review paired WER. Do not automatically update any engine setting. CP4 BLOCKED, T11 TODO, historical 20-sample baseline 105/367=28.61%.
+

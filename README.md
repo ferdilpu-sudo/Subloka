@@ -205,3 +205,8 @@ First physical Sony pilot returned six ASR runs (3 paired samples) with exact fr
 
 **Before continuing**, inspect the original session's `summary.json` for `status`, `stop_reason`, `battery_last_c` and events; this user-provided excerpt included only the `analysis` object, not the thermal/session outcome. If safely `PARTIAL_EXPERIMENT_NOT_CP4` with no stop reason and device cool, continue the **same** session in stages with e.g. `python tools/t10_asr_decode_ab.py --resume ".\.t10-benchmark\decode-ab-<actual-session>" --max-pairs 4`. Do not create a new session or delete previous pilot evidence. CI for harness commit `b3fda1c` passed: Android CI and T10 Engine Evaluation.
 
+
+### T10 decoding A/B after seven paired samples
+
+After resuming the same Sony session for four more sample pairs, **control and `-bs 1` tied on 7/20 Indonesian clean clips: 32 word edits each across 129 reference words (24.81% micro-WER each)**. The additional four recovered the two-edit disadvantage from the original three-pair pilot (additional control 17 edits, beam1 15). Evidence: `.agents/evidence/t10-asr-decode-7pairs.json`. The user supplied aggregate `analysis` only, not updated session status/temperature or raw run logs, so confirm `status=PARTIAL_EXPERIMENT_NOT_CP4`, empty `stop_reason`, and battery safely cooled before another short staged resume. Do not infer a stable decoding advantage or change engine defaults, dataset or baseline. Official CP4 remains BLOCKED with 105/367 baseline edits.
+
