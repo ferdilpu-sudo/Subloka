@@ -511,3 +511,11 @@ Dokumen/task yang diperbarui:
 - Missing evidence: 6 original WAVs `t10-audio/id-clean/id-clean-{07,12,02,08,17,19}.wav`; no phonetic/reference correctness judgement can be final until listened to. Actual audio not included in upload, no reason to assert mislabeled files.
 - Result: **ASR quality NO PASS (28.61% >20%); error-priority audit ready; audio validation PENDING; CP4 remains BLOCKED**.
 
+
+### T10-ASR-PRIORITY-WAV-001 — Audio signal check and human-listening handoff
+- Source: user-uploaded ZIP `id-clean-priority-audio.zip` (SHA256 `c7eba760822a4cb9ae5db41a9a15df8925c4495d708725e25d93c13ae05f6533`), references `t10-dataset.json`, hypotheses `asr-results.csv`. Six files: `id-clean-{07,12,02,08,17,19}.wav`; WAV 16 kHz / mono / 16-bit PCM; durations match manifest within 0.01 s; none clip digitally.
+- Acoustic RMS dBFS: 07=-24.1, 12=-35.0, 02=-41.2, 08=-22.4, 17=-24.0, 19=-23.5. Peak dBFS: 07=-7.7, 12=-9.5, 02=-24.2, 08=-5.8, 17=-4.3, 19=-4.8. Sample `02` anomalously quiet relative to this small selected set, not proof of low SNR. Sample `12` relatively quiet too.
+- Manual-listening handoff artifact: self-contained offline HTML with 6 embedded WAV players, references and Tiny/Base hypotheses, reviewer statuses default `UNREVIEWED`, corrected-reference field, and CSV export; two listening-only gain versions +17.2 dB (02), +8.5 dB (12) with peak ≤−1 dBFS. A separate template CSV of 6 rows also starts `UNREVIEWED`. No external hosting or WAV added to repo. Audio words were **NOT verified by direct independent hearing** at this stage.
+- The comparison is **diagnostic**, not CP4 pass: do not silently alter FLEURS labels/normalization/ASR or infer that gain will reduce WER. Next decision requires completed human listening statuses + exact corrected-reference evidence; if all 6 reference texts match, plan paired test original vs gain before modifying production pipeline.
+- Baseline quality remains `base/id/clean` WER 28.61% >20%; CP4 BLOCKED, T11 TODO.
+
