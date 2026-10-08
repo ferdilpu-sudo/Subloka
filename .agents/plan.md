@@ -235,3 +235,11 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Batas: 14 referensi ID-clean diverifikasi, 4 belum dinilai, 2 belum dapat dipastikan; baseline ID clean 28.61% masih FAIL terhadap target 20%. Translation quality offline, thermal, timing, dan total resource produksi belum diverifikasi.
 - CP4 tetap BLOCKED; T11 TODO. Setelah `git pull`, jalankan instrumented test pada Sony dalam mode pesawat (sesudah download model online), review 60 output secara manusia, lalu selesaikan gate lain. Tidak mengklaim perubahan ini membuat CP4 PASS.
 
+
+### T10-TRANSLATION-DEVICE-FIX / PREPARED / 2026-10-08
+- Bukti kegagalan dari Sony SO-03L: `MlKitTranslationBenchmarkTest.kt:54` menghasilkan `expected READY but was NOT_READY`; tidak ada CSV/RESULT_PATH. Ini **FAIL precondition**, bukan hasil kualitas translation.
+- Hipotesis yang relevan: Gradle `connectedDebugAndroidTest` dapat mencopot APK dan menghapus storage model ML Kit di antara smoke test online dan benchmark offline. Penyebab pasti penghapusan model pada perangkat belum dibuktikan secara langsung.
+- Perbaikan disiapkan: `tools/t10_translation_device_benchmark.ps1` dua fase menggunakan `adb install -r -t` sekali saat `Prepare`, menjalankan smoke test melalui `adb shell am instrument`, lalu `Benchmark` tanpa reinstall/clear app data setelah mode pesawat+Wi-Fi off. Script mengambil hasil via `adb pull`.
+- Pengujian: syntax PowerShell + unit test reviewer ditambahkan pada T10 Engine Evaluation CI; hasil CI dan percobaan perangkat fisik harus diverifikasi sebelum klaim PASS.
+- CP4 tetap BLOCKED, T11 TODO; baseline ASR tidak diubah. Next: pull commit, `-Phase Prepare` dengan koneksi internet, `-Phase Benchmark` setelah perangkat offline, lakukan review translation manusia.
+

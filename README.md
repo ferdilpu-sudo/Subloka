@@ -81,11 +81,25 @@ T10 includes `tools/t10_device_benchmark.ps1` for arm64 Android evaluation of pi
 
 The offline ML Kit quality harness is in `engine/translation/src/androidTest/`; it reads 30 authored EN inputs and 30 authored Indonesian inputs and exports device translations for human evaluation. Review and freeze the input fixture before evaluating its outputs. This is **not** a translation quality PASS.
 
-Run the offline benchmark on a physical Android device **only after downloading models online** with the existing `MlKitTranslationInstrumentedTest`. Switch the device to airplane mode (Wi-Fi and cellular off), then:
+Run the benchmark in **two phases**, retaining the same installed test APK so model downloads are not removed between online preparation and offline measurement. A standalone Gradle `connectedDebugAndroidTest` run may uninstall the app and its model storage afterward.
+
+First, keep internet connected and run:
 
 ```powershell
-.\gradlew.bat :engine:translation:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=app.subloka.engine.translation.MlKitTranslationBenchmarkTest'
-adb logcat -d -s 'SubLokaT10:I' '*:S'
+.\tools\t10_translation_device_benchmark.ps1 -Phase Prepare
 ```
 
-Find `RESULT_PATH=` in logcat; use `adb pull` to copy the CSV. Run `python tools/t10_translation_review.py init RAW.csv REVIEW.csv`, score all 60 translations manually, and run `python tools/t10_translation_review.py report REVIEW.csv --json SUMMARY.json`. See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.
+After preparation passes, enable airplane mode manually and turn off Wi-Fi, then run **without reinstalling**:
+
+```powershell
+.\tools\t10_translation_device_benchmark.ps1 -Phase Benchmark
+```
+
+The benchmark phase runs instrumented inference without network and pulls its results to `.t10-benchmark/translation-results.csv`. It does not declare translation quality PASS. Review all 60 outputs:
+
+```powershell
+python tools/t10_translation_review.py init .t10-benchmark/translation-results.csv .t10-benchmark/translation-review.csv
+python tools/t10_translation_review.py report .t10-benchmark/translation-review.csv --json .t10-benchmark/translation-summary.json
+```
+
+See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.

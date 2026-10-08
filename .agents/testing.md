@@ -408,3 +408,13 @@ Dokumen/task yang diperbarui:
 - Nilai audit ASR yang dilaporkan pengguna: Sony SO-03L/Android 11, corpus WER Base EN-clean 9.79%, ID-clean 28.61%, Tiny EN-clean 12.35%, ID-clean 44.14%; ID-clean 7 jelas/13 kurang jelas; Base jelas 13.22%, kurang jelas 36.18%; RTF Base rata-rata ID 1.026/1.071. Referensi 14 verified, 4 not reviewed, 2 uncertain. File mentah dan hash hanya berada di mesin pengguna; angka belum diverifikasi dari artefak mentah dalam repository.
 - Result: **PREPARED** untuk evaluasi translation; CP4 **BLOCKED**, T11 **TODO**.
 
+
+### T10-TRANSLATION-DEVICE-001 — Diagnostik readiness dan alur dua fase
+- Task: T10/CP4; tanggal: 2026-10-08.
+- Environment: Sony SO-03L, Android 11, PowerShell Windows, physical test user.
+- Actual: `:engine:translation:connectedDebugAndroidTest` gagal di `MlKitTranslationBenchmarkTest.kt:54` dengan `expected:<READY> but was:<NOT_READY>`; `RESULT_PATH` tidak muncul karena test abort sebelum mengisi CSV. Error protobuf `sun.misc.Unsafe` hanya warning dependency.
+- Interpretation: model translation belum siap pada saat tes dijalankan. Gradle connected test dapat uninstall APK selesai tes; ML Kit downloaded models pada instalasi lokal dapat terhapus saat uninstall. Penyebab kondisi user belum dipastikan, sehingga digunakan workflow yang tidak uninstall antarfase.
+- Perbaikan yang disiapkan: `tools/t10_translation_device_benchmark.ps1` (`-Phase Prepare` saat online: build/install sekali + online readiness/smoke; `-Phase Benchmark` saat airplane+Wi-Fi off: run instrumented benchmark tanpa reinstall dan adb pull CSV). Hilangnya test APK atau ketidaksiapan model dilaporkan sebagai error, bukan inference PASS.
+- Belum terverifikasi: eksekusi dua fase pada Sony, offline output 60 segmen, review acceptance, thermal; CI syntax/unit test perlu diperiksa pada workflow setelah push.
+- Result: **FAIL** untuk benchmark instrumentasi sebelumnya (prasyarat NOT_READY), **PREPARED** untuk harness dua fase; CP4 tetap **BLOCKED**.
+

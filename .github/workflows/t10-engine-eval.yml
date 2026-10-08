@@ -9,6 +9,9 @@ on:
       - "engine/translation/**"
       - "tools/t10_wer.py"
       - "tools/t10_device_benchmark.ps1"
+      - "tools/t10_translation_device_benchmark.ps1"
+      - "tools/t10_translation_review.py"
+      - "tools/test_t10_translation_review.py"
       - "tools/t10_prepare_dataset.ps1"
       - "tools/t10_fetch_fleurs_dataset.py"
       - "tools/t10_build_android_whisper.sh"
@@ -148,6 +151,25 @@ jobs:
             $errors | ForEach-Object { Write-Error $_.Message }
             exit 1
           }
+
+      - name: Validate PowerShell translation harness syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "tools/t10_translation_device_benchmark.ps1"),
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+      - name: Test translation quality review evaluator
+        shell: bash
+        run: python -m unittest discover -s tools -p test_t10_translation_review.py
 
       - name: Install pinned Android NDK
         shell: bash
