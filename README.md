@@ -103,3 +103,17 @@ python tools/t10_translation_review.py report .t10-benchmark/translation-review.
 ```
 
 See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.
+
+### Restore provisional translation review after pulling
+
+The initial Sony SO-03L translation benchmark produced 60 rows; the AI-assisted review is acknowledged by the user but is **not an independent bilingual human sign-off**. Results: EN→ID 27/30 accepted (90.00%), ID→EN 25/30 (83.33%). All 60 translations returned without recorded engine errors. This does not close CP4.
+
+To reproduce the draft labels from the **exact matching** raw CSV already on the PC:
+
+```powershell
+python tools/t10_translation_review.py apply-draft .t10-benchmark/translation-results.csv .t10-benchmark/translation-review-ai-draft.csv
+python tools/t10_translation_review.py report .t10-benchmark/translation-review-ai-draft.csv --json .t10-benchmark/translation-summary-ai-draft.json
+```
+
+The `apply-draft` command checks an order-sensitive SHA-256 digest of the 60 input/output text pairs and refuses to reuse labels if they differ. It also refuses to overwrite an existing review. The `report` command exits with code 2 while ID→EN fails; that is the expected **quality-gate failure**, not a Python runtime error. The CI translation-device job runs *only* the model-readiness smoke test; offline 60-sample evaluation remains a separate physical-device step.
+

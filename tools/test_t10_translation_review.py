@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from t10_translation_review import init, load, report
+from t10_translation_review import init, load, report, apply_draft, content_digest
 
 
 class T10TranslationReviewTests(unittest.TestCase):
@@ -45,6 +45,43 @@ class T10TranslationReviewTests(unittest.TestCase):
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
             writer.writeheader()
             writer.writerows(rows)
+
+    def test_ai_draft_applies_only_to_identical_model_output(self):
+        rows = load(self.raw)
+        draft = self.dir / "labels.json"
+        draft.write_text(json.dumps({
+            "version": 1,
+            "source_content_sha256": content_digest(rows),
+            "default_status": "ACCEPT",
+            "overrides": {
+                "id-02": {"status": "MAJOR_MEANING_ERROR", "notes": "Incorrect tense"}
+            },
+        }), encoding="utf-8")
+        output = self.dir / "draft-output.csv"
+        apply_draft(self.raw, output, draft)
+        applied = load(output)
+        self.assertEqual(60, len(applied))
+        self.assertEqual("MAJOR_MEANING_ERROR", applied[31]["status"])
+        self.assertEqual("ACCEPT", applied[0]["status"])
+        with self.assertRaises(FileExistsError):
+            apply_draft(self.raw, output, draft)
+
+    def test_ai_draft_rejects_changed_translation(self):
+        rows = load(self.raw)
+        draft = self.dir / "labels.json"
+        draft.write_text(json.dumps({
+            "version": 1,
+            "source_content_sha256": content_digest(rows),
+            "default_status": "ACCEPT",
+            "overrides": {},
+        }), encoding="utf-8")
+        rows[0]["translation"] = "changed"
+        with self.raw.open("w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+        with self.assertRaisesRegex(ValueError, "differs from approved draft"):
+            apply_draft(self.raw, self.dir / "draft-output.csv", draft)
 
     def test_incomplete_review_is_not_pass(self):
         self.assertFalse(report(self.review, None))

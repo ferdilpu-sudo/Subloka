@@ -108,7 +108,7 @@ jobs:
           arch: x86_64
           profile: pixel_4
           disable-animations: true
-          script: ./gradlew --stacktrace :engine:translation:connectedDebugAndroidTest
+          script: ./gradlew --stacktrace :engine:translation:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.engine.translation.MlKitTranslationInstrumentedTest
 
   android-benchmark-binary:
     runs-on: ubuntu-latest

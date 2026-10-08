@@ -78,6 +78,62 @@ def init(raw: Path, review: Path) -> None:
     print("Review all 60 rows; allowed status: " + ", ".join(sorted(STATUS)))
 
 
+def content_digest(rows: list[dict[str, str]]) -> str:
+    """Order-sensitive digest of the exact source/translation pairs, not CSV formatting."""
+    identity = ("sample", "source_language", "target_language", "source_text", "translation")
+    canonical = [{key: row[key] for key in identity} for row in rows]
+    payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def apply_draft(raw: Path, output: Path, draft_file: Path) -> None:
+    """Reapply AI-assessed labels ONLY to the exact already-reviewed model outputs.
+
+    This does not create independently verified human review evidence.
+    """
+    rows = load(raw)
+    verify(rows)
+    draft = json.loads(draft_file.read_text(encoding="utf-8"))
+    if draft.get("version") != 1 or draft.get("default_status") != "ACCEPT":
+        raise ValueError("Unsupported AI draft format")
+    actual_digest = content_digest(rows)
+    if actual_digest != draft.get("source_content_sha256"):
+        raise ValueError(
+            "Source/translation text differs from approved draft; "
+            "perform a fresh human review instead of reusing old labels"
+        )
+    if output.exists():
+        raise FileExistsError(f"Review exists; refusing overwrite: {output}")
+    if any(row["error"].strip() or not row["translation"].strip() for row in rows):
+        raise ValueError("Unexpected missing translation or engine error; fresh review required")
+    overrides = draft.get("overrides")
+    if not isinstance(overrides, dict) or not set(overrides).issubset(
+        {row["sample"] for row in rows}
+    ):
+        raise ValueError("Unknown or malformed review override IDs")
+    accept_notes = draft.get("accept_notes", {})
+    if not isinstance(accept_notes, dict) or not set(accept_notes).issubset(
+        {row["sample"] for row in rows} - set(overrides)
+    ) or any(not isinstance(note, str) for note in accept_notes.values()):
+        raise ValueError("Invalid draft ACCEPT notes")
+    for key, decision in overrides.items():
+        if not isinstance(decision, dict) or decision.get("status") not in STATUS:
+            raise ValueError(f"Invalid draft status for {key}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=FIELDS)
+        writer.writeheader()
+        for row in rows:
+            decision = overrides.get(row["sample"], {})
+            writer.writerow({
+                **row,
+                "status": decision.get("status", "ACCEPT"),
+                "notes": decision.get("notes", accept_notes.get(row["sample"], "")),
+            })
+    print(f"AI-assisted provisional review created: {output}")
+    print("NOT independently human-verified; CP4 requires explicit reviewer sign-off.")
+
+
 def p95_nearest_rank(values: list[float]) -> float:
     ordered = sorted(values)
     return ordered[math.ceil(0.95 * len(ordered)) - 1]
@@ -119,7 +175,7 @@ def report(review: Path, json_path: Path | None) -> bool:
             "status": "PASS" if good else "NOT_PASS",
         }
     payload = {
-        "evidence_type": "T10 human-reviewed ML Kit translation results",
+        "evidence_type": "T10 reviewer-labelled ML Kit translation results; human sign-off not inferred",
         "review_csv_sha256": fingerprint(review),
         "offline_mode": "Must be verified and documented manually; not asserted by this report",
         "directions": results,
@@ -152,10 +208,19 @@ def main() -> int:
     review = sub.add_parser("report", help="Validate scores and summarize both directions")
     review.add_argument("review", type=Path)
     review.add_argument("--json", dest="json_path", type=Path)
+    apply = sub.add_parser(
+        "apply-draft", help="Apply previously AI-reviewed labels to exact matching outputs"
+    )
+    apply.add_argument("raw", type=Path)
+    apply.add_argument("review", type=Path)
+    apply.add_argument("--draft", type=Path, default=Path(__file__).with_name("t10_translation_ai_draft.json"))
     args = parser.parse_args()
     try:
         if args.cmd == "init":
             init(args.raw, args.review)
+            return 0
+        if args.cmd == "apply-draft":
+            apply_draft(args.raw, args.review, args.draft)
             return 0
         return 0 if report(args.review, args.json_path) else 2
     except (ValueError, FileNotFoundError, FileExistsError, csv.Error) as error:

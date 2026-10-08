@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "review_type": "AI-assisted draft, user acknowledged; not an independent bilingual human sign-off",
+  "date": "2026-10-08",
+  "source_content_sha256": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+  "default_status": "ACCEPT",
+  "overrides": {
+    "en-08": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Will be delivered' (akan diterima/diantar) berubah menjadi 'akan dikirim' (dispatched); tahap logistik berbeda."
+    },
+    "en-24": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Speaks quietly' dalam konteks rekaman sulit didengar berarti berbicara pelan; 'dengan tenang' berarti calmly, bukan rendah volume."
+    },
+    "en-27": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "Subjek tindakan berubah: 'the camera recorded' menjadi 'kamera direkam' (kamera sebagai objek rekaman)."
+    },
+    "id-02": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Rapat dimulai besok' bermakna future, tetapi output memakai 'began' (past); arah waktunya bertentangan."
+    },
+    "id-05": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Bus tiba 15 menit lebih lambat' (arrived later) menjadi 'arrives 15 minutes slower' (lebih lambat kecepatannya), mengubah sifat keterlambatan."
+    },
+    "id-10": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Adik saya' tidak menentukan gender, tetapi 'my sister' menambahkan gender perempuan dan menghilangkan unsur younger."
+    },
+    "id-26": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Di belakangnya' merujuk pada jembatan, bukan seseorang; 'behind him' menambahkan rujukan manusia yang salah."
+    },
+    "id-30": {
+      "status": "MAJOR_MEANING_ERROR",
+      "notes": "'Tidak boleh dimulai' adalah larangan (must not); 'should not be started' melemahkan larangan menjadi saran."
+    }
+  },
+  "accept_notes": {
+    "en-05": "Terjemahan tepat secara inti; 'later than expected' dan 'lebih lambat' sedikit kurang idiomatis namun mudah dipahami.",
+    "en-10": "'Brother' lebih spesifik laki-laki; 'saudaraku' menghilangkan gender, tetapi inti hubungan saudara dan aktivitas tetap ada.",
+    "en-17": "'Leaves' diterjemahkan 'pergi', lebih tepat 'berangkat'; makna utama tetap dipahami.",
+    "en-25": "'Wanted' (lampau) menjadi 'ingin' yang tidak eksplisit lampau; inti preferensi kopi vs teh tetap ada.",
+    "en-29": "'Should save' menjadi 'harus menyimpan', sedikit menguatkan modalitas; pesan menjaga perubahan tetap sejalan.",
+    "id-01": "Objek jamak 'three books' dirujuk sebagai 'sell it' tunggal; perlu perbaikan grammar, tetapi maksud tetap jelas.",
+    "id-08": "'October sixteens' bukan bentuk tanggal Inggris yang benar (seharusnya October 16 / October sixteenth); angka 16 masih terbaca, perlu keputusan reviewer apakah material.",
+    "id-09": "'Dia' gender-netral, 'he' mengasumsikan laki-laki tanpa konteks; periksa jika gender penting.",
+    "id-14": "Output memakai present 'continue' sementara sumber tanpa penanda tense eksplisit; inti tetap setara.",
+    "id-17": "'Peron' belum diterjemahkan ke 'platform'; makna bisa dipahami dalam konteks stasiun tetapi perlu perbaikan istilah.",
+    "id-19": "Terjemahan present 'drops' bisa kurang sesuai konteks lampau, tetapi besaran 80 ke 25 tetap akurat.",
+    "id-24": "'Rekaman' diterjemahkan sebagai 'record' (lebih tepat 'recording'); maksud masih jelas."
+  }
+}

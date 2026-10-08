@@ -243,3 +243,12 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Pengujian: syntax PowerShell + unit test reviewer ditambahkan pada T10 Engine Evaluation CI; hasil CI dan percobaan perangkat fisik harus diverifikasi sebelum klaim PASS.
 - CP4 tetap BLOCKED, T11 TODO; baseline ASR tidak diubah. Next: pull commit, `-Phase Prepare` dengan koneksi internet, `-Phase Benchmark` setelah perangkat offline, lakukan review translation manusia.
 
+
+### T10-TRANSLATION-REVIEW / PROVISIONAL / 2026-10-08
+- Bukti terbaru dari Sony SO-03L Android 11 (dikirim pengguna): 60 keluaran ML Kit EN↔ID, 30 per arah, kolom `error` kosong seluruhnya. Dua fase persiapan-online dan benchmark-offline telah menghasilkan CSV; mode pesawat/Wi-Fi off diperiksa oleh harness, tetapi log pemeriksaan belum diarsipkan secara terpisah.
+- Review AI atas pasangan source/translation dinilai "review bagus" oleh pengguna; belum ada tanda tangan reviewer bilingual independen per baris. Evaluasi awal EN→ID: 27/30 ACCEPT (90.00%), tiga MAJOR_MEANING_ERROR; ID→EN: 25/30 ACCEPT (83.33%), lima MAJOR_MEANING_ERROR; tak ada NEGATION_ERROR atau NUMBER_OR_NAME_ERROR yang diberi label. Median latency 42.239 ms (EN→ID), 39.378 ms (ID→EN); p95 67.037 ms dan 52.802 ms. Sampel awal lebih lambat (700.778 ms dan 297.453 ms).
+- Sudah dibuat: `tools/t10_translation_ai_draft.json` berisi label/catatan yang terkait digest 60 source/translation agar tidak diterapkan pada hasil inference lain. `tools/t10_translation_review.py apply-draft` merekonstruksi lembar review hanya apabila fingerprint cocok; output tetap provisional dan manual review ulang dibutuhkan bila terdapat perbedaan.
+- Perbaikan CI: `.github/workflows/t10-engine-eval.yml` membatasi job translation-device pada `MlKitTranslationInstrumentedTest`; sebelumnya job tersebut mengeksekusi juga benchmark offline yang mensyaratkan model telah READY. Kegagalan CI pada run `37767746650` terjadi di translation-device sementara kedua job lainnya PASS; kemungkinan pemicunya precondition offline, tetapi XML detail kegagalan CI belum diekstrak.
+- Acceptance ID→EN belum mencapai 90%; baseline ASR ID-clean 28.61% masih di atas WER 20%; review referensi ID belum lengkap, timing dan thermal/stabilitas belum selesai. **T10/CP4 tetap BLOCKED, T11 TODO.**
+- Next: tarik commit baru, pulihkan review draft dari CSV perangkat lokal, verifikasi status; selanjutnya lakukan thermal/stability dan investigasi model ASR Indonesia, tanpa mengubah threshold atau referensi baseline.
+
