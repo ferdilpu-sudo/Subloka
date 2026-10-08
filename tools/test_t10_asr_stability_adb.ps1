@@ -16,6 +16,14 @@ $func = $ast.Find({
 }, $true)
 if ($null -eq $func) { throw "Adb-Raw helper not found." }
 . ([scriptblock]::Create($func.Extent.Text))
+$completionFunction = $ast.Find({
+    param($node)
+    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+        $node.Name -eq "Resolve-T10InferenceCompletion"
+}, $true)
+if ($null -eq $completionFunction) { throw "Resolve-T10InferenceCompletion helper not found." }
+. ([scriptblock]::Create($completionFunction.Extent.Text))
+
 
 $temp = Join-Path ([System.IO.Path]::GetTempPath()) ("t10-adb-mock-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temp | Out-Null
@@ -49,7 +57,24 @@ try {
     if ($script:T10AdbLastExitCode -ne 7) {
         throw "Expected opt-in failure to preserve exit=7."
     }
-    Write-Host "PASS: native stderr on exit 0 ignored; exit 7 rejected; opt-in failure works; EAP restored."
+
+    # Device log showed 'adb_exit=' (null) although remote result.txt existed:
+    # classify as collected but UNVERIFIED rather than fail run=1 or assert PASS.
+    $confirmed = Resolve-T10InferenceCompletion -AdbExitCode 0 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($confirmed -ne "RESULT_PRESENT_EXIT_ZERO") { throw "Exit 0 + transcript must verify." }
+    $unknown = Resolve-T10InferenceCompletion -AdbExitCode $null -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($unknown -ne "RESULT_PRESENT_EXIT_UNKNOWN") { throw "Missing ExitCode with transcript classified incorrectly." }
+    $unverified = Resolve-T10InferenceCompletion -AdbExitCode 7 -TranscriptPresent $true -RunNumber 1 -StderrLog $Adb
+    if ($unverified -ne "RESULT_PRESENT_ADB_NONZERO") { throw "Nonzero exit with transcript classified incorrectly." }
+    $missingWasRejected = $false
+    try {
+        Resolve-T10InferenceCompletion -AdbExitCode 0 -TranscriptPresent $false -RunNumber 1 -StderrLog $Adb | Out-Null
+    } catch {
+        $missingWasRejected = $_.Exception.Message -match "no nonempty transcript"
+    }
+    if (-not $missingWasRejected) { throw "Missing transcript must fail regardless of exit code." }
+
+    Write-Host "PASS: native stderr handled; exit=0/null/7 with transcript and missing transcript classified; EAP restored."
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }

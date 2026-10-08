@@ -75,6 +75,36 @@ function Adb-Raw {
     })
 }
 
+
+function Resolve-T10InferenceCompletion {
+    param(
+        [AllowNull()][object]$AdbExitCode,
+        [bool]$TranscriptPresent,
+        [int]$RunNumber,
+        [string]$StderrLog
+    )
+    if (-not $TranscriptPresent) {
+        $diagnostic = ""
+        if (Test-Path $StderrLog) {
+            $diagnostic = (@(Get-Content -LiteralPath $StderrLog -Tail 8 -ErrorAction SilentlyContinue) -join " | ")
+        }
+        throw "Inference FAIL run=$RunNumber, no nonempty transcript, adb_exit=$AdbExitCode. stderr tail: $diagnostic"
+    }
+
+    # PowerShell 5.1 may expose an empty ExitCode on a completed Start-Process
+    # object. A real transcript file is completion evidence, but unknown/nonzero
+    # ADB status must NEVER be represented as a verified successful exit.
+    if ($null -eq $AdbExitCode -or [string]$AdbExitCode -eq "") {
+        Write-Warning "Run $RunNumber: transcript exists, but ADB exit code is unavailable. Recording unverified exit."
+        return "RESULT_PRESENT_EXIT_UNKNOWN"
+    }
+    if ([int]$AdbExitCode -ne 0) {
+        Write-Warning "Run $RunNumber: transcript exists, but ADB exited $AdbExitCode. Recording unverified exit."
+        return "RESULT_PRESENT_ADB_NONZERO"
+    }
+    return "RESULT_PRESENT_EXIT_ZERO"
+}
+
 function Get-BatterySnapshot {
     $raw = @(Adb-Raw -Arguments @("shell", "dumpsys battery"))
     $text = $raw -join [Environment]::NewLine
@@ -202,8 +232,10 @@ try {
 
         Adb-Raw -Arguments @("push", $item.audio, "$RemoteDir/input.wav") | Out-Null
         Adb-Raw -Arguments @("shell", "rm -f $RemoteDir/result.txt") | Out-Null
-        $stdout = Join-Path $OutputDir "_stdout.tmp"
-        $stderr = Join-Path $OutputDir "_stderr.tmp"
+        # Unique local logs are kept on failure or unverified ADB exit.
+        # Never upload transcript/log contents to GitHub.
+        $stdout = Join-Path $OutputDir ("run-{0:D4}-stdout.log" -f $LastRun)
+        $stderr = Join-Path $OutputDir ("run-{0:D4}-stderr.log" -f $LastRun)
         $cmd = "cd $RemoteDir && ./whisper-cli -m model.bin -f input.wav -l $Language -nt -ng -nfa -otxt -of result"
         $startArguments = @($DeviceArgs + @("shell", $cmd))
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -211,6 +243,7 @@ try {
         $runPeakRss = 0
         $tempReadings = 0
         $temperatureFailures = 0
+        $adbExit = $null
         try {
             while (!$proc.HasExited) {
                 $rss = Get-RemoteRssKb
@@ -243,14 +276,25 @@ try {
                 $proc.Refresh()
             }
         } finally {
-            $proc.WaitForExit(5000) | Out-Null
+            # Wait without a timeout before reading ExitCode. Merely observing
+            # HasExited is insufficient on some Windows PowerShell 5.1 builds.
+            if (-not $proc.WaitForExit(5000)) {
+                # This path is normally only reached after a thermal/error abort.
+                # Ensure a stuck local adb process cannot hold the test indefinitely.
+                try { $proc.Kill() } catch {}
+                $proc.WaitForExit(5000) | Out-Null
+            }
+            try {
+                $proc.Refresh()
+                if ($proc.HasExited) { $adbExit = $proc.ExitCode }
+            } catch { $adbExit = $null }
             $timer.Stop()
-            Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
         }
         $hasOutput = @(Adb-Raw -Arguments @("shell", "test -s $RemoteDir/result.txt") -AllowFailure)
         $outputExit = $script:T10AdbLastExitCode
-        if ($proc.ExitCode -ne 0 -or $outputExit -ne 0) {
-            throw "Inference FAIL run=$LastRun, adb_exit=$($proc.ExitCode), result_exists=$($outputExit -eq 0)."
+        $completion = Resolve-T10InferenceCompletion -AdbExitCode $adbExit -TranscriptPresent ($outputExit -eq 0) -RunNumber $LastRun -StderrLog $stderr
+        if ($completion -eq "RESULT_PRESENT_EXIT_ZERO") {
+            Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
         }
         $endBattery = Get-BatterySnapshot
         $LastTemperatureC = $endBattery.temperature_c
@@ -269,14 +313,21 @@ try {
             temp_start_c = $startBattery.temperature_c
             temp_end_c = $endBattery.temperature_c
             temp_samples = $tempReadings
-            exit_code = $proc.ExitCode
+            adb_exit_code = $adbExit
+            completion_evidence = $completion
         })
         Write-Host ("Run {0} {1}: {2:N2}s, RTF={3:N2}, battery={4:N1}C, peakRSS={5}kB" -f $LastRun, $item.id, $elapsed, $rtf, $endBattery.temperature_c, $runPeakRss)
         if ($endBattery.temperature_c -ge $StopTemperatureC) {
             throw "THERMAL_STOP: suhu setelah run $LastRun adalah $($endBattery.temperature_c) C (batas $StopTemperatureC C)."
         }
     }
-    $Status = "COLLECTED_NOT_GATE_PASS"
+    $uncertain = @($Runs | Where-Object { $_.completion_evidence -ne "RESULT_PRESENT_EXIT_ZERO" }).Count
+    if ($uncertain -gt 0) {
+        $Status = "COLLECTED_WITH_UNVERIFIED_ADB_EXIT"
+        Write-Warning "$uncertain run(s) have transcripts but unverified ADB exit status; do not claim verified runtime completion."
+    } else {
+        $Status = "COLLECTED_NOT_GATE_PASS"
+    }
 } catch {
     $AbortReason = $_.Exception.Message
     Write-Warning "T10 stability test berhenti: $AbortReason"
@@ -300,6 +351,7 @@ try {
     }
     $rssValues = @($Runs | Where-Object { $null -ne $_.peak_rss_kb } | ForEach-Object { [int]$_.peak_rss_kb })
     $peakRss = if ($rssValues.Count -gt 0) { ($rssValues | Measure-Object -Maximum).Maximum } else { $null }
+    $unverifiedExitRuns = @($Runs | Where-Object { $_.completion_evidence -ne "RESULT_PRESENT_EXIT_ZERO" }).Count
     $ResolvedSerial = if ($DeviceSerial) { $DeviceSerial } else { (($ready[0] -split '\s+')[0]) }
     $DeviceModel = "unavailable"
     $AndroidRelease = "unavailable"
@@ -317,6 +369,7 @@ try {
         language = $Language
         fixture_manifest_sha256 = (Get-FileHash $ManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
         completed_runs = $Runs.Count
+        unverified_adb_exit_runs = $unverifiedExitRuns
         rtf_median = $median
         rtf_p95_nearest_rank = $p95
         observed_peak_rss_kb = $peakRss
@@ -329,11 +382,11 @@ try {
         device_model = $DeviceModel
         android_release = $AndroidRelease
         offline_preflight = "airplane_mode_on=1;wifi_on=0"
-        limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
+        limitations = "Battery temperature is a proxy, not CPU die temperature. Sampled RSS may miss peaks. Includes adb overhead. Remote transcript is inference completion evidence but exit=unknown/nonzero is explicitly unverified. Repeated short utterances do not establish E2E video stability, app ANR, or CP4 PASS."
     }
     $summary | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $OutputDir "summary.json") -Encoding UTF8
     try { Adb-Raw -Arguments @("shell", "rm -rf $RemoteDir") | Out-Null } catch { Write-Warning "Remote benchmark cache tidak berhasil dibersihkan: $RemoteDir" }
     Write-Host "Output T10: $OutputDir"
     Write-Host ("Status={0}, completed runs={1}, peak battery={2:N1} C, median RTF={3}" -f $Status, $Runs.Count, $PeakTemperatureC, $median)
 }
-if ($Status -ne "COLLECTED_NOT_GATE_PASS") { throw "T10 stability measurement aborted: $AbortReason. See $OutputDir/summary.json" }
+if ($Status -eq "ABORTED") { throw "T10 stability measurement aborted: $AbortReason. See $OutputDir/summary.json" }

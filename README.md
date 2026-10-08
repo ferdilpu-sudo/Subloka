@@ -136,3 +136,8 @@ The script refuses to start if battery temperature is 40°C or higher, and attem
 
 If an earlier stability run ended `ABORTED` after a successful `adb push` reporting `1 file pushed`, the issue was caused by handling native stderr with PowerShell `ErrorActionPreference=Stop`, not by a Whisper/thermal failure. Pull the latest `main`, rerun `-PreflightOnly` and then `-RunMinutes 5 -Model base -Language id`. The helper now uses ADB's actual native exit status. A Windows PowerShell 5.1 mock-native regression test runs in T10 Engine Evaluation CI. Preserve prior `thermal-*/` output; it must remain `ABORTED`.
 
+
+### Stability diagnostic: transcript exists but ADB exit code is blank
+
+On some Windows PowerShell 5.1 sessions, `Start-Process -PassThru` can expose no usable `ExitCode` after the remote Whisper transcript is written. The stability harness now requires a nonempty remote result but records the ADB result as `RESULT_PRESENT_EXIT_UNKNOWN` (or `RESULT_PRESENT_ADB_NONZERO` when applicable), without falsely claiming an exit-zero PASS. `summary.json` contains `unverified_adb_exit_runs`; `runs.csv` contains `completion_evidence` and `adb_exit_code`. Logs for unverified or failed runs stay under the private, git-ignored `thermal-*/` directory for local diagnostics. A run with no nonempty transcript still aborts. Old `ABORTED` sessions are never overwritten.
+

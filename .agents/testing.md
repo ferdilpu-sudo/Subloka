@@ -457,3 +457,13 @@ Dokumen/task yang diperbarui:
 - Koreksi: reset last native exit status dan `exit 0` di akhir regression test script setelah cleanup. **Perubahan koreksi belum diverifikasi CI hingga run berikutnya.** Harness perangkat utama tidak berubah pada koreksi ini.
 - Result: regression assertions menghasilkan PASS text, workflow FAIL sebelum koreksi; tetap tidak boleh klaim full CI PASS. Sony thermal run tetap NOT_RUN setelah fix ADB. CP4 BLOCKED.
 
+
+### T10-ASR-STABILITY-EXIT-001 — Run-1 transcript present / ADB ExitCode unavailable
+- Task: T10/CP4. User device: Sony SO-03L Android 11 arm64, Windows PowerShell; tanggal 2026-10-08.
+- Expected: 5 menit ASR repeated-utterance `base/id` offline, sampled RAM/suhu, status per-run jelas.
+- Actual: `-PreflightOnly` PASS (`base/id`, 30 WAV, 36.0°C), setelah model+CLI ditransfer script menampilkan `Inference FAIL run=1, adb_exit=, result_exists=True`. Sesi `.t10-benchmark/thermal-20261008T121209Z-0766d8/summary.json` berstatus `ABORTED`, `completed_runs=0`, peak battery 36.5°C. Hasil inference `result.txt` nonempty di perangkat tetapi native ADB exit code tidak tersedia melalui ekspresi lama. Tidak ada bukti hasil RTF/RSS sesi ini atau thermal failure.
+- Diagnosis kode: cabang fail membandingkan `$null -ne 0` dan menganggap exit tak tersedia sebagai kegagalan tanpa memisahkannya dari kasus transcript kosong.
+- Perbaikan disiapkan: `Resolve-T10InferenceCompletion` dengan label `RESULT_PRESENT_EXIT_ZERO`, `RESULT_PRESENT_EXIT_UNKNOWN`, `RESULT_PRESENT_ADB_NONZERO`; wajib transcript nonempty untuk mencatat run; wait proses secara bounded, simpan log lokal saat hasil ambigu; tambahkan `unverified_adb_exit_runs` dan `completion_evidence` ke CSV/JSON. Status sesi `COLLECTED_WITH_UNVERIFIED_ADB_EXIT` bersifat diagnostik, **bukan PASS engine penuh**.
+- Pengujian setelah patch: Windows mock regression CLI perlu berjalan di CI; Sony physical retest **NOT_RUN** hingga output baru diterima. Jangan menyimpulkan kestabilan thermal dari dua sesi ABORTED.
+- CP4 masih BLOCKED; T11 TODO.
+
