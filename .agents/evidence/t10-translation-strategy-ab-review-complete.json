@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "evidence_type": "T10_PAIRED_PARAGRAPH_STRATEGY_AB_COMPLETED_REVIEW_ANALYSIS_NOT_CP4",
+  "date": "2026-10-09",
+  "linked_pre_registration": ".agents/evidence/t10-translation-strategy-ab-preregistered.json",
+  "linked_capture_report": ".agents/evidence/t10-translation-strategy-ab-device-captured.json",
+  "source": "User-uploaded translation-strategy-ab-review.csv; includes all original output columns plus reviewer status/notes. Review judgments used as supplied; independent reviewer identity not authenticated.",
+  "review_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+  "preceding_user_reported_raw_device_csv_sha256": "50e612ec7ec41d37de1e520650f1c5f90343267856bfe0c6f44ae0d27991353f",
+  "raw_device_csv_byte_identity_verified": false,
+  "original_fixture_byte_identity_verified_against_review": false,
+  "structure": {
+    "total_review_rows": 120,
+    "unique_paragraphs": 60,
+    "paired_whole_and_linewise": 60,
+    "id_to_en_pairs": 30,
+    "en_to_id_pairs": 30,
+    "all_statuses_reviewed": 120,
+    "all_rejections_explained": true,
+    "no_model_error_column_reported": true,
+    "alternating_whole_linewise_order_consistent": true,
+    "all_battery_c_reported": 36,
+    "battery_sensor_not_cpu_die": true,
+    "reviewed_statuses": {
+      "ACCEPT": 86,
+      "MAJOR_MEANING_ERROR": 30,
+      "NUMBER_OR_NAME_ERROR": 2,
+      "NEGATION_ERROR": 2
+    }
+  },
+  "experiment": {
+    "same_mlkit_offline_model": true,
+    "whole_sdk_calls_per_paragraph": 1,
+    "linewise_sdk_calls_per_paragraph": 2,
+    "two_sentence_unit": true,
+    "raw_outputs_exact_same_pairs": 58,
+    "different_text_but_same_ACCEPT_pairs": [
+      "id-ab-17",
+      "en-ab-17"
+    ],
+    "identical_review_label_pairs": 60,
+    "paired_candidate_wins": 0,
+    "paired_candidate_losses": 0,
+    "candidate_faster_pairs": 4,
+    "candidate_slower_pairs": 56,
+    "introduced_critical_errors": 0,
+    "results_by_direction": {
+      "id->en": {
+        "whole_ACCEPT": 21,
+        "linewise_ACCEPT": 21,
+        "n": 30,
+        "acceptance_percent_each": 70,
+        "whole_major_meaning_errors": 8,
+        "linewise_major_meaning_errors": 8,
+        "whole_number_name_errors": 1,
+        "linewise_number_name_errors": 1,
+        "whole_negation_errors": 0,
+        "linewise_negation_errors": 0,
+        "whole_median_ms": 58.3065,
+        "linewise_median_ms": 76.9305,
+        "whole_p95_ms": 85.072,
+        "linewise_p95_ms": 97.048,
+        "p95_candidate_control_ratio": 1.140775,
+        "reviewed_rejected_paragraphs": [
+          "id-ab-05",
+          "id-ab-06",
+          "id-ab-08",
+          "id-ab-09",
+          "id-ab-14",
+          "id-ab-18",
+          "id-ab-24",
+          "id-ab-29",
+          "id-ab-30"
+        ],
+        "preregistered_criteria_met": false
+      },
+      "en->id": {
+        "whole_ACCEPT": 22,
+        "linewise_ACCEPT": 22,
+        "n": 30,
+        "acceptance_percent_each": 73.33,
+        "whole_major_meaning_errors": 7,
+        "linewise_major_meaning_errors": 7,
+        "whole_number_name_errors": 0,
+        "linewise_number_name_errors": 0,
+        "whole_negation_errors": 1,
+        "linewise_negation_errors": 1,
+        "whole_median_ms": 52.117,
+        "linewise_median_ms": 68.8505,
+        "whole_p95_ms": 76.531,
+        "linewise_p95_ms": 86.453,
+        "p95_candidate_control_ratio": 1.129647,
+        "reviewed_rejected_paragraphs": [
+          "en-ab-01",
+          "en-ab-04",
+          "en-ab-09",
+          "en-ab-10",
+          "en-ab-16",
+          "en-ab-19",
+          "en-ab-26",
+          "en-ab-29"
+        ],
+        "preregistered_criteria_met": false
+      }
+    }
+  },
+  "selected_strategy": "KEEP_WHOLE_CONTROL; DO_NOT_PROMOTE_LINEWISE",
+  "candidate_outcome": "NO_BASIS_TO_PROMOTE_CANDIDATE",
+  "logic": "Candidate pre-registration requires >=27/30 ACCEPT and >=3 net additional ACCEPT per direction with zero newly introduced critical errors and p95 ratio <=2.5. Observed gains are zero (linewise 21/30 ID->EN and 22/30 EN->ID, equal to whole) and candidate is slower in both directions. Other timing/safety checks cannot substitute for failure to improve acceptance.",
+  "evaluated_data_limits": [
+    "Paragraph sources were specifically authored before experiment; not the original CP4 60 single-sentence translation benchmark.",
+    "Reviewed statuses may reflect human decisions but no reviewer authentication/independent blind validation is available in uploaded file.",
+    "Uploaded review includes original output fields but not original device raw CSV bytes; can't assert direct raw SHA match.",
+    "58/60 exact identical output pairs; two text changes are accepted synonyms/grammar changes without status benefit.",
+    "ID->EN whole first row 563.170ms is a likely warmup outlier, but p95 and median comparisons do not depend on mean alone.",
+    "All recorded battery proxy values in review show 36C, not CPU temperature or a real 10-minute application video test.",
+    "No producer model, dataset, fixture, historical review labels, or CP4 gate adjusted."
+  ],
+  "generated_user_reports": {
+    "readable_html": "subloka_t10_translation_strategy_ab_review_readable.html",
+    "readable_excel": "subloka_t10_translation_strategy_ab_review_readable.xlsx",
+    "full_local_analysis": "subloka_t10_translation_strategy_ab_review_analysis.json",
+    "location": "ChatGPT conversation artifacts; only SHA/source provenance and summaries committed to GitHub"
+  },
+  "official_gate_unchanged": {
+    "historical_translation_EN_to_ID_ACCEPT": "27/30",
+    "historical_translation_ID_to_EN_ACCEPT": "24/30",
+    "historical_ASR_ID_clean_micro_WER": "105/367=28.61%",
+    "real_ten_minute_app_video_E2E": "NOT_DONE",
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "next_step": "Close whole-vs-linewise quality hypothesis for this 60-paragraph diagnostic. Keep current translator unchanged; prioritize next real 10min video E2E instrumentation and/or a separately pre-registered genuine translation model candidate. Do not rescore the original frozen gate."
+}
