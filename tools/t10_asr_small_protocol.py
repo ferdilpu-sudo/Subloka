@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 import uuid
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from t10_asr_decode_ab import load_frozen_inputs, BASELINE_SHA
@@ -29,7 +30,7 @@ from t10_asr_gain_ab import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
-REVISION = "80da2d8bfee42b0e836fc3a9890373e5defc00a6"
+REVISION = "c521a4b02f422512d734391fdf08bb08c0862f68"
 SMALL_SHA = "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb"
 SMALL_URL = ("https://huggingface.co/ggerganov/whisper.cpp/resolve/"
              + REVISION + "/ggml-small-q5_1.bin")
@@ -84,18 +85,30 @@ def prepare_small(path: Path) -> None:
     digest = hashlib.sha256()
     count = 0
     try:
-        with urlopen(SMALL_URL, timeout=75) as response, tmp.open("xb") as writer:
-            if response.geturl().split(":", 1)[0].lower() != "https":
-                raise ValueError("Download redirected outside HTTPS")
-            while True:
-                block = response.read(1024 * 1024)
-                if not block:
-                    break
-                count += len(block)
-                if count > 260_000_000:
-                    raise ValueError("Candidate model download exceeded 260MB safety limit")
-                writer.write(block)
-                digest.update(block)
+        try:
+            with urlopen(SMALL_URL, timeout=75) as response, tmp.open("xb") as writer:
+                if response.geturl().split(":", 1)[0].lower() != "https":
+                    raise ValueError("Download redirected outside HTTPS")
+                while True:
+                    block = response.read(1024 * 1024)
+                    if not block:
+                        break
+                    count += len(block)
+                    if count > 260_000_000:
+                        raise ValueError("Candidate model download exceeded 260MB safety limit")
+                    writer.write(block)
+                    digest.update(block)
+        except HTTPError as error:
+            raise RuntimeError(
+                f"Cannot download pinned Small-q5_1 model: HTTP {error.code}. "
+                "Check network access and the verified Hugging Face snapshot; "
+                "no benchmark data or existing model was changed."
+            ) from error
+        except URLError as error:
+            raise RuntimeError(
+                f"Cannot download pinned Small-q5_1 model (network error: {error.reason}). "
+                "Check internet/Wi-Fi during --prepare-small; offline A/B has not started."
+            ) from error
         if count < 100_000_000 or digest.hexdigest() != SMALL_SHA:
             raise ValueError("Small model file size/SHA256 differs from pinned official artifact")
         if path.exists():

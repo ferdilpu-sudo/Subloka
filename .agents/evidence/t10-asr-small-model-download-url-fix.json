@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "evidence_type": "T10_ASR_SMALL_Q5_1_OFFICIAL_DOWNLOAD_REVISION_CORRECTION",
+  "experiment_id": "T10-ASR-MODEL-BASE-VS-SMALL-Q5-001",
+  "user_reported_error": {
+    "command": "python tools/t10_asr_small_ab.py --prepare-small",
+    "platform": "Windows Python 3.12",
+    "error": "urllib.error.HTTPError: HTTP Error 404: Not Found",
+    "point_of_failure": "tools/t10_asr_small_protocol.py prepare_small() urlopen(SMALL_URL, timeout=75)",
+    "model_bytes_downloaded_by_command": "NONE_CONFIRMED; HTTP 404 occurred before an HTTP body could be processed",
+    "offline_inference_started": false
+  },
+  "root_cause": "Pinned Hugging Face revision 80da2d8bfee42b0e836fc3a9890373e5defc00a6 did not expose ggml-small-q5_1.bin at resolve path. That revision was selected erroneously during experimental harness creation.",
+  "official_file_verification": {
+    "model_repo": "ggerganov/whisper.cpp",
+    "filename": "ggml-small-q5_1.bin",
+    "verified_blob_page": "https://huggingface.co/ggerganov/whisper.cpp/blob/c521a4b02f422512d734391fdf08bb08c0862f68/ggml-small-q5_1.bin",
+    "corrected_revision": "c521a4b02f422512d734391fdf08bb08c0862f68",
+    "verified_model_sha256": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+    "verified_size_display": "190 MB",
+    "corrected_resolve_url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/c521a4b02f422512d734391fdf08bb08c0862f68/ggml-small-q5_1.bin",
+    "verification_method": "Official Hugging Face artifact listing explicitly shows revision/file/model size/SHA256. The resolve link redirects to Xet-backed blob matching listed object; large binary bytes were not downloaded or independently rehashed in this task."
+  },
+  "changes": [
+    "Update only candidate source REVISION to c521a4b02f422512d734391fdf08bb08c0862f68 in tools/t10_asr_small_protocol.py. Keep original SHA256, model identity and experiment gates unchanged.",
+    "Translate HTTP 404 and network failures into clear RuntimeErrors; clean temporary partial downloads and never replace an existing cached model.",
+    "Add two deterministic regression tests: correct official snapshot/sha URL, HTTP 404 fails cleanly without leftover partial model."
+  ],
+  "immutable_preregistration": ".agents/evidence/t10-asr-small-model-preregistered.json retained as originally written; this is an append-only source correction record",
+  "expected_next_command": "git pull --ff-only origin main; python tools/t10_asr_small_ab.py --prepare-small",
+  "inference_status": "NOT_RUN",
+  "quality_status": "ASR base original 105/367 WER; no new candidate scores",
+  "cp4": "BLOCKED",
+  "t10": "ACTIVE",
+  "t11": "TODO",
+  "caution": "Successful CI tests check implementation and pinned metadata but do not mean the 190 MB model has downloaded to the user's computer. Download availability can still depend on their network and Xet CDN."
+}

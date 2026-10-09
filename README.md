@@ -403,3 +403,16 @@ The script prints a new gitignored `.t10-benchmark/small-model-ab-<UTC>-<random>
 
 Screening thresholds set BEFORE results: candidate **≤73 errors of 367**, sampled peak RSS under 1,600,000KB on all clips, and p95 RTF ≤2.0. The existing 20 clips are **not blind unseen inputs**; even passing requires an independently prepared holdout before production promotion. No original ASR benchmark row, T10 acceptance rule, production Whisper adapter, or translation output is changed. CP4 remains BLOCKED. The previously validated 12min14 Sony MP4 import/audio PCM diagnostic is a media-only result, not an ASR E2E result.
 
+
+### T10 Small-q5_1 model download 404 fix (Windows)
+
+A user running `python tools/t10_asr_small_ab.py --prepare-small` hit **HTTP 404** because the originally chosen Hugging Face Git revision did not contain the named quantized multilingual model file. The model itself exists in official `ggerganov/whisper.cpp` at revision `c521a4b02f422512d734391fdf08bb08c0862f68`: `ggml-small-q5_1.bin` (about 190 MB), SHA256 **`ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb`**. The source URL is corrected, and the new tests fail for an accidentally changed revision and exercise clean HTTP-404 handling. Frozen dataset, original scores, model hash and preregistered criteria are unchanged. A separate correction evidence file is retained at `.agents/evidence/t10-asr-small-model-download-url-fix.json`; the original preregistration remains intact for provenance.
+
+After pulling current `main`, retry online model preparation:
+
+```powershell
+git pull --ff-only origin main
+python tools/t10_asr_small_ab.py --prepare-small
+```
+
+The command verifies the full downloaded model's SHA256 before installing it locally. It is not a device ASR test. Wait for **verified** confirmation before running the offline Sony preflight or two-pair pilot. Baseline ID clean ASR **28.61% WER**, ID→EN translation **24/30**, CP4 BLOCKED remain unchanged.

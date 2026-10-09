@@ -15,11 +15,12 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from types import SimpleNamespace
+from urllib.error import HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from t10_asr_small_protocol import (
-    BASE_SHA, SMALL_SHA, VARIANTS, COLUMNS, PROTOCOL, SHA_BY_VARIANT,
-    pairs, command, analyze, prepare_small, archive_summary,
+    BASE_SHA, SMALL_SHA, SMALL_URL, REVISION, VARIANTS, COLUMNS, PROTOCOL,
+    SHA_BY_VARIANT, pairs, command, analyze, prepare_small, archive_summary,
 )
 from t10_asr_small_ab import device_free_kib, get_rss, stop_own_process
 
@@ -99,6 +100,34 @@ class T10ASRSmallABTests(unittest.TestCase):
         self.assertNotEqual(BASE_SHA, SMALL_SHA)
         self.assertTrue(PROTOCOL.startswith("t10-id-clean-"))
         self.assertEqual(VARIANTS, ("base", "small_q5_1"))
+
+    def test_pinned_candidate_url_matches_verified_official_artifact(self):
+        # Exact official Hugging Face file page confirms this Git revision,
+        # quantized multilingual Small name, 190MB and the fixed SHA256.
+        self.assertEqual(
+            REVISION, "c521a4b02f422512d734391fdf08bb08c0862f68"
+        )
+        self.assertEqual(
+            SMALL_URL,
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/"
+            "c521a4b02f422512d734391fdf08bb08c0862f68/ggml-small-q5_1.bin",
+        )
+        self.assertEqual(
+            SMALL_SHA,
+            "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+        )
+        self.assertNotIn("80da2d8bfee42b0e836fc3a9890373e5defc00a6", SMALL_URL)
+
+    def test_missing_official_revision_download_fails_cleanly_without_part(self):
+        with tempfile.TemporaryDirectory() as temp, patch(
+            "t10_asr_small_protocol.urlopen",
+            side_effect=HTTPError(SMALL_URL, 404, "Not Found", None, None),
+        ):
+            destination = Path(temp) / "ggml-small-q5_1.bin"
+            with self.assertRaisesRegex(RuntimeError, "HTTP 404"):
+                prepare_small(destination)
+            self.assertFalse(destination.exists())
+            self.assertEqual(list(Path(temp).glob("*.part")), [])
 
     def test_full_paired_candidate_below_20_percent_is_promising_only(self):
         runs, fixtures, archive = make_pairs()
