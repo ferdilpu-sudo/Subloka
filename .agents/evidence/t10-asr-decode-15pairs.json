@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "date_reported": "2026-10-09",
+  "task": "T10",
+  "evidence_kind": "Physical Sony SO-03L user-reported terminal summary excerpt, not raw runs.csv",
+  "session": "decode-ab-20261008T145942Z-10430e",
+  "experiment": "Whisper Base default decoder versus -bs 1 on unchanged 20 Indonesian clean FLEURS samples",
+  "session_status": "PARTIAL_EXPERIMENT_NOT_CP4",
+  "stop_reason": null,
+  "battery_last_c": 30.2,
+  "thermal_stop_threshold_c": 43,
+  "battery_sensor_is_cpu_die_temperature": false,
+  "sampled_pairs": 15,
+  "planned_pairs": 20,
+  "inference_runs_expected_from_paired_samples": 30,
+  "paired_reference_words": 270,
+  "control_errors": 72,
+  "beam1_errors": 73,
+  "control_micro_wer": 0.26666666666666666,
+  "beam1_micro_wer": 0.27037037037037037,
+  "beam1_minus_control_micro_wer": 0.003703703703703704,
+  "cumulative_at_11_pairs": {
+    "reference_words": 203,
+    "control_errors": 48,
+    "beam1_errors": 47
+  },
+  "derived_added_pairs_12_to_15": {
+    "count": 4,
+    "reference_words": 67,
+    "control_errors": 24,
+    "beam1_errors": 26
+  },
+  "missing_evidence": [
+    "full summary.json",
+    "raw runs.csv",
+    "per-sample paired hypothesis and RTF rows for samples 12–15",
+    "fresh preflight before future 5-pair continuation"
+  ],
+  "historical_official_baseline": {
+    "sample_count": 20,
+    "ref_words": 367,
+    "base_errors": 105,
+    "base_micro_wer": 0.28610354223433243,
+    "target_max_wer": 0.2,
+    "unchanged": true
+  },
+  "verification": "Aggregates follow from user excerpt; added-pair counts are arithmetic differences from previously reported 11-pair totals. No assertion of verified CPU temperature, model superiority, or CP4 pass.",
+  "next": "When Sony is offline and battery below 40C at new preflight, resume the same session with --max-pairs 5 to run remaining id-clean-16 through id-clean-20. Review full 20-pair metrics before production decision.",
+  "project_status": {
+    "t10": "ACTIVE",
+    "cp4": "BLOCKED",
+    "t11": "TODO"
+  }
+}

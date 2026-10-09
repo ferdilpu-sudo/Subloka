@@ -215,3 +215,7 @@ After resuming the same Sony session for four more sample pairs, **control and `
 
 Another four pairs (`id-clean-08` to `11`) were collected in the **same** `decode-ab-20261008T145942Z-10430e` session. Cumulative results: default 48 edits, `-bs 1` 47 edits out of **203 reference words** (23.65% vs 23.15% diagnostic micro-WER, only **one** edit difference); 22/40 inference runs completed. Latest stage passed offline preflight (battery 30.2°C), ended with battery 31.0°C and `PARTIAL_EXPERIMENT_NOT_CP4` / empty stop reason. Details: `.agents/evidence/t10-asr-decode-11pairs.json`. This tiny numerical advantage cannot establish a production improvement. After a fresh device preflight/cooldown, resume the existing session with `--max-pairs 4` for clips 12–15, and inspect status plus paired WER. **Official** Base ID-clean WER 105/367=28.61%, CP4 BLOCKED.
 
+
+### T10 decoding A/B — progress 15/20
+
+The latest Sony session summary reports default decoder 72/270 edits (**26.67%**) versus `-bs 1` 73/270 edits (**27.04%**) on **15 paired Indonesian-clean clips**, with `PARTIAL_EXPERIMENT_NOT_CP4`, empty stop reason, battery last 30.2°C. Only one edit separates them; do not promote either candidate from a partial set. See `.agents/evidence/t10-asr-decode-15pairs.json` (user-reported excerpt). After a new cool/offline preflight, **resume the same session** using `--max-pairs 5` for clips `id-clean-16` through `20`. The frozen CP4 official baseline is unchanged at 105/367=28.61%, CP4 BLOCKED.

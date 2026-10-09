@@ -580,3 +580,8 @@ Dokumen/task yang diperbarui:
 - Safety: session partial/not aborted, stop_reason empty, battery last 31.0°C, 43°C threshold not reached; **battery proxy is not CPU temperature**. Recheck device fresh before stage 12–15. If new preflight fails or phone is hot, pause; use no assumption that past 31°C guarantees current conditions.
 - Official gate remains unchanged: 20-sample frozen Base Indonesian clean WER 105/367=28.61% >20%; translation ID→EN 25/30 <27/30; E2E gates not finished; CP4 BLOCKED and T11 TODO.
 
+
+### T10-ASR-DECODE-15PAIRS-001 — User 15-pair aggregate, 5 pairs pending
+- Sony terminal excerpt: `PARTIAL_EXPERIMENT_NOT_CP4`, no stop reason, last battery 30.2°C. Analysis: `paired_samples=15`, `paired_reference_words=270`, default `control_errors=72` and `control_micro_wer=0.2666666667`, candidate `beam1_errors=73` and `beam1_micro_wer=0.2703703704`, delta `+0.0037037037` (beam1 0.37 percentage points worse). User-pasted aggregate, NOT independent raw CSV review; machine-readable copy and provenance: `.agents/evidence/t10-asr-decode-15pairs.json`.
+- Against 11 pairs (48/47 edits over 203 words), the subsequent 4 pairs (id-clean-12–15) account for **24 default vs 26 beam1 edits over 67 words** (derived, not per-sample observation). 30/40 inferences implied by complete 15 pairs; 10 inferences/5 pairs remain.
+- Latest recorded battery reading is a proxy, not CPU thermal gate. Run fresh preflight and use same session resume `--max-pairs 5` only while device cool/offline; do not claim new script run until user provides result. No production decoder change, no sample exclusion or reference editing. Official CP4 Base ID-clean WER remains 105/367=28.61% >20%; CP4 BLOCKED.
