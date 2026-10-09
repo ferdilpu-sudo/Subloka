@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "record_date": "2026-10-10",
+  "experiment_id": "T10-ASR-MODEL-BASE-VS-SMALL-Q5-001",
+  "evidence_type": "PREREGISTERED_OFFLINE_MODEL_COMPARISON_NOT_RUN_NOT_CP4",
+  "rationale": "T10 Indonesian Whisper Base clean ASR WER is 105/367=28.61035%, failing <=20% official target. Previous attempts: gain-only on two listener-ambiguous clips showed no improvement; beam size 1 full 20-pair diagnostic worsened to 110/367. Choose genuinely different Whisper multilingual model capacity using quantized small q5_1 to reduce download/staging burden.",
+  "source_in_repo": [
+    "tools/t10_asr_small_protocol.py",
+    "tools/t10_asr_small_ab.py",
+    "tools/test_t10_asr_small_ab.py",
+    "tools/t10_asr_decode_ab.py",
+    "tools/t10_asr_error_audit.py",
+    "tools/t10_wer.py"
+  ],
+  "models": {
+    "control": {
+      "name": "Whisper multilingual Base GGML full precision",
+      "filename": "ggml-base.bin",
+      "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe"
+    },
+    "candidate": {
+      "name": "Whisper multilingual Small q5_1 quantized",
+      "filename": "ggml-small-q5_1.bin",
+      "sha256": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+      "model_download": "https://huggingface.co/ggerganov/whisper.cpp/resolve/80da2d8bfee42b0e836fc3a9890373e5defc00a6/ggml-small-q5_1.bin",
+      "approx_download": "190-200 MB, billed network data; download manually opt-in on Wi-Fi; downloaded via --prepare-small only",
+      "model_available_on_device": "NOT_TESTED"
+    },
+    "whisper_cli_version_expected": "whisper.cpp v1.9.4 (cached existing Android arm64 build; binary SHA recorded per session)"
+  },
+  "data": {
+    "frozen_original_manifest_sha256": "9c5da3a324a23c3097fe72a1eb6683cee63d19a6ddad5d527f22ccdd5ad9e444",
+    "original_asr_baseline_csv_sha256": "39a9570cd621d81c9607332c34a068fa83c48c4c142f3594d3243144eab08daa",
+    "source": "20 pre-existing Indonesian clean FLEURS human-speech WAVs, exactly same source reference for both models; five clips previously listener-marked AUDIO_AMBIGUOUS remain included",
+    "verified_frozen_baseline": "105 errors /367 words",
+    "score_normalization": "Unchanged tools/t10_wer.normalize and t10_asr_error_audit.align_errors",
+    "study_limitation": "Previously inspected dataset is NOT independent unseen validation; full 20 pairs only exploratory model screening."
+  },
+  "protocol": {
+    "hardware": "Sony SO-03L Android 11 arm64; Android /data/local/tmp isolated directory, no overwrite original gate files",
+    "session": "new .t10-benchmark/small-model-ab-<UTC>-<random> path, gitignored; report summary.json and runs.csv",
+    "host": "Windows with Python 3 and ADB; --prepare-small online, --preflight-only and live inference strictly offline",
+    "order": "alternating model per clip base,small / small,base across all 20 chronological sorted clips",
+    "inference_flags": "same whisper.cpp -l id -nt -ng -nfa -otxt -of result for both",
+    "measurements": "full transcript and S/D/I total WER, sample-level and aggregate errors, elapsed/RTF, sampled Android process VmRSS, battery temperature before/during/after",
+    "safety": "cold battery <40C, abort temperature >=43C, 240-second timeout per inference and 900 seconds per invocation, require >=600 MiB data free space, isolated process PID kill and isolated scratch cleanup",
+    "workflow": "Start optional --prepare-small (online, pinned SHA), then offline --preflight-only; --max-pairs 2 default; optional --resume SESSION to 20 pairs, no initial long compulsory run.",
+    "max_source_wav_audio_upload": "No raw WAV or model files committed; local artifacts gitignored."
+  },
+  "diagnostic_screening_criteria_precommitted": {
+    "full_pairs": 20,
+    "same_language_all_samples": true,
+    "candidate_total_word_errors_max": 73,
+    "target_wer_max": 0.2,
+    "candidate_p95_rtf_max": 2,
+    "candidate_sampled_peak_rss_kb_less_than": 1600000,
+    "candidate_rss_sample_must_exist_on_every_sample": true,
+    "no_oom_crash_and_no_thermal_abort": true,
+    "candidacy_result_only": "PROMISING_REQUIRES_TRULY_UNSEEN_HOLDOUT_AND_APP_ENGINE_INTEGRATION_TESTS",
+    "independent_holdout_required": true,
+    "no_production_implementation_auto_change": true,
+    "cp4_stays_blocked": true
+  },
+  "previous_status": {
+    "id_clean_base_WER": "105/367=28.61%",
+    "previous_beam1_WER": "110/367=29.97%",
+    "original_translation_id_en": "24/30 accepted (80%) below >=27/30",
+    "real_12min_sony_mp4_media_ingest_pcm_only": "PASS",
+    "translation_strategy_whole_vs_linewise": "No quality difference; whole retained",
+    "complete_subtitle_E2E": "NOT_AVAILABLE",
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "result_status": "NOT_RUN_NOT_MEASURED"
+}

@@ -375,3 +375,31 @@ Share `host-preflight.json`, `device-media-report.json`, and optionally `validat
 Three actual user-uploaded JSON files were independently SHA256-checked and cross-matched: `host-preflight.json`, `device-media-report.json`, `validated-media-summary.json`. Sony SO-03L Android 11 arm64 decoded an actual **734.571-second (12m14.57s), 471MB, 720x1290 H.264/AAC video** successfully in the app's T09 media layer. Audio: stereo 48k S16_LE, **34,432 buffers**, **141,033,408 PCM bytes**, last presentation time 734.528s (just 42.7ms short of video end); zero truncated output. Original video SHA256 matched host and Android before and after decoding. Inspect **0.900s**, decode **42.758s**, total media process **44.537s**, decode RTF **0.0582**; battery **35.2→35.5°C**, peak 35.5°C (**battery, not CPU temp**); sampled peak PSS **126.463 MiB**, sampled Java heap **22.269 MiB** (sample-based, not maximum absolute allocations). ADB preflight reported airplane mode enabled and Wi-Fi disabled. Complete evidence provenance: `.agents/evidence/t10-real-video-media-stage-sony-json-verified.json`. Original private video was not shared or committed.
 
 The result is strictly **`MEDIA_STAGE_PASS_NOT_FULL_E2E`**, because **ASR, bilingual subtitle translation, subtitle timing and MP4 export are not integrated**. It does not replace the missing full-app E2E performance/thermal gate. T10 ACTIVE / CP4 BLOCKED / T11 TODO, with historical ASR Indonesian clean **28.61% WER** and ID→EN translation **24/30** still below targets. No need to re-run the same media-only test unless changing decoding implementation.
+
+### T10 — Pinned Whisper Small-q5_1 ASR candidate diagnostic (offline Sony)
+
+ASR Indonesian clean baseline remains **105 errors / 367 words = 28.61% WER** on the 20 archived FLEURS clips; prior gain-only and Whisper `-bs 1` experiments did not improve it. A genuinely different (quantized) multilingual **Whisper Small-q5_1** candidate is now implemented as an **opt-in offline experiment**, not a production engine switch. Candidate model SHA256 `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb`, revision `80da2d8bfee42b0e836fc3a9890373e5defc00a6`, approx 190-200MB. It costs no software subscription, but downloading uses internet data and the model will use phone storage and memory. You may skip it if device space or download limits are a concern.
+
+After pulling `main`, do **online preparation** separately on a convenient Wi-Fi connection:
+
+```powershell
+git pull --ff-only origin main
+python tools/t10_asr_small_ab.py --prepare-small
+```
+
+Then **activate airplane mode and disable Wi-Fi on the Sony**, allow its battery temperature to fall below 40 C, ensure at least 600 MiB free in the Android data partition, and run preflight:
+
+```powershell
+python tools/t10_asr_small_ab.py --preflight-only
+```
+
+This uses the existing `.t10-benchmark/models/ggml-base.bin`, pinned cached Android Whisper CLI, `t10-dataset.json`, original `.t10-benchmark/asr-results.csv` and 20 local WAVs; do not edit originals. If preflight PASS, perform only a **2-pair safe pilot**:
+
+```powershell
+python tools/t10_asr_small_ab.py --max-pairs 2
+```
+
+The script prints a new gitignored `.t10-benchmark/small-model-ab-<UTC>-<random>/summary.json` path. Submit the summary or stop/failure reason; then use `--resume "<actual session folder path>" --max-pairs 2` for subsequent small batches if thermal/RAM/runtime suitable. Each pair runs the same source clip once through Base and once through Small, alternating order. The full diagnostic requires **20 pairs/40 results**, but a partial pilot cannot establish a quality winner. After full completion, the report compares whole-set WER and resource metrics.
+
+Screening thresholds set BEFORE results: candidate **≤73 errors of 367**, sampled peak RSS under 1,600,000KB on all clips, and p95 RTF ≤2.0. The existing 20 clips are **not blind unseen inputs**; even passing requires an independently prepared holdout before production promotion. No original ASR benchmark row, T10 acceptance rule, production Whisper adapter, or translation output is changed. CP4 remains BLOCKED. The previously validated 12min14 Sony MP4 import/audio PCM diagnostic is a media-only result, not an ASR E2E result.
+
