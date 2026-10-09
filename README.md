@@ -356,3 +356,16 @@ Preregistered protocol: `.agents/evidence/t10-real-video-media-stage-preregister
 If `tools/t10_video10_media_device.ps1 -Phase Prepare` printed a PowerShell parser error complaining about `<`, missing quote terminator, or `Missing closing '}'`, the cause was a BOM-less UTF-8 **en dash** in the script, not invalid input video or an Android runtime failure. The repository now uses **ASCII-only** video10 PowerShell source and runs a **native Windows PowerShell 5.1 parse/ASCII check in CI** (the previous Linux PowerShell 7 parse did not cover legacy Windows decoding). Pull current `main` before retrying.
 
 The fixed commands remain `.\tools\t10_video10_media_device.ps1 -Phase Prepare` and, after MP4/offline setup, `.\tools\t10_video10_media_device.ps1 -Phase Run -VideoPath "C:\Videos\real-10min.mp4"`. The intended result is **media-stage only**, not full ASR/caption/export E2E. T10 ACTIVE, CP4 BLOCKED, T11 TODO.
+
+### Sony real-video test — media-stage pass reported, numerical review pending
+
+The user has now run `tools/t10_video10_media_device.ps1 -Phase Run` with a real MP4 file on Sony. The instrumented test **returned OK (1 test)** in **45.061 seconds**, and the Windows harness pulled an evidence JSON and declared **MEDIA STAGE PASS**, then deleted the staged device copy. Host original video: **471,076,143 bytes**, SHA256 `6fec4cfb23033e47144f0aed857461f32f8981072127548254cfce29ba2636bc`. The received device JSON is **1,418 bytes**, SHA256 `935d1d90056a31e737c55c0b65e1017113b26aafd0a8adfabaaf5327cf86e272`. Provenance of these console claims is recorded in `.agents/evidence/t10-real-video-media-stage-sony-console-pass.json`.
+
+For independent validation of the actual report fields, run locally (PowerShell):
+
+```powershell
+$session = ".\.t10-benchmark\video10-media-20261010T005735-651d8bf3"
+python tools/t10_video10_media_review.py "$session\host-preflight.json" "$session\device-media-report.json" --json "$session\validated-media-summary.json"
+```
+
+Share `host-preflight.json`, `device-media-report.json`, and optionally `validated-media-summary.json` for reviewing actual duration, PSS, battery, PCM timeline and decode RTF. Never share the 471MB private video for this evidence review. Harness pass is strictly **media import/PCM decode in installed app**; actual video duration is sourced from JSON (45.061s is test execution time). Full video→ASR→translation→caption/export is not yet implemented and CP4 remains BLOCKED.

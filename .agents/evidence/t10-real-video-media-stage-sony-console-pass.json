@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "evidence_type": "T10_SONY_REAL_VIDEO_10MIN_MEDIA_STAGE_USER_CONSOLE_REPORTED_PASS",
+  "recorded_date": "2026-10-10",
+  "linked_preregistration": ".agents/evidence/t10-real-video-media-stage-preregistered.json",
+  "source": "User pasted terminal output from Windows PowerShell 5.1 after running tools/t10_video10_media_device.ps1 -Phase Run on Sony; raw JSON device report and host preflight have NOT yet been uploaded or read by this assistant.",
+  "device_context": "Sony SO-03L Android 11 target device per project; model/name/OS revision should be confirmed from device-media-report.json",
+  "session_relative_path": ".t10-benchmark/video10-media-20261010T005735-651d8bf3",
+  "local_video_input_reported": "C:\\Users\\FLYONZ\\Videos\\video-asli-10-menit.mp4",
+  "video_input_size_bytes_reported": 471076143,
+  "video_input_sha256_user_host_reported": "6fec4cfb23033e47144f0aed857461f32f8981072127548254cfce29ba2636bc",
+  "android_test_class": "app.subloka.RealVideoTenMinuteMediaTest",
+  "android_test_method": "inspectAndDecodeRealTenMinuteVideoWithoutModifyingSource",
+  "test_elapsed_ms_console_reported": 45061,
+  "instrumented_result": "OK (1 test)",
+  "instrumented_code": -1,
+  "pulled_remote_report": "/sdcard/Android/data/app.subloka.caption/files/t10-video10-20261010T005735-651d8bf3.json",
+  "pulled_json_bytes_reported": 1418,
+  "device_report_relative_path": ".t10-benchmark/video10-media-20261010T005735-651d8bf3/device-media-report.json",
+  "device_report_sha256_user_reported": "935d1d90056a31e737c55c0b65e1017113b26aafd0a8adfabaaf5327cf86e272",
+  "powershell_declared_result": "MEDIA STAGE PASS (BUKAN full E2E/CP4).",
+  "cleanup_console_report": "Video sementara dihapus dari app-specific device storage.",
+  "interpretation": [
+    "Instrumented Android test and host runner both reported success and returned JSON evidence file.",
+    "Host script verifies reported original video SHA against source SHA before/after decoding on phone, duration >=600s, no truncated PCM, battery sensor peak <43C, but exact numeric fields cannot be independently attested until JSON content is supplied.",
+    "Instrumented test is app-package media adapter inspect+PCM decode of 10-15 min input, not processing subtitle generation ASR, translation, timestamps, styling or MP4 export.",
+    "Host console elapsed 45.061 seconds is the instrumentation wall duration, NOT clip duration; actual duration must come from device-media-report.json.",
+    "The only hardware health metric measured is battery temperature proxy, not CPU die temperature."
+  ],
+  "stage_status": "USER_REPORTED_MEDIA_STAGE_PASS_PENDING_DEVICE_JSON_CONTENT_VALIDATION",
+  "cp4": "BLOCKED",
+  "t10": "ACTIVE",
+  "t11": "TODO",
+  "unchanged_quality_gates": {
+    "ASR_clean_ID_micro_WER": "105/367=28.61% (fails <=20%)",
+    "original_translation_EN_ID": "27/30 AI-assisted user-reviewed accepted",
+    "original_translation_ID_EN": "24/30 AI-assisted user-reviewed accepted (fails >=27/30)",
+    "original_real_full_app_subtitle_E2E": "NOT_IMPLEMENTED/NOT_RUN"
+  },
+  "next_validation": {
+    "commands": [
+      "python tools/t10_video10_media_review.py '.t10-benchmark/video10-media-20261010T005735-651d8bf3/host-preflight.json' '.t10-benchmark/video10-media-20261010T005735-651d8bf3/device-media-report.json' --json '.t10-benchmark/video10-media-20261010T005735-651d8bf3/validated-media-summary.json'"
+    ],
+    "user_should_upload": [
+      "host-preflight.json",
+      "device-media-report.json",
+      "validated-media-summary.json (after local validation)"
+    ],
+    "do_not_upload": [
+      "471 MB raw personal video file"
+    ],
+    "verify": [
+      "duration_us",
+      "pcm_last_pts_us",
+      "pcm_bytes_decoded",
+      "decode_wall_ms",
+      "peak_process_pss_kb_sampled",
+      "battery_peak_c",
+      "sha256 before/after",
+      "offline preflight"
+    ]
+  }
+}
