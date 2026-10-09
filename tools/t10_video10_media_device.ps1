@@ -149,8 +149,9 @@ try {
         $staged = $false
         try {
             Adb-Raw -Arguments @("shell","mkdir","-p",$RemoteDir) | Out-Null
-            Adb-Raw -Arguments @("push",$source,$RemoteVideo) | ForEach-Object { Write-Host $_ }
+            # Attempt cleanup even if adb push stops halfway through writing the video.
             $staged = $true
+            Adb-Raw -Arguments @("push",$source,$RemoteVideo) | ForEach-Object { Write-Host $_ }
             $remoteSize = (@(Adb-Raw -Arguments @("shell","stat","-c","%s",$RemoteVideo)) -join "").Trim()
             if ($remoteSize -ne [string]$file.Length) {
                 throw "Ukuran video tidak cocok sesudah adb push: lokal=$($file.Length); device=$remoteSize"
@@ -162,14 +163,21 @@ try {
             if (!$finished) {
                 Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
                 Adb-Raw -Arguments @("shell","am","force-stop",$Package) -AllowFailure | Out-Null
+            } else {
+                # WinPS 5.1 may not expose a Start-Process exit code after WaitForExit.
+                # Require Android's actual completion marker plus a valid device JSON.
+                $p.Refresh()
             }
+            $adbProcessExitCode = if ($finished) { $p.ExitCode } else { $null }
             $console = if (Test-Path $stdout) { Get-Content -LiteralPath $stdout -Raw } else { "" }
             Write-Host $console
             # Try to recover a FAILED result as well, before deciding pass/fail.
             Adb-Raw -Arguments @("pull",$remoteReport,$jsonOut) -AllowFailure | ForEach-Object { Write-Host $_ }
             if (!$finished) { throw "TIMEOUT 25 menit; laporan mungkin tidak lengkap. Lihat $outDir." }
-            if ($p.ExitCode -ne 0 -or $console -notmatch '(?m)^OK \(1 test\)') {
-                throw "Instrumentation FAIL (adb exit=$($p.ExitCode)); bukti disimpan ke $outDir."
+            $androidPass = ($console -match '(?m)^OK \(1 test\)\s*$' -and
+                $console -match '(?m)^INSTRUMENTATION_CODE:\s*-1\s*$')
+            if (!$androidPass -or ($null -ne $adbProcessExitCode -and [int]$adbProcessExitCode -ne 0)) {
+                throw "Instrumentation FAIL (adb exit=$adbProcessExitCode, android_ok=$androidPass); bukti di $outDir."
             }
             if (!(Test-Path $jsonOut)) { throw "Tidak ada laporan JSON dari perangkat." }
             $report = Get-Content -Raw -LiteralPath $jsonOut | ConvertFrom-Json
@@ -188,7 +196,11 @@ try {
         } finally {
             if ($staged) {
                 Adb-Raw -Arguments @("shell","rm","-f",$RemoteVideo) -AllowFailure | Out-Null
-                Write-Host "Video sementara dihapus dari app-specific device storage."
+                if ($script:LastAdbExit -eq 0) {
+                    Write-Host "Video sementara dihapus dari app-specific device storage."
+                } else {
+                    Write-Warning "Gagal menghapus video sementara. Hapus manual: $RemoteVideo"
+                }
             }
         }
     }
