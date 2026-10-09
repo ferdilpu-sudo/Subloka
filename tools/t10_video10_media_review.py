@@ -48,7 +48,7 @@ def validate(host: dict, device: dict) -> dict:
     if host.get("evidence_type") != EXPECTED_HOST_TYPE or host.get("cp4") != "BLOCKED":
         raise ValueError("Unexpected host preflight evidence type or CP4 status")
     if host.get("airplane_mode") != "1" or host.get("wifi_on") != "0":
-        raise ValueError("Device host preflight did not verify airplane=1 and wifi=0")
+        raise ValueError("offline host preflight did not verify airplane=1 and wifi=0")
     if device.get("schema_version") != 1 or device.get("type") != EXPECTED_TYPE:
         raise ValueError("Invalid device report schema/type")
     if device.get("status") != "MEDIA_STAGE_PASS_NOT_FULL_E2E":
