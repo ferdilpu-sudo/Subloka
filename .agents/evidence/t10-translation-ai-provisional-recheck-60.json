@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "evidence_type": "AI_PROVISIONAL_SEMANTIC_RECHECK_NOT_HUMAN_SIGNOFF",
+  "date": "2026-10-09",
+  "scope": "60 Sony SO-03L ML Kit translation source/output pairs, 30 per direction",
+  "original_device_raw_sha256_reported_by_user": "f135ec8bf749d0609197137e54691170047d3336b2d246a9f89dd0689cb5de6a",
+  "original_csv_content_from_prior_conversation": "Previously uploaded original/model outputs and AI draft. Its byte serialization differs from user device CSV; canonical source+output digest agrees with the approved old AI draft and user-reported exact-output-match=true. Physical device raw bytes were NOT independently obtained in this review.",
+  "source_content_digest": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+  "previous_provisional_draft": "tools/t10_translation_ai_draft.json",
+  "method": "Independently re-read all 60 source/ML Kit translations for preserved meaning, negation, numbers, time, referents, modalities and understandable English terms. ACCEPT includes minor idiom/grammar warnings. Assessment by AI, not a human.",
+  "summary": {
+    "english_to_indonesian": {
+      "accepted": 27,
+      "rejected": 3,
+      "total": 30,
+      "acceptance_percent": 90
+    },
+    "indonesian_to_english": {
+      "accepted": 24,
+      "rejected": 6,
+      "total": 30,
+      "acceptance_percent": 80
+    },
+    "material_fail_count": 9,
+    "accepted_with_minor_or_contextual_warnings": 15,
+    "accepted_without_identified_material_issues": 36,
+    "status": "PROVISIONAL_AI_ASSESSMENT_ONLY",
+    "cp4_status": "BLOCKED"
+  },
+  "material_failures": {
+    "en-08": "delivered (arrives to recipient) mistranslated as dispatched/sent (dikirim)",
+    "en-24": "speaks quietly (low volume) mistranslated as calmly",
+    "en-27": "camera recorded action reversed into passive camera was recorded",
+    "id-02": "tomorrow meeting incorrectly rendered in past tense (began)",
+    "id-05": "15-minute late arrival mistranslated as slower speed",
+    "id-10": "younger ungendered sibling incorrectly specified as sister and younger relation omitted",
+    "id-17": "peron (railway platform) left untranslated as Peron four, opaque to typical English audience",
+    "id-26": "behind the bridge (it) shifted to behind a man (him)",
+    "id-30": "must not start (hard prohibition) weakened to should not start (recommendation)"
+  },
+  "watchlist_accepted_with_cautions": [
+    "en-05",
+    "en-09",
+    "en-10",
+    "en-17",
+    "en-25",
+    "en-29",
+    "id-01",
+    "id-07",
+    "id-08",
+    "id-09",
+    "id-14",
+    "id-16",
+    "id-18",
+    "id-19",
+    "id-24"
+  ],
+  "one_changed_ai_decision": {
+    "sample": "id-17",
+    "prior_draft": "ACCEPT",
+    "revised_ai": "MAJOR_MEANING_ERROR",
+    "confidence": "MEDIUM",
+    "rationale": "The Indonesian word peron is not usable plain-English phrasing for a railway platform; the missing platform meaning matters to an English-only viewer.",
+    "reviewer_override_possible": true
+  },
+  "known_borderline_judgments": {
+    "id-08": "October sixteens grammatically malformed but October 16 remains inferable; ACCEPT with a flag, not a proven number error",
+    "id-09": "dia is gender-neutral but he speculates gender; ACCEPT with warning pending contextual reviewer",
+    "en-29": "should versus harus strengthens modal force; ACCEPT with warning rather than presuming material instruction violation",
+    "id-17": "One additional rejection under intelligibility-to-target-audience criterion; a bilingual person may understand peron but English-only audience may not"
+  },
+  "quality_gate": {
+    "target_acceptances_per_direction": 27,
+    "ai_provisional_english_to_indonesian_numerical_threshold_met": true,
+    "ai_provisional_indonesian_to_english_numerical_threshold_met": false,
+    "reviewer_independent_bilingual_signoff": false,
+    "original_mlkit_model_output_changed": false,
+    "original_fixtures_changed": false,
+    "original_asr_baseline_changed": false,
+    "human_review_csv_autofilled": false
+  },
+  "follow_up": "Human QA remains unfinished; do not execute --attest-independent-bilingual-review based only on this AI audit. Human-friendly local HTML and XLSX reports were generated in the conversation; user can read them without editing original source or signing a review. Prioritize real 10-min video E2E/thermal plus independent reviewer or translation improvement after T10 ASR decode comparison."
+}
