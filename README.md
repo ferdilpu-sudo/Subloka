@@ -219,3 +219,8 @@ Another four pairs (`id-clean-08` to `11`) were collected in the **same** `decod
 ### T10 decoding A/B — progress 15/20
 
 The latest Sony session summary reports default decoder 72/270 edits (**26.67%**) versus `-bs 1` 73/270 edits (**27.04%**) on **15 paired Indonesian-clean clips**, with `PARTIAL_EXPERIMENT_NOT_CP4`, empty stop reason, battery last 30.2°C. Only one edit separates them; do not promote either candidate from a partial set. See `.agents/evidence/t10-asr-decode-15pairs.json` (user-reported excerpt). After a new cool/offline preflight, **resume the same session** using `--max-pairs 5` for clips `id-clean-16` through `20`. The frozen CP4 official baseline is unchanged at 105/367=28.61%, CP4 BLOCKED.
+
+### T10 decoding A/B — final 20-pair outcome
+
+The physical Sony experiment completed all **20 paired original Indonesian-clean FLEURS recordings**. Whisper Base default matched archived transcripts **20/20** and had **105/367 word edits (28.61%)**; `-bs 1` had **110/367 edits (29.97%)**, five additional errors (**+1.36 percentage points worse**). Session ended with `COMPLETE_EXPERIMENT_NOT_CP4`, no reported stop reason and final battery **30.7°C**. The user-provided evidence excerpt is archived in `.agents/evidence/t10-asr-decode-final-20pairs.json`; full local logs not independently inspected. **Do not switch v1 to `-bs 1`.** The frozen CP4 baseline remains 28.61% vs 20% target, CP4 BLOCKED; other translation and 10-minute app E2E gates remain open. Do not rerun this completed A/B unnecessarily; continue other T10 blockers or use a new, predefined ASR evaluation plan.
+

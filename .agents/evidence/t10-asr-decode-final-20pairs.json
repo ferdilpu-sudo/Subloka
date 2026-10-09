@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "reported_at": "2026-10-09",
+  "evidence_type": "T10 full frozen-set Whisper Base decoding paired A/B - user-provided final summary excerpt",
+  "source": "PowerShell Select-Object output pasted in ChatGPT; original full summary.json and runs.csv remain on user's workstation, not independently reloaded",
+  "device": "Sony SO-03L (prior session); this excerpt itself has no model/device fields",
+  "session": "decode-ab-20261008T145942Z-10430e (identified in previous user-provided terminal output)",
+  "status": "COMPLETE_EXPERIMENT_NOT_CP4",
+  "stop_reason": null,
+  "battery_last_c": 30.7,
+  "is_battery_not_cpu_temperature": true,
+  "paired_samples": 20,
+  "paired_reference_words": 367,
+  "control_errors": 105,
+  "beam1_errors": 110,
+  "control_micro_wer": 0.28610354223433243,
+  "beam1_micro_wer": 0.2997275204359673,
+  "delta_candidate_minus_control_edits": 5,
+  "delta_candidate_minus_control_wer": 0.013623978201634877,
+  "control_matches_archived_hypothesis": 20,
+  "previous_15_pairs": {
+    "paired_reference_words": 270,
+    "control_errors": 72,
+    "beam1_errors": 73
+  },
+  "derived_last_five_pairs": {
+    "paired_reference_words": 97,
+    "control_errors": 33,
+    "beam1_errors": 37
+  },
+  "official_CP4": {
+    "status": "BLOCKED",
+    "target_max_wer": 0.2,
+    "original_ID_clean_base_errors": 105,
+    "original_ID_clean_reference_words": 367,
+    "unchanged": true
+  },
+  "decision": "Reject -bs 1 as an ASR accuracy improvement for the preselected frozen 20-sample ID-clean evaluation; leave production decoder and frozen baseline unchanged. Result is device-report-derived, not independently inspected raw transcript/log. Other CP4 gates (ID->EN translation and 10-min E2E/thermal) remain open.",
+  "limitations": [
+    "User supplied summary fields only; not per-sample hypotheses, raw run CSV, model/version verification metadata or per-run RTF/temperatures in this turn.",
+    "These 20 clips include five listener-marked AUDIO_AMBIGUOUS samples, intentionally retained for consistent historical comparison.",
+    "Single trial per decoding config per WAV, not a statistically generalizable finding, and not permission to trim or relabel the frozen benchmark.",
+    "Battery temperature at end is not CPU temperature; full end-to-end app video/resource test not performed by this experiment."
+  ],
+  "next_actions": [
+    "Preserve CLI default; avoid cherry-picking or retrofitting -bs 1.",
+    "Optionally examine raw 20-pair runs.csv for per-clip errors and RTF, without changing benchmark.",
+    "For ASR gate recovery, design predeclared independent evaluation of model/decoding alternatives or a new separately-versioned clearer benchmark.",
+    "Advance independent translation ID->EN bilingual QA (currently 25/30 vs 27/30), and 10-minute app E2E/thermal validation."
+  ]
+}
