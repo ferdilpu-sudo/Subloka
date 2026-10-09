@@ -210,3 +210,8 @@ First physical Sony pilot returned six ASR runs (3 paired samples) with exact fr
 
 After resuming the same Sony session for four more sample pairs, **control and `-bs 1` tied on 7/20 Indonesian clean clips: 32 word edits each across 129 reference words (24.81% micro-WER each)**. The additional four recovered the two-edit disadvantage from the original three-pair pilot (additional control 17 edits, beam1 15). Evidence: `.agents/evidence/t10-asr-decode-7pairs.json`. The user supplied aggregate `analysis` only, not updated session status/temperature or raw run logs, so confirm `status=PARTIAL_EXPERIMENT_NOT_CP4`, empty `stop_reason`, and battery safely cooled before another short staged resume. Do not infer a stable decoding advantage or change engine defaults, dataset or baseline. Official CP4 remains BLOCKED with 105/367 baseline edits.
 
+
+### T10 decoding A/B — 11/20 pairs completed on Sony
+
+Another four pairs (`id-clean-08` to `11`) were collected in the **same** `decode-ab-20261008T145942Z-10430e` session. Cumulative results: default 48 edits, `-bs 1` 47 edits out of **203 reference words** (23.65% vs 23.15% diagnostic micro-WER, only **one** edit difference); 22/40 inference runs completed. Latest stage passed offline preflight (battery 30.2°C), ended with battery 31.0°C and `PARTIAL_EXPERIMENT_NOT_CP4` / empty stop reason. Details: `.agents/evidence/t10-asr-decode-11pairs.json`. This tiny numerical advantage cannot establish a production improvement. After a fresh device preflight/cooldown, resume the existing session with `--max-pairs 4` for clips 12–15, and inspect status plus paired WER. **Official** Base ID-clean WER 105/367=28.61%, CP4 BLOCKED.
+

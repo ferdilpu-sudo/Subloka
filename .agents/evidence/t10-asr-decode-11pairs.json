@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "reported_on": "2026-10-09",
+  "original_session_id": "decode-ab-20261008T145942Z-10430e",
+  "origin": "User-pasted Sony SO-03L terminal logs and summary.analysis excerpt; not independently inspected original session files.",
+  "experiment": "T10 Whisper Base Indonesian clean decoding comparison: CLI default vs -bs 1; frozen 20-sample dataset",
+  "evidence_type": "NON_GATING_PARTIAL_PAIRED_DIAGNOSTIC",
+  "session_status": "PARTIAL_EXPERIMENT_NOT_CP4",
+  "stop_reason": null,
+  "device_model": "SO-03L",
+  "device_serial": "QV720AVG2V",
+  "preflight": "PASS; offline and original files/model SHA checks as reported by harness",
+  "battery_temp_preflight_c": 30.2,
+  "battery_temp_after_c": 31,
+  "battery_temp_stop_threshold_c": 43,
+  "battery_temperature_is_cpu_die_temperature": false,
+  "pairs_collected": 11,
+  "total_pairs_planned": 20,
+  "runs_collected": 22,
+  "reference_words": 203,
+  "control_errors": 48,
+  "beam1_errors": 47,
+  "control_micro_wer": 0.23645320197044334,
+  "beam1_micro_wer": 0.2315270935960591,
+  "delta_beam1_minus_control_micro_wer": -0.0049261083743842365,
+  "previously_at_7_pairs": {
+    "reference_words": 129,
+    "control_errors": 32,
+    "beam1_errors": 32
+  },
+  "additional_pairs": [
+    {
+      "sample": "id-clean-08",
+      "reference_words": 18,
+      "control_errors": 8,
+      "beam1_errors": 7,
+      "control_rtf": 0.991,
+      "beam1_rtf": 0.79,
+      "logged_battery_end_c": 30.5
+    },
+    {
+      "sample": "id-clean-09",
+      "reference_words": 20,
+      "control_errors": 7,
+      "beam1_errors": 6,
+      "control_rtf": 1.029,
+      "beam1_rtf": 0.822,
+      "logged_battery_end_c": 30.5
+    },
+    {
+      "sample": "id-clean-10",
+      "reference_words": 19,
+      "control_errors": 1,
+      "beam1_errors": 2,
+      "control_rtf": 1.016,
+      "beam1_rtf": 0.814,
+      "logged_battery_end_c": 30.7
+    },
+    {
+      "sample": "id-clean-11",
+      "reference_words": 17,
+      "control_errors": 0,
+      "beam1_errors": 0,
+      "control_rtf": 0.963,
+      "beam1_rtf": 0.768,
+      "logged_battery_end_c": 31
+    }
+  ],
+  "additional_four_summary": {
+    "reference_words": 74,
+    "control_errors": 16,
+    "beam1_errors": 15
+  },
+  "official_cp4_baseline_unchanged": {
+    "reference_words": 367,
+    "errors": 105,
+    "micro_wer": 0.28610354223433243,
+    "target_max": 0.2,
+    "cp4_status": "BLOCKED"
+  },
+  "interpretation": "Beam1 has 1 fewer word error across 203 matched words (0.49 percentage point numerical advantage); too small a partial sample to conclude improvement. Sample-dependent differences; no production switch. Resume same session for id-clean-12–15 only after a fresh preflight confirms cool/offline device.",
+  "limitations": "One pass/condition, post-hoc listener-ambiguous clips retained, only 11/20 pairs, battery temperature proxy, session summary and raw runs.csv not directly available to assistant."
+}

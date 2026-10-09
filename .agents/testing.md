@@ -572,3 +572,11 @@ Dokumen/task yang diperbarui:
 - Remaining tests: 13 pairs / 26 runs. Operational blocker to resume safely: missing latest `summary.status`, `summary.stop_reason`, `summary.battery_last_c`, `summary.events`. Require healthy partial status, null stop reason, and cooldown before next staged 4-pair device run. Previous 3-pair 39.2°C end is stale for this session.
 - Result: diagnostic **TIE 32/129 vs 32/129**; T10 active; CP4 BLOCKED; T11 TODO.
 
+
+### T10-ASR-DECODE-11PAIRS-001 — Continued Sony decoding A/B, limited result
+- Source: user PowerShell output showing `PARTIAL_EXPERIMENT_NOT_CP4`, empty stop reason, preflight SO-03L offline battery 30.2°C, 8 additional run lines (`id-clean-08`–`id-clean-11` each default and beam1), post-stage battery 31.0°C, stop threshold 43°C. Device-produced original `summary.json`, `runs.csv` were not uploaded; evidence is the pasted console excerpts only. Machine-readable transcription of claims: `.agents/evidence/t10-asr-decode-11pairs.json`.
+- New pairs errors default/beam1 by sample: `08=8/7` (18 reference words), `09=7/6` (20), `10=1/2` (19), `11=0/0` (17), total 16 vs 15 over 74 words. Per-condition RTF original default/beam1: `08 .991/.790`, `09 1.029/.822`, `10 1.016/.814`, `11 .963/.768`; don't overgeneralize timing across runs/thermal circumstances.
+- Cumulated 11 pairs (22 inference): 203 reference words, default 48 edits (23.6453%), beam1 47 (23.1527%), delta -1/203 = -0.4926 percentage points. Still 9/20 pairs untested, no generalizable beam1 WER superiority from partial evidence; do not promote candidate.
+- Safety: session partial/not aborted, stop_reason empty, battery last 31.0°C, 43°C threshold not reached; **battery proxy is not CPU temperature**. Recheck device fresh before stage 12–15. If new preflight fails or phone is hot, pause; use no assumption that past 31°C guarantees current conditions.
+- Official gate remains unchanged: 20-sample frozen Base Indonesian clean WER 105/367=28.61% >20%; translation ID→EN 25/30 <27/30; E2E gates not finished; CP4 BLOCKED and T11 TODO.
+
