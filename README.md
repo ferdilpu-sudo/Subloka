@@ -224,3 +224,25 @@ The latest Sony session summary reports default decoder 72/270 edits (**26.67%**
 
 The physical Sony experiment completed all **20 paired original Indonesian-clean FLEURS recordings**. Whisper Base default matched archived transcripts **20/20** and had **105/367 word edits (28.61%)**; `-bs 1` had **110/367 edits (29.97%)**, five additional errors (**+1.36 percentage points worse**). Session ended with `COMPLETE_EXPERIMENT_NOT_CP4`, no reported stop reason and final battery **30.7°C**. The user-provided evidence excerpt is archived in `.agents/evidence/t10-asr-decode-final-20pairs.json`; full local logs not independently inspected. **Do not switch v1 to `-bs 1`.** The frozen CP4 baseline remains 28.61% vs 20% target, CP4 BLOCKED; other translation and 10-minute app E2E gates remain open. Do not rerun this completed A/B unnecessarily; continue other T10 blockers or use a new, predefined ASR evaluation plan.
 
+
+### T10 — independent bilingual translation QA handoff
+
+The initial Sony offline ML Kit translation output has an **AI-assisted, provisional** review only (EN→ID 27/30, ID→EN 25/30). This is **not independent bilingual human verification**. The new QA handoff leaves all 60 AI suggestions visible only as provisional hints and never pre-fills a human decision; it verifies the original device CSV against the frozen 60-input fixture, captures source hashes, and refuses to overwrite final reports or reinterpret newer inference output using stale AI labels.
+
+With the **original** local `.t10-benchmark/translation-results.csv` available, run:
+
+```powershell
+git pull origin main
+python tools/t10_translation_human_qa.py prepare .t10-benchmark/translation-results.csv .t10-benchmark/translation-human-qa-01
+```
+
+A bilingual reviewer must inspect every row in `.t10-benchmark/translation-human-qa-01/human-review.csv`, fill all 60 `human_status` decisions (`ACCEPT`, `MAJOR_MEANING_ERROR`, `NEGATION_ERROR`, `NUMBER_OR_NAME_ERROR`), and justify every rejection and disagreement with provisional AI assessment in `human_notes`. Do not change any other columns, model outputs, or sample IDs. The separate `REVIEW_INSTRUCTIONS.md` generated in the session summarizes flagged rows. **Do not mark entries ACCEPT just to meet 90%.** For a new device run that does not match the previous AI-draft content hash, the AI labels are marked `NOT_APPLICABLE`, not copied.
+
+After review, finalize with an attested bilingual reviewer identity (the script records a declaration; it cannot authenticate reviewer independence):
+
+```powershell
+python tools/t10_translation_human_qa.py finalize .t10-benchmark/translation-results.csv .t10-benchmark/translation-human-qa-01 --reviewer "Bilingual Reviewer" --attest-independent-bilingual-review
+```
+
+This creates `human-reviewed.csv`, `human-quality-report.json`, and `human-signoff.json`. The quality report uses the unchanged threshold logic in `tools/t10_translation_review.py` (>=27/30 accepted per direction, no negation or number/name error). Share the reviewed files for analysis; **CP4 remains BLOCKED** independently because Indonesian ASR WER is 28.61% (>20%) and 10-minute app/video E2E resource gate has not been completed.
+

@@ -22,6 +22,8 @@ on:
       - "tools/t10_translation_device_benchmark.ps1"
       - "tools/t10_translation_review.py"
       - "tools/test_t10_translation_review.py"
+      - "tools/t10_translation_human_qa.py"
+      - "tools/test_t10_translation_human_qa.py"
       - "tools/t10_prepare_dataset.ps1"
       - "tools/t10_fetch_fleurs_dataset.py"
       - "tools/t10_build_android_whisper.sh"
@@ -222,6 +224,10 @@ jobs:
       - name: Test translation quality review evaluator
         shell: bash
         run: python -m unittest discover -s tools -p test_t10_translation_review.py
+
+      - name: Test immutable translation human QA workflow
+        shell: bash
+        run: python -m unittest discover -s tools -p test_t10_translation_human_qa.py
 
       - name: Install pinned Android NDK
         shell: bash
