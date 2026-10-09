@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "evidence_type": "USER_REPORTED_PHYSICAL_DEVICE_TRANSLATION_STRATEGY_AB_OUTPUT_CAPTURE",
+  "date_reported": "2026-10-09",
+  "experiment_id": "T10-TRANS-PARAGRAPH-STRATEGY-AB-001",
+  "linked_preregistration": ".agents/evidence/t10-translation-strategy-ab-preregistered.json",
+  "device": "Sony SO-03L Android 11 (user's ongoing physical device test context)",
+  "command": "tools/t10_translation_device_benchmark.ps1 -Phase Strategy",
+  "console_excerpt": [
+    "Time: 9,188",
+    "OK (1 test)",
+    "INSTRUMENTATION_CODE: -1",
+    "/storage/emulated/0/Android/data/app.subloka.engine.translation.t...5.csv: 1 file pulled, 0 skipped. 3.6 MB/s (27616 bytes in 0.007s)",
+    "DEVICE OUTPUT COLLECTED: CSV tersimpan di C:\\Users\\FLYONZ\\Documents\\GitHub\\Subloka\\.t10-benchmark\\translation-strategy-ab-results.csv",
+    "SHA256 raw device CSV: 50E612EC7EC41D37DE1E520650F1C5F90343267856BFE0C6F44AE0D27991353F",
+    "EXPERIMENTAL ONLY: 60 paired source paragraphs (120 variants), not CP4 gate."
+  ],
+  "reported_android_instrumentation_tests": 1,
+  "reported_android_instrumentation_success": true,
+  "reported_csv_pull_success": true,
+  "reported_csv_bytes": 27616,
+  "reported_local_gitignored_relative_path": ".t10-benchmark/translation-strategy-ab-results.csv",
+  "reported_raw_csv_sha256": "50e612ec7ec41d37de1e520650f1c5f90343267856bfe0c6f44ae0d27991353f",
+  "interpretation": "Device instrumentation and CSV retrieval completed according to user console output. The experiment design targets 60 new paragraph pairs/120 strategy rows. Individual outputs, 120 row verification, per-direction scores, latency distributions and sample temperature series NOT independently inspected because raw CSV was not provided to this assistant.",
+  "not_proven": [
+    "All raw rows actually conform to fixture until local validator checks them",
+    "Either strategy improves accepted translation count",
+    "Hardware CPU temperature from battery sensor",
+    "Real 10-minute app video E2E performance",
+    "Any CP4 gate passing"
+  ],
+  "next_user_commands": [
+    "python tools/t10_translation_strategy_ab_review.py init .\\.t10-benchmark\\translation-strategy-ab-results.csv .\\.t10-benchmark\\translation-strategy-ab-qa-01",
+    "Get-FileHash -Algorithm SHA256 .\\.t10-benchmark\\translation-strategy-ab-results.csv",
+    "Upload original translation-strategy-ab-results.csv to ChatGPT for AI-assisted source/output assessment and readable review; do not manually prefill 120 statuses based on AI"
+  ],
+  "source_fidelity": "User-pasted console; not independent file inspection or new local inference",
+  "frozen_original_gate_unchanged": {
+    "original_translation_EN_ID_accepted": 27,
+    "original_translation_ID_EN_accepted": 24,
+    "base_asr_ID_clean_wer": 0.28610354223433243,
+    "cp4": "BLOCKED",
+    "t10": "ACTIVE",
+    "t11": "TODO"
+  }
+}
