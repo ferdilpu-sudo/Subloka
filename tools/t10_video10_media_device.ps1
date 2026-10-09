@@ -155,7 +155,7 @@ try {
             if ($remoteSize -ne [string]$file.Length) {
                 throw "Ukuran video tidak cocok sesudah adb push: lokal=$($file.Length); device=$remoteSize"
             }
-            $argsText = (@DeviceArgs + @("shell","am","instrument","-w","-r",
+            $argsText = ($DeviceArgs + @("shell","am","instrument","-w","-r",
                 "-e","class",$TestClass,"-e","reportName",$remoteReportName,$runner)) -join " "
             $p = Start-Process -FilePath $Adb -ArgumentList $argsText -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
             $finished = $p.WaitForExit(1500000) # 25 minute watchdog
