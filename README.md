@@ -274,3 +274,37 @@ Reproducible unit testing (after pull):
 
 Android CI was updated to run the Gradle unit tests (15 Kotlin regression scenarios) automatically. A standalone Kotlin compiler with local JUnit stubs passed these 15 before the commit; check GitHub Actions for the **actual** Gradle outcome after push. On archived 60 Sony outputs, the diagnostic flagged seven pairs (four previously confirmed as major problems, three acceptable but cautionary); five other material problems were missed. This is **not independent validation**, and a zero-warning output does not equal ACCEPT. Full diagnostic provenance and limitations: `.agents/evidence/t10-translation-fidelity-guard-static.json`. **No demonstrated translation quality improvement:** EN→ID 27/30, ID→EN 24/30, CP4 BLOCKED. Genuine quality gains require a predeclared separate engine/translation candidate and previously unseen held-out QA inputs; do not memorize fixes for the frozen 60 samples.
 
+
+### T10 — NEW offline paired paragraph translation diagnostic (not the frozen CP4 gate)
+
+A separate, **pre-registered 60-paragraph A/B experiment** compares two strategies using the **same** existing ML Kit English–Indonesian offline models: `whole` translates two sentences in one call, while `linewise` translates each sentence separately and concatenates them (two calls). This tests a possible segmentation benefit, **not an alternative neural model**. Input fixture: `engine/translation/src/androidTest/assets/t10_translation_strategy_ab_fixtures.json`; 30 new Indonesian and 30 new English two-sentence paragraphs. The original 60 single-sentence CP4 inputs and all previous output/review evidence are untouched. No production `MlKitOfflineTranslator` change.
+
+On Sony SO-03L / Windows PowerShell 5.1 after `git pull --ff-only origin main`, **prepare the installed model online first** (this is not the offline inference phase):
+
+```powershell
+.\tools\t10_translation_device_benchmark.ps1 -Phase Prepare
+```
+
+Then enable airplane mode, turn off Wi-Fi, ensure battery temperature below 40°C and continue with **ONLY** the new Strategy diagnostic:
+
+```powershell
+.\tools\t10_translation_device_benchmark.ps1 -Phase Strategy
+```
+
+Offline preflight checks airplane-mode/Wi-Fi state; test stops at battery >=43°C or wall time >=10 minutes. Battery reading is not SoC die temperature. The new raw file is `.t10-benchmark/translation-strategy-ab-results.csv` and must **not overwrite** the original `.t10-benchmark/translation-results.csv`. 60 matched sources yield 120 variant outputs across 180 ML Kit calls; order alternates within source.
+
+Prepare a **readable offline browser review** instead of editing multiline CSV manually:
+
+```powershell
+python tools/t10_translation_strategy_ab_review.py init .t10-benchmark/translation-strategy-ab-results.csv .t10-benchmark/translation-strategy-ab-qa-01
+Invoke-Item .\.t10-benchmark\translation-strategy-ab-qa-01\review.html
+```
+
+Browser cards show each paragraph and the two outputs side by side as Output 1/2, with status selection and explanatory notes. Export the CSV to keep progress; later you may reimport it into the browser. Grading is **not auto-filled**. After both variants of every source have been assessed (120 decisions), export `translation-strategy-ab-review.csv` to Downloads and run:
+
+```powershell
+python tools/t10_translation_strategy_ab_review.py report .t10-benchmark/translation-strategy-ab-results.csv .t10-benchmark/translation-strategy-ab-qa-01 "$HOME\Downloads\translation-strategy-ab-review.csv" --json .t10-benchmark/translation-strategy-ab-qa-01/paired-report.json
+```
+
+The script enforces original raw/fixture hashes and all complete paired judgments; reports per-language accepted samples, wins/losses, median/p95 latency and critical regression counts. **Pre-registered diagnostic success** requires the candidate achieve >=27/30 ACCEPT per direction, >=3 **net** additional accepted compared with control in each direction, no added negation/number/name errors, and p95 latency <=2.5x control. Even then, results are merely PROMISING and require independent confirmation with truly unseen sources before any production change. This two-sentence diagnostic **cannot replace or regrade the frozen CP4 single-sentence benchmark**. ASR Indonesian clean 28.61% WER and translation ID→EN 24/30 reported baseline still BLOCKED; real 10-minute in-app video E2E remains undone.
+

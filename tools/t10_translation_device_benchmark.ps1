@@ -1,14 +1,21 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("Prepare", "Benchmark")]
+    [ValidateSet("Prepare", "Benchmark", "Strategy")]
     [string]$Phase,
-    [string]$OutputPath = ".t10-benchmark/translation-results.csv"
+    [string]$OutputPath = ""
 )
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $TestNamespace = "app.subloka.engine.translation"
 $RunnerMarker = "AndroidJUnitRunner"
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $OutputPath = if ($Phase -eq "Strategy") {
+        ".t10-benchmark/translation-strategy-ab-results.csv"
+    } else {
+        ".t10-benchmark/translation-results.csv"
+    }
+}
 
 function Require-SingleDevice {
     if (-not (Get-Command adb -ErrorAction SilentlyContinue)) {
@@ -74,6 +81,8 @@ try {
         Write-Host "PREPARE PASS: model telah disiapkan oleh smoke test." -ForegroundColor Green
         Write-Host "Selanjutnya: aktifkan mode pesawat, matikan Wi-Fi, lalu jalankan:" -ForegroundColor Yellow
         Write-Host ".\tools\t10_translation_device_benchmark.ps1 -Phase Benchmark"
+        Write-Host "Atau eksperimen BARU paragraf 60-pair (tidak memodifikasi CP4 lama):" -ForegroundColor Yellow
+        Write-Host ".\tools\t10_translation_device_benchmark.ps1 -Phase Strategy"
         Write-Host "Jangan jalankan connectedDebugAndroidTest atau uninstall aplikasi di antara kedua fase."
     } else {
         # Deliberately DO NOT install/reinstall or invoke Gradle in benchmark phase.
@@ -93,13 +102,23 @@ try {
 
         & adb logcat -c
         if ($LASTEXITCODE -ne 0) { throw "Gagal membersihkan logcat." }
-        Invoke-T10Test $component "$TestNamespace.MlKitTranslationBenchmarkTest"
+        $testClass = if ($Phase -eq "Strategy") {
+            "$TestNamespace.MlKitTranslationStrategyABTest"
+        } else {
+            "$TestNamespace.MlKitTranslationBenchmarkTest"
+        }
+        Invoke-T10Test $component $testClass
 
         $log = @(& adb logcat -d -s 'SubLokaT10:I' '*:S')
         if ($LASTEXITCODE -ne 0) { throw "Gagal membaca logcat." }
         $paths = @()
         foreach ($line in $log) {
-            if ($line -match 'RESULT_PATH=(\S+\.csv)') {
+            $pattern = if ($Phase -eq "Strategy") {
+                'STRATEGY_AB_RESULT_PATH=(\S+\.csv)'
+            } else {
+                '(?<!STRATEGY_AB_)RESULT_PATH=(\S+\.csv)'
+            }
+            if ($line -match $pattern) {
                 $paths += $Matches[1]
             }
         }
@@ -113,8 +132,14 @@ try {
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $destination)) {
             throw "adb pull gagal untuk $remote"
         }
-        Write-Host "BENCHMARK PASS: CSV tersimpan di $destination" -ForegroundColor Green
-        Write-Host ("Selanjutnya: python tools/t10_translation_review.py init " + $destination + " .t10-benchmark/translation-review.csv")
+        Write-Host "DEVICE OUTPUT COLLECTED: CSV tersimpan di $destination" -ForegroundColor Green
+        Write-Host ("SHA256 raw device CSV: " + (Get-FileHash -Algorithm SHA256 -Path $destination).Hash)
+        if ($Phase -eq "Strategy") {
+            Write-Host "EXPERIMENTAL ONLY: 60 paired source paragraphs (120 variants), not CP4 gate." -ForegroundColor Yellow
+            Write-Host ("Lanjut: python tools/t10_translation_strategy_ab_review.py init " + $destination + " .t10-benchmark/translation-strategy-ab-qa-01")
+        } else {
+            Write-Host ("Lanjut: python tools/t10_translation_review.py init " + $destination + " .t10-benchmark/translation-review.csv")
+        }
     }
 } finally {
     Pop-Location

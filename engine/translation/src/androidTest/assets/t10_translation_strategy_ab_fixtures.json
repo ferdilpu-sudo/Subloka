@@ -1,0 +1,381 @@
+{
+  "version": 1,
+  "description": "T10 pre-registered, newly authored multi-sentence translation A/B diagnostic; 30 EN + 30 ID two-line paragraphs; never CP4 gate fixture",
+  "design": {
+    "control": "whole paragraph translated in one offline ML Kit call",
+    "candidate": "two newline-delimited source sentences translated independently, joined with a single space",
+    "order": "alternate whole-first and linewise-first by sample index",
+    "approval": "reviewer independently grades both complete final outputs by source paragraph; 60 matched pairs; diagnostic only",
+    "success": "On this NEW data: candidate >=27/30 ACCEPT per direction AND >=3 more ACCEPT than control per direction, zero newly introduced NEGATION_ERROR/NUMBER_OR_NAME_ERROR, candidate p95 end-to-end latency <=2.5x control p95 in each direction; even if all pass, independently verify on a second unseen set before production change.",
+    "safety": "original 60 gate samples, refs, outputs and acceptance labels remain immutable; this dataset is not blind because authored for the experiment",
+    "predeclared_limits": {
+      "min_linewise_accept_count_each_direction": 27,
+      "min_net_accept_gain_each_direction": 3,
+      "no_new_critical_errors": true,
+      "max_linewise_to_whole_p95_latency_ratio": 2.5,
+      "cp4_automatically_passes": false
+    }
+  },
+  "samples": [
+    {
+      "id": "id-ab-01",
+      "language": "id",
+      "text": "Dokumen ini belum final.\nJangan bagikan salinannya sebelum pemeriksaan selesai.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "id-ab-02",
+      "language": "id",
+      "text": "Pintu belakang sudah dikunci.\nPetugas tidak boleh membukanya tanpa izin.",
+      "risk_tag": "prohibition"
+    },
+    {
+      "id": "id-ab-03",
+      "language": "id",
+      "text": "Kami memesan empat kursi seharga Rp75.000 per orang.\nBiaya layanan belum termasuk dalam harga itu.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "id-ab-04",
+      "language": "id",
+      "text": "Jam keberangkatan dipindahkan dari 06.15 menjadi 07.40.\nPenumpang akan menerima pemberitahuan baru.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "id-ab-05",
+      "language": "id",
+      "text": "Laras mengambil payung milik Dimas.\nDia mengembalikannya ketika hujan berhenti.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "id-ab-06",
+      "language": "id",
+      "text": "Koper hitam diletakkan di samping rak.\nJangan pindahkan barang itu ke belakang pintu.",
+      "risk_tag": "spatial"
+    },
+    {
+      "id": "id-ab-07",
+      "language": "id",
+      "text": "Paket pertama sudah diterima oleh penjaga.\nPaket kedua masih berada di gudang.",
+      "risk_tag": "logistics"
+    },
+    {
+      "id": "id-ab-08",
+      "language": "id",
+      "text": "Ayah saya tiba lebih awal dari jadwal.\nNamun, kereta pulang tertunda selama dua puluh menit.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "id-ab-09",
+      "language": "id",
+      "text": "Adik saya memenangkan lomba menggambar.\nSekolah akan mengumumkan namanya besok pagi.",
+      "risk_tag": "gender"
+    },
+    {
+      "id": "id-ab-10",
+      "language": "id",
+      "text": "Kamera merekam selama sembilan puluh detik.\nVideo itu belum dikirim ke penyunting.",
+      "risk_tag": "voice"
+    },
+    {
+      "id": "id-ab-11",
+      "language": "id",
+      "text": "Rapat awalnya direncanakan pada hari Kamis.\nSekarang peserta diminta hadir hari Sabtu.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "id-ab-12",
+      "language": "id",
+      "text": "Satu botol berisi 350 mililiter cairan.\nTiga botol lainnya sudah kosong.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "id-ab-13",
+      "language": "id",
+      "text": "Perusahaan menolak permohonan pertama.\nKeputusan itu belum tentu berlaku untuk permohonan kedua.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "id-ab-14",
+      "language": "id",
+      "text": "Seorang dokter berbicara sangat pelan.\nKarena itu, beberapa bagian rekaman sulit didengar.",
+      "risk_tag": "speech"
+    },
+    {
+      "id": "id-ab-15",
+      "language": "id",
+      "text": "Mereka tinggal di rumah dekat jembatan.\nBangunan tersebut tidak berada di bawah jalan layang.",
+      "risk_tag": "spatial"
+    },
+    {
+      "id": "id-ab-16",
+      "language": "id",
+      "text": "Mesin berhenti setelah lampu merah menyala.\nOperator tidak menekan tombol darurat.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "id-ab-17",
+      "language": "id",
+      "text": "Jumlah pengunjung naik dari 120 menjadi 186.\nPenjualan tiket justru turun pada hari itu.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "id-ab-18",
+      "language": "id",
+      "text": "Seorang teknisi memeriksa peron tiga.\nKereta tujuan Surabaya tiba di jalur berbeda.",
+      "risk_tag": "transport"
+    },
+    {
+      "id": "id-ab-19",
+      "language": "id",
+      "text": "Pengiriman harus tiba paling lambat 18 November.\nBarang itu tidak boleh ditinggalkan di lobi.",
+      "risk_tag": "logistics"
+    },
+    {
+      "id": "id-ab-20",
+      "language": "id",
+      "text": "Ia ingin teh tanpa gula.\nPelayan malah membawa kopi dingin.",
+      "risk_tag": "contrast"
+    },
+    {
+      "id": "id-ab-21",
+      "language": "id",
+      "text": "Anak itu melihat burung di atap sekolah.\nHewan tersebut terbang ketika lonceng berbunyi.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "id-ab-22",
+      "language": "id",
+      "text": "Mobil melaju lebih lambat karena kabut.\nWalaupun begitu, pengemudi tidak datang terlambat.",
+      "risk_tag": "contrast"
+    },
+    {
+      "id": "id-ab-23",
+      "language": "id",
+      "text": "Saya mengubah waktu munculnya subtitle.\nTeks asli tidak saya sentuh.",
+      "risk_tag": "subtitle"
+    },
+    {
+      "id": "id-ab-24",
+      "language": "id",
+      "text": "Petugas menyatakan bahwa formulir belum lengkap.\nPemohon diminta kembali minggu depan.",
+      "risk_tag": "administration"
+    },
+    {
+      "id": "id-ab-25",
+      "language": "id",
+      "text": "Biaya awal adalah dua ratus ribu rupiah.\nSetelah diskon, pelanggan membayar seratus lima puluh ribu.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "id-ab-26",
+      "language": "id",
+      "text": "Tanda di pintu berbunyi 'Dilarang masuk'.\nPengunjung tetap menunggu di luar ruangan.",
+      "risk_tag": "prohibition"
+    },
+    {
+      "id": "id-ab-27",
+      "language": "id",
+      "text": "Buku merah milik kakak saya hilang.\nSaya menemukan sampulnya di bawah meja.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "id-ab-28",
+      "language": "id",
+      "text": "Kepala desa berbicara dengan tenang.\nAkan tetapi, mikrofon tidak menangkap suaranya dengan jelas.",
+      "risk_tag": "speech"
+    },
+    {
+      "id": "id-ab-29",
+      "language": "id",
+      "text": "Semua hasil ujian sudah diunggah.\nTidak satu pun siswa boleh mengubah nilainya.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "id-ab-30",
+      "language": "id",
+      "text": "Proyek dimulai bulan lalu.\nLaporan akhirnya baru akan diterbitkan tahun depan.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "en-ab-01",
+      "language": "en",
+      "text": "The refund has not been approved.\nPlease do not promise a payment date yet.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "en-ab-02",
+      "language": "en",
+      "text": "The east entrance is closed today.\nVisitors must not use the emergency staircase.",
+      "risk_tag": "prohibition"
+    },
+    {
+      "id": "en-ab-03",
+      "language": "en",
+      "text": "Each box contains 24 batteries.\nTwo other boxes are waiting for inspection.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "en-ab-04",
+      "language": "en",
+      "text": "The departure time moved from 9:10 to 10:45.\nPassengers were informed on Monday.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "en-ab-05",
+      "language": "en",
+      "text": "Nadia borrowed a notebook from Farhan.\nShe returned it after the lecture.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "en-ab-06",
+      "language": "en",
+      "text": "The receipt was under the blue folder.\nThe original invoice remained beside the printer.",
+      "risk_tag": "spatial"
+    },
+    {
+      "id": "en-ab-07",
+      "language": "en",
+      "text": "The courier collected the parcel yesterday.\nThe customer has not received it yet.",
+      "risk_tag": "logistics"
+    },
+    {
+      "id": "en-ab-08",
+      "language": "en",
+      "text": "A truck arrived forty minutes late.\nIts engine was not running slowly.",
+      "risk_tag": "contrast"
+    },
+    {
+      "id": "en-ab-09",
+      "language": "en",
+      "text": "My younger sibling joined the debate club.\nThey will compete next Thursday.",
+      "risk_tag": "gender"
+    },
+    {
+      "id": "en-ab-10",
+      "language": "en",
+      "text": "The microphone recorded a quiet answer.\nThe speaker did not seem calm.",
+      "risk_tag": "speech"
+    },
+    {
+      "id": "en-ab-11",
+      "language": "en",
+      "text": "The meeting was scheduled for Wednesday.\nIt was canceled before the invitations went out.",
+      "risk_tag": "time"
+    },
+    {
+      "id": "en-ab-12",
+      "language": "en",
+      "text": "The bottle holds 750 milliliters.\nWe filled only half of it.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "en-ab-13",
+      "language": "en",
+      "text": "The first request was denied.\nThe second request is still being considered.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "en-ab-14",
+      "language": "en",
+      "text": "She spoke softly near the window.\nHer words were difficult to hear over the rain.",
+      "risk_tag": "speech"
+    },
+    {
+      "id": "en-ab-15",
+      "language": "en",
+      "text": "The school is behind the stadium.\nThe bus station stands beside it.",
+      "risk_tag": "spatial"
+    },
+    {
+      "id": "en-ab-16",
+      "language": "en",
+      "text": "The camera filmed in landscape mode.\nA technician later checked the recording.",
+      "risk_tag": "voice"
+    },
+    {
+      "id": "en-ab-17",
+      "language": "en",
+      "text": "Attendance increased from 83 to 121.\nTicket revenue declined anyway.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "en-ab-18",
+      "language": "en",
+      "text": "The train stopped at platform six.\nPassengers for the airport waited on platform two.",
+      "risk_tag": "transport"
+    },
+    {
+      "id": "en-ab-19",
+      "language": "en",
+      "text": "The shipment must reach the office by 3 December.\nDo not leave the documents with the driver.",
+      "risk_tag": "logistics"
+    },
+    {
+      "id": "en-ab-20",
+      "language": "en",
+      "text": "He ordered soup without pepper.\nThe cook accidentally added chili.",
+      "risk_tag": "contrast"
+    },
+    {
+      "id": "en-ab-21",
+      "language": "en",
+      "text": "The bird perched above a narrow bridge.\nIt flew away when someone approached.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "en-ab-22",
+      "language": "en",
+      "text": "The car was moving slowly in heavy rain.\nEven so, it reached the venue on time.",
+      "risk_tag": "contrast"
+    },
+    {
+      "id": "en-ab-23",
+      "language": "en",
+      "text": "I moved the subtitles three seconds earlier.\nTheir wording stayed exactly the same.",
+      "risk_tag": "subtitle"
+    },
+    {
+      "id": "en-ab-24",
+      "language": "en",
+      "text": "The regional office requires a signed form.\nApplicants can submit it next week.",
+      "risk_tag": "administration"
+    },
+    {
+      "id": "en-ab-25",
+      "language": "en",
+      "text": "The total cost was 480,000 rupiah.\nAfter the discount, it became 360,000 rupiah.",
+      "risk_tag": "numbers"
+    },
+    {
+      "id": "en-ab-26",
+      "language": "en",
+      "text": "The sign says entry is forbidden.\nNobody should pass the locked gate.",
+      "risk_tag": "prohibition"
+    },
+    {
+      "id": "en-ab-27",
+      "language": "en",
+      "text": "My older sister left her bag on a bench.\nI found its strap near the ticket booth.",
+      "risk_tag": "coreference"
+    },
+    {
+      "id": "en-ab-28",
+      "language": "en",
+      "text": "The announcer spoke calmly.\nHowever, the hall speakers made his voice unclear.",
+      "risk_tag": "speech"
+    },
+    {
+      "id": "en-ab-29",
+      "language": "en",
+      "text": "No changes may be made after submission.\nThe reviewers will still read every entry.",
+      "risk_tag": "negation"
+    },
+    {
+      "id": "en-ab-30",
+      "language": "en",
+      "text": "Construction finished last month.\nThe safety certificate will be issued next year.",
+      "risk_tag": "time"
+    }
+  ]
+}

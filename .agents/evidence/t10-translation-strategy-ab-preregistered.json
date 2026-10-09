@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-10-09",
+  "experiment_id": "T10-TRANS-PARAGRAPH-STRATEGY-AB-001",
+  "classification": "PRE_REGISTERED_DIAGNOSTIC_NOT_CP4",
+  "origin": "Design prepared after user accepted 60/60 Sony source/output translation review; no new device A/B run has been supplied.",
+  "old_user_review": {
+    "original_fixture_untouched": true,
+    "original_60_output_untouched": true,
+    "en_id_accepted": 27,
+    "id_en_accepted": 24,
+    "original_grade": "USER_ACKNOWLEDGED_AI_ASSISTED",
+    "cp4": "BLOCKED"
+  },
+  "new_fixture": {
+    "path": "engine/translation/src/androidTest/assets/t10_translation_strategy_ab_fixtures.json",
+    "fixture_git_blob_sha": "b9480c2ef9522d33a310ef2f471c073dd844e2eb",
+    "source_sample_count": 60,
+    "id_count": 30,
+    "en_count": 30,
+    "two_sentence_lines_per_sample": 2,
+    "authored_new_paragraphs": true,
+    "zero_exact_whole_paragraph_overlap_with_old_60": true,
+    "not_true_hidden_unseen_after_commit": true
+  },
+  "ab": {
+    "control": "whole: one ML Kit 17.0.3 SDK translate() of two-sentence source paragraph",
+    "candidate": "linewise: translate two newline-separated sentences independently and join strings with a single space",
+    "models": "Same preloaded ML Kit offline models; neither configuration is a different neural translation model",
+    "alternating_order": "Each sample yields two complete outputs, i-even whole/linewise and i-odd linewise/whole",
+    "total_variant_rows": 120,
+    "total_sdk_translation_calls": 180,
+    "device": "Sony SO-03L Android 11 arm64 if available; inference offline, Wi-Fi off + airplane mode verified by existing Windows PowerShell harness",
+    "thermal": "Battery sensor (not SoC die); initial below 40C, abort when >=43C, stop after 10 min total elapsed",
+    "raw_csv_cols": [
+      "sample",
+      "source_language",
+      "target_language",
+      "source_text",
+      "strategy",
+      "translation",
+      "latency_ms",
+      "error",
+      "call_count",
+      "sequence",
+      "battery_c"
+    ]
+  },
+  "preregistered_before_any_output": {
+    "per_direction_min_candidate_ACCEPT": 27,
+    "per_direction_min_net_added_ACCEPT": 3,
+    "critical_error_veto": "No new NEGATION_ERROR or NUMBER_OR_NAME_ERROR compared to whole paragraph",
+    "per_direction_max_candidate_p95_latency_ratio": 2.5,
+    "all_60_pairs_120_variants_required": true,
+    "reviewer": "Manual paired rating of both full target paragraphs, no status prefills, model outputs locked",
+    "outcome": "PROMISING only if every condition passes, then test again on second truly unseen set. No production switch from this test alone."
+  },
+  "human_review_ui": "tools/t10_translation_strategy_ab_review.py generates standalone offline review.html (side-by-side cards with save/re-import CSV), device raw SHA pin and immutable raw columns.",
+  "caveats": [
+    "New dataset differs in unit (two-sentence paragraphs) from original single-sentence CP4 gate; cannot transfer acceptance gate automatically.",
+    "No machine-generated model improvement or measured acceptance yet.",
+    "Human reviewer agreement in original 60 does not certify this new dataset.",
+    "Segment isolation may lose pronoun context and increase latency; do not assume candidate wins.",
+    "Android CI and Python evaluator tests must run; Sony output not in repo."
+  ],
+  "current_status": "T10 ACTIVE, CP4 BLOCKED, T11 TODO"
+}
