@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-09",
+  "evidence_type": "T10_REAL_VIDEO_MEDIA_STAGE_BENCHMARK_PREREGISTERED_NOT_RUN",
+  "purpose": "Evaluate an actual 10-15 minute user-provided MP4 on the target Android APP process using current T09 AndroidMediaSource inspect and decodePcm. Do NOT claim full T11-T14 processing pipeline or E2E.",
+  "executable_paths": {
+    "instrumentation": "app/src/androidTest/java/app/subloka/RealVideoTenMinuteMediaTest.kt",
+    "runner": "tools/t10_video10_media_device.ps1",
+    "validator": "tools/t10_video10_media_review.py",
+    "validator_tests": "tools/test_t10_video10_media_review.py"
+  },
+  "source_conditions": {
+    "real user video": "MP4 containing actual video track and audio track; no WAV loop substitutes",
+    "duration seconds": "600-900 inclusive from AndroidMediaSource inspector, no reliance on filename",
+    "locality": "Host video stays on user's Windows machine and is temporarily staged in app-specific external storage; staged device copy deleted after run; source content not committed.",
+    "offline": "ADB preflight requires airplane_mode_on=1 and wifi_on=0, no network calls in benchmark; OS / radio logs not independently attested",
+    "device_temperature": "Battery sensor must report <40C initially; stop when >=43C. Proxy, not CPU die temperature."
+  },
+  "metrics": [
+    "SHA256 host video and pre-/post-decoding device input equality",
+    "video duration and dimensions/rotation/codec, audio track MIME",
+    "audio PCM bytes and chunks, first/last PTS, sample format/rate/channels",
+    "inspect wall time, decode wall time, total wall time, derived decode real-time factor",
+    "sampled Android process PSS and sampled Java heap, not actual allocation peaks",
+    "battery start, end and maximum sampled temperature, not SoC temperature",
+    "instrumentation exit and failure JSON for any nonfatal exception"
+  ],
+  "diagnostic_success_criteria": {
+    "instrumentation": "OK (1 test), exit code 0",
+    "video": "600-900 seconds with genuine audio + video tracks",
+    "decode": ">0 PCM chunks/bytes, not truncated, final PCM PTS within 5s of video duration",
+    "source": "host SHA = device SHA before and after",
+    "thermal": "battery initial <40C, maximum sampled <43C",
+    "runtime": "callback wall-clock guard at 20 minutes and host watchdog at 25 minutes",
+    "status": "MEDIA_STAGE_PASS_NOT_FULL_E2E only, CP4 BLOCKED"
+  },
+  "prerequisites_not_done": [
+    "Physical Sony run on an actual video, receiving device result JSON",
+    "Full ASR/translation/timing/render/export pipeline for 10-minute MP4: T11-T14 not implemented",
+    "New ASR WER <20% and translation ID->EN >=27/30 official gate",
+    "10-minute video end-to-end system resource validation"
+  ],
+  "prior_evidence": {
+    "ASR_ID_clean_base": "105/367 = 28.61% micro WER",
+    "translation_EN_ID": "27/30 user-reviewed AI-assisted",
+    "translation_ID_EN": "24/30 user-reviewed AI-assisted",
+    "paragraph_strategy": "whole 43/60 ACCEPT vs linewise 43/60; linewise rejected"
+  },
+  "current_status": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "risk_note": "A media-stage PASS reduces ingestion/decoding risk only. It must never be conflated with 10-minute real APP end-to-end subtitle creation or thermal/RAM ASR measurements."
+}

@@ -320,3 +320,33 @@ The user uploaded a **complete 120-row labelled review CSV** for the new two-sen
 
 Pre-registered acceptance-improvement criteria were **NOT MET** (required >=27/30 ACCEPT and >=+3 net accepted per direction). **Decision: retain whole strategy; do not promote linewise to the production engine**. This experiment uses the same on-device ML Kit models and NEW 2-sentence paragraphs: it cannot improve, regrade, or replace the frozen original CP4 test outcomes. Original raw Sony CSV hash remains user-reported (not byte-verified here); uploaded file was the graded CSV. Complete scoped results and provenance: `.agents/evidence/t10-translation-strategy-ab-review-complete.json`; browser-viewable 60-card HTML, 3-tab XLSX and full JSON analysis are available as separate conversation artifacts. Reviewer identity/independence not externally verified. Gate still **T10 ACTIVE, CP4 BLOCKED, T11 TODO** due original ID→EN 24/30, ASR Base clean Indonesian WER 28.61%, and unperformed real 10-minute in-app video E2E.
 
+
+### T10 — 10-minute REAL video media benchmark on the installed app (NOT full E2E)
+
+The app currently has a real video import/metadata/PCM decoding adapter (`T09`), but its `Processing` screen still runs demo stages. Full automatic Whisper ASR, subtitle translation, timing and MP4 export are not integrated (T11–T14 pending), so **no true 10-minute video → final subtitled MP4 E2E can yet pass**. This tool transparently tests **the actual installed SubLoka debug app's media stage** on a local, real 10–15-minute MP4 with audio. It is not a substitute for the CP4 full pipeline gate.
+
+With one Android 11 Sony connected over ADB, first compile/install debug app + test APK **while connected** (installation may update the existing debug app; back up local projects if important):
+
+```powershell
+git pull --ff-only origin main
+.\tools\t10_video10_media_device.ps1 -Phase Prepare
+```
+
+Provide a **real** MP4 file containing both video and audio, duration 600–900 seconds. Do **not** use repeated WAV or simply rename a WAV as MP4. Enable airplane mode, turn off Wi-Fi, wait until battery sensor <40°C, keep USB ADB connected, then:
+
+```powershell
+.\tools\t10_video10_media_device.ps1 -Phase Run -VideoPath "C:\Videos\video-asli-10-menit.mp4"
+```
+
+The runner SHA-hashes the PC file, pushes it to the installed app's private-scoped external directory, checks transferred byte length, launches a single app-process instrumented test (watchdog 25min), pulls structured failure/success evidence, then deletes **only the staged device copy**. Files are written under a unique `.t10-benchmark/video10-media-...` session (gitignored) with `host-preflight.json`, `device-media-report.json`, instrumentation stdout/stderr. Avoid uploading private video or raw logs containing unwanted metadata; instead share the compact structured JSON.
+
+After a successful run, evaluate locally:
+
+```powershell
+python tools/t10_video10_media_review.py ".t10-benchmark\video10-media-<session>\host-preflight.json" ".t10-benchmark\video10-media-<session>\device-media-report.json" --json ".t10-benchmark\video10-media-<session>\validated-media-summary.json"
+```
+
+Use your actual session folder name, not the literal `<session>` placeholder. Video duration must be at least 600s, source SHA must match before/after, PCM decode must be complete through nearly the full duration, and battery must remain <43°C. Memory figures are sampled PSS/Java-heap estimates, **not guaranteed true peaks**. Battery temperature is **not CPU die temperature**. Validation returns `MEDIA_STAGE_PASS_NOT_FULL_E2E` and `CP4 BLOCKED` even after a successful run. It does **not** test model inference, captions, bilingual translation, subtitle export or in-app processing UI. CI validates code only; a physical Sony run is mandatory to report device results.
+
+Preregistered protocol: `.agents/evidence/t10-real-video-media-stage-preregistered.json`. Historical ID clean ASR WER **28.61%** and translation ID→EN **24/30** remain blocker gates, as does genuine full video E2E.
+

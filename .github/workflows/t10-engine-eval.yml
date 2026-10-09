@@ -26,6 +26,9 @@ on:
       - "tools/test_t10_translation_human_qa.py"
       - "tools/t10_translation_strategy_ab_review.py"
       - "tools/test_t10_translation_strategy_ab_review.py"
+      - "tools/t10_video10_media_device.ps1"
+      - "tools/t10_video10_media_review.py"
+      - "tools/test_t10_video10_media_review.py"
       - "tools/t10_prepare_dataset.ps1"
       - "tools/t10_fetch_fleurs_dataset.py"
       - "tools/t10_build_android_whisper.sh"
@@ -234,6 +237,25 @@ jobs:
       - name: Test new independent paragraph strategy A/B reviewer
         shell: bash
         run: python -m unittest discover -s tools -p test_t10_translation_strategy_ab_review.py
+
+      - name: Validate 10-minute media ADB runner PowerShell syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "tools/t10_video10_media_device.ps1"),
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+      - name: Test video10 media evidence validator (never CP4)
+        shell: bash
+        run: python -m unittest discover -s tools -p test_t10_video10_media_review.py
 
       - name: Install pinned Android NDK
         shell: bash

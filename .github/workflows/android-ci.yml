@@ -77,6 +77,9 @@ jobs:
       - name: Compile media device tests
         run: ./gradlew --stacktrace :core:media:assembleDebugAndroidTest
 
+      - name: Compile real-video app media diagnostic tests
+        run: ./gradlew --stacktrace :app:assembleDebugAndroidTest
+
       - name: Verify Room schema fixture
         shell: bash
         run: |
