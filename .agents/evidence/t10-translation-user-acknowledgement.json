@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "evidence_type": "T10_USER_ACKNOWLEDGEMENT_OF_AI_AUDIT_NOT_FORMAL_BILINGUAL_SIGNOFF",
+  "date_recorded": "2026-10-09",
+  "source": "User explicitly stated in current conversation: 'sudah saya review. review saya sama dengan review ai'",
+  "linked_audit": ".agents/evidence/t10-translation-ai-provisional-recheck-60.json",
+  "linked_model_output_content_sha256": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+  "user_statement_interpretation": "User reports having reviewed the human-readable AI audit and agreeing with its judgments; exactly which 60 rows were individually inspected and whether independent bilingual adjudication was conducted were not specified.",
+  "accepted_ai_assessment_not_official_gate": {
+    "en_to_id": {
+      "accepted": 27,
+      "total": 30,
+      "percent": 90
+    },
+    "id_to_en": {
+      "accepted": 24,
+      "total": 30,
+      "percent": 80
+    },
+    "material_issues": [
+      "en-08",
+      "en-24",
+      "en-27",
+      "id-02",
+      "id-05",
+      "id-10",
+      "id-17",
+      "id-26",
+      "id-30"
+    ],
+    "id_17_judgment": "Potentially contestable untranslated 'peron' remains classified as material in AI report; user says review agrees."
+  },
+  "actual_human_signoff_status": "NOT_GENERATED",
+  "human_review_csv_completed_verified": false,
+  "attestation_independent_bilingual_review": false,
+  "assistant_pretended_to_be_human_reviewer": false,
+  "original_translation_device_raw_changed": false,
+  "original_fixtures_changed": false,
+  "original_ASR_baseline_changed": false,
+  "cp4_status": "BLOCKED",
+  "decision": "Preserve user's approval of provisional audit; do not auto-fill human_status or claim independent 60-row signed QA; quality remains below threshold ID->EN. Next work should prioritize genuine translation fixes/verification or independent 10-minute Android app E2E performance benchmark."
+}
