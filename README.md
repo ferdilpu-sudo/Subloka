@@ -256,3 +256,8 @@ This is **not independent human signoff**. It never fills `human-review.csv`, ne
 ### T10 user acknowledgement of translation AI audit
 
 The user reported reviewing the readable AI audit and agreeing with its judgments (`sudah saya review. review saya sama dengan review ai`). Recorded in `.agents/evidence/t10-translation-user-acknowledgement.json` while preserving the original provisional 27/30 EN→ID and revised provisional 24/30 ID→EN results. This confirmation is **not** a machine-verified signed independent bilingual 60-row review: exact per-row coverage / reviewer independence were not established, and `human-review.csv` remains without generated signoff. **No scores, device outputs, fixtures, or CP4 gates were changed.** Next technical work should focus on actual ID→EN translation improvements or a real 10-minute Android app E2E run. CP4 BLOCKED.
+
+### Translation 60/60 review coverage confirmed by user
+
+The user clarified **"saya review 60"**, after saying their judgments agree with the readable AI audit. The repository records **all 60 translation pairs reviewed according to the user's explicit confirmation** in `.agents/evidence/t10-translation-user-acknowledgement.json`; the previous uncertainty about number reviewed is resolved. This is AI-assisted review agreement, not a generated formal `human-signoff.json` or separately verified independent bilingual-review credential. Confirmed numerical outcomes remain EN→ID 27/30 and ID→EN 24/30, so ID→EN still fails the acceptance threshold. Frozen device/model data and CP4 remain unchanged.
+

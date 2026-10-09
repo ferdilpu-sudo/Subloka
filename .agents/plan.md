@@ -420,3 +420,9 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - **Lingkup pemeriksaan manual (semua 60 satu-persatu atau hanya kasus ditandai), independensi reviewer bilingual, dan sign-off tool belum terverifikasi dari satu kalimat konfirmasi.** Konfirmasi ini bukan bukti `human-review.csv` selesai 60 baris, tidak menjalankan `finalize`, tidak membuat attestation palsu; tidak boleh menaikkan gate. Untuk keputusan produk, hasil yang diakui pengguna menunjukkan ID→EN di bawah 90%, sehingga tindakan prioritas adalah perbaikan mutu sebenarnya / percobaan baru terpisah dan benchmark E2E nyata 10 menit.
 - Status **T10 ACTIVE / CP4 BLOCKED / T11 TODO**, ASR ID clean Base 105/367=28.61% FAIL; true 10min app/video thermal/resource belum dilakukan.
 
+
+### T10-TRANSLATION-REVIEW-60-COVERAGE-CONFIRMED / 2026-10-09
+- Klarifikasi eksplisit user: **"saya review 60"** setelah sebelumnya berkata **"sudah saya review. review saya sama dengan review ai"**. Berarti **cakupan review 60/60 pasangan terkonfirmasi oleh pernyataan pengguna**; ini menggantikan *ketidakpastian jumlah baris* pada catatan T10-TRANS-AI-REVIEW-USER-ACK sebelumnya. Evidence sumber kebenaran adalah `.agents/evidence/t10-translation-user-acknowledgement.json` yang diperbarui tanpa menghapus histori pernyataan sebelumnya.
+- User menyetujui klasifikasi audit AI versi terakhir: EN→ID 27/30 ACCEPT (90%), ID→EN 24/30 ACCEPT (80%) beserta 9 kesalahan material. **Review 60/60 diakui sebagai self-reported human verification of AI-assisted judgments**, bukan hasil reviewer independen/qualified yang terautentikasi, bukan file `human-reviewed.csv` yang telah diverifikasi tool, dan bukan `human-signoff.json`. Jangan memalsukan attestation ataupun menaikkan CP4.
+- Fokus selanjutnya perbaikan kualitas ID→EN nyata dengan evaluasi baru yang ditentukan sebelum pengujian, ASR ID clean tetap 105/367=28.61% dan E2E 10 menit nyata masih belum selesai. CP4 BLOCKED / T10 ACTIVE / T11 TODO.
+

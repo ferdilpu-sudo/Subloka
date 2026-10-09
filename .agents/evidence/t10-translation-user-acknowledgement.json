@@ -5,7 +5,7 @@
   "source": "User explicitly stated in current conversation: 'sudah saya review. review saya sama dengan review ai'",
   "linked_audit": ".agents/evidence/t10-translation-ai-provisional-recheck-60.json",
   "linked_model_output_content_sha256": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
-  "user_statement_interpretation": "User reports having reviewed the human-readable AI audit and agreeing with its judgments; exactly which 60 rows were individually inspected and whether independent bilingual adjudication was conducted were not specified.",
+  "user_statement_interpretation": "The user reports reviewing all 60 source/translation pairs and agreeing with the AI's 9-error, 51-accept judgments. Coverage is explicitly confirmed by user self-report, not independently audited. Reviewer independence/credentials, machine-verified final human-review CSV and formal signoff are still not established.",
   "accepted_ai_assessment_not_official_gate": {
     "en_to_id": {
       "accepted": 27,
@@ -30,7 +30,7 @@
     ],
     "id_17_judgment": "Potentially contestable untranslated 'peron' remains classified as material in AI report; user says review agrees."
   },
-  "actual_human_signoff_status": "NOT_GENERATED",
+  "actual_human_signoff_status": "USER_DECLARED_REVIEW_COMPLETE_60_OF_60; FORMAL_SIGNOFF_NOT_GENERATED",
   "human_review_csv_completed_verified": false,
   "attestation_independent_bilingual_review": false,
   "assistant_pretended_to_be_human_reviewer": false,
@@ -38,5 +38,16 @@
   "original_fixtures_changed": false,
   "original_ASR_baseline_changed": false,
   "cp4_status": "BLOCKED",
-  "decision": "Preserve user's approval of provisional audit; do not auto-fill human_status or claim independent 60-row signed QA; quality remains below threshold ID->EN. Next work should prioritize genuine translation fixes/verification or independent 10-minute Android app E2E performance benchmark."
+  "decision": "Record user's explicit review of all 60 paired source/output examples and agreement with AI result as user-attested QA coverage; do not treat as independently certified blind bilingual review, do not fabricate final CSV/signature, and keep CP4 BLOCKED because ID->EN 24/30 (80%) <27/30. Prioritize actual translation improvements and 10-minute app E2E.",
+  "subsequent_clarification": {
+    "user_message_verbatim": "saya review 60",
+    "meaning": "User explicitly confirmed having reviewed all 60 source/translation pairs, and previously confirmed agreement with the AI audit classifications.",
+    "coverage_count_self_reported": 60,
+    "coverage_total": 60,
+    "coverage_confirmation_source": "User's follow-up in conversation, not machine verified row-by-row CSV",
+    "independent_bilingual_review_asserted": false,
+    "tool_human_status_rows_finalized": false
+  },
+  "human_review_coverage_reported_by_user": "60/60",
+  "human_review_coverage_explicitly_confirmed": true
 }

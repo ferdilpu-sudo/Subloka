@@ -611,3 +611,9 @@ Dokumen/task yang diperbarui:
 - Agreed AI provisional report remains 27/30 EN→ID, 24/30 ID→EN (9 material errors, including the extra `id-17` case compared to earlier AI draft). `human-review.csv` sign-off from `tools/t10_translation_human_qa.py` NOT_RUN/NOT_VERIFIED; no human attestation created and no CP4 pass. Source/output digest held constant; no model output regrading by code.
 - T10 still BLOCKED on ID→EN translation, Base ID-clean ASR 28.61% versus 20% gate, and missing real 10min in-app video E2E thermal/resource evaluation. Next prioritize actual fix/test or E2E independent of review paperwork.
 
+
+### T10-TRANSLATION-REVIEW-USER-SCOPE-002 — 60/60 explicitly self-attested
+- The user explicitly clarified **"saya review 60"** and already reported agreeing with the AI audit. Mark **60/60 inspected per user self-report**, replacing earlier uncertainty of whether 9/60 or 60/60 were reviewed. Primary record updated in `.agents/evidence/t10-translation-user-acknowledgement.json`, not a new duplicate scoring source.
+- Expected QA judgment unchanged: EN→ID 27/30 acceptable, ID→EN 24/30 acceptable, 9 major issues, historical earlier draft 25/30 for ID→EN retained as history. There is no evidence of `finalize` tool execution, completed signed CSV, external audit of reviewer independence, or objectively independent review of all 60; **do not claim those gates passed**.
+- Review coverage recorded; formal reviewer signoff is not generated. No app/model/fixture/benchmark changes. Gate CP4 BLOCKED due ID→EN 80% vs >=90%, Base clean Indonesian WER 28.61% vs <=20%, and pending 10-min actual video E2E.
+
