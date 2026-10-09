@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "evidence_type": "T10_TRANSLATION_FIDELITY_WARNING_GUARD_STATIC_ANALYSIS_ONLY",
+  "date": "2026-10-09",
+  "candidate": "TranslationFidelityGuard.inspect(sourceText, translatedText, sourceLanguage)",
+  "scope": "Pure Kotlin additive, offline, non-modifying diagnostic; no runtime translator behavior changed; T12 integration remains future.",
+  "source": "Previously archived original 60 ML Kit translated texts, same canonical 60-pair digest as prior user-confirmed audit; in this step no fresh Sony model inference or physical device test.",
+  "source_content_digest": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+  "user_confirmed_review": {
+    "total": 60,
+    "en_to_id_accepted": 27,
+    "id_to_en_accepted": 24,
+    "material_issues": [
+      "en-08",
+      "en-24",
+      "en-27",
+      "id-02",
+      "id-05",
+      "id-10",
+      "id-17",
+      "id-26",
+      "id-30"
+    ]
+  },
+  "local_static_result": {
+    "inspected_pairs": 60,
+    "flagged_ids": [
+      "id-01",
+      "id-02",
+      "id-09",
+      "id-10",
+      "id-17",
+      "id-24",
+      "id-30"
+    ],
+    "unflagged_but_review_rejected": [
+      "en-08",
+      "en-24",
+      "en-27",
+      "id-05",
+      "id-26"
+    ],
+    "flagged_and_review_rejected": [
+      "id-02",
+      "id-10",
+      "id-17",
+      "id-30"
+    ],
+    "flagged_but_review_accepted": [
+      "id-01",
+      "id-09",
+      "id-24"
+    ],
+    "interpretation": "4/9 reviewed material issues flagged; 5/9 material issues missed. Three additional accepted translations receive conservative caution flags. Neither absence nor presence of flags constitutes correctness/incorrectness.",
+    "caution": "The 60 examples were already seen during heuristic design. These counts are descriptive debugging evidence, not unbiased detection accuracy or new validation."
+  },
+  "tests": {
+    "local": "15 Kotlin scenarios compiled and passed using a stand-alone Kotlin compiler with JUnit annotation/assertion stubs; real Android Gradle unit test scheduled separately in CI",
+    "sample_specific_corrections": false,
+    "exact_translation_output_replacement": false
+  },
+  "guard_checks": [
+    "digit-token mismatch",
+    "negation possibly dropped",
+    "strong prohibition possibly weakened",
+    "obvious temporal inconsistency",
+    "possible gender assumption in ID→EN",
+    "possible untranslated Indonesian generic transport/administrative term"
+  ],
+  "explicitly_not_solved": [
+    "all contextual referents",
+    "late arrival versus slower speed",
+    "deliver versus dispatch",
+    "quiet versus calm",
+    "camera active/passive",
+    "number words equivalence",
+    "precision/recall guaranteed"
+  ],
+  "official_status": {
+    "translation_gate_en_to_id": "27/30 reviewer-agreed but independent formal signoff not certified",
+    "translation_gate_id_to_en": "24/30 BELOW 27/30 target",
+    "asr_id_clean_base_wer": "105/367=28.61% >20%",
+    "real_ten_minute_app_video_e2e": "NOT_DONE",
+    "cp4": "BLOCKED",
+    "t10": "ACTIVE",
+    "t11": "TODO"
+  },
+  "next": "Treat warnings as non-blocking visual/QA hints only after T12 UI wiring; for actual WER improvement evaluate independent model alternatives or make user corrections, with separately pre-registered unseen samples and baseline preserved. Do not regrade original 60 benchmark with heuristic flags."
+}

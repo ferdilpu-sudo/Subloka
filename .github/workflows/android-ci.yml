@@ -68,6 +68,9 @@ jobs:
       - name: ASR model-store unit tests
         run: ./gradlew --stacktrace :engine:asr:testDebugUnitTest
 
+      - name: Translation fidelity warning unit tests
+        run: ./gradlew --stacktrace :engine:translation:testDebugUnitTest
+
       - name: Compile translation device tests
         run: ./gradlew --stacktrace :engine:translation:assembleDebugAndroidTest
 

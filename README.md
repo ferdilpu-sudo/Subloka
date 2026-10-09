@@ -261,3 +261,16 @@ The user reported reviewing the readable AI audit and agreeing with its judgment
 
 The user clarified **"saya review 60"**, after saying their judgments agree with the readable AI audit. The repository records **all 60 translation pairs reviewed according to the user's explicit confirmation** in `.agents/evidence/t10-translation-user-acknowledgement.json`; the previous uncertainty about number reviewed is resolved. This is AI-assisted review agreement, not a generated formal `human-signoff.json` or separately verified independent bilingual-review credential. Confirmed numerical outcomes remain EN→ID 27/30 and ID→EN 24/30, so ID→EN still fails the acceptance threshold. Frozen device/model data and CP4 remain unchanged.
 
+
+### T10 translation fidelity diagnostic (warnings only)
+
+A new pure-Kotlin helper, `engine/translation/src/main/java/app/subloka/engine/translation/TranslationFidelityGuard.kt`, inspects bilingual `sourceText` and `translatedText` for six **possible** fidelity risks: digit changes, missing negation, weakened prohibitions, contradicting time references, ungrounded gender assumptions, and untranslated Indonesian transport/administrative terminology. This helper is **not a translator or automatic corrector**. It never touches ML Kit outputs, does not score translation correctness or repair the nine reviewer-reported semantic failures, and is not yet wired to the editor; a future T12 integration would show non-blocking warnings subject to user review.
+
+Reproducible unit testing (after pull):
+
+```powershell
+.\gradlew.bat :engine:translation:testDebugUnitTest
+```
+
+Android CI was updated to run the Gradle unit tests (15 Kotlin regression scenarios) automatically. A standalone Kotlin compiler with local JUnit stubs passed these 15 before the commit; check GitHub Actions for the **actual** Gradle outcome after push. On archived 60 Sony outputs, the diagnostic flagged seven pairs (four previously confirmed as major problems, three acceptable but cautionary); five other material problems were missed. This is **not independent validation**, and a zero-warning output does not equal ACCEPT. Full diagnostic provenance and limitations: `.agents/evidence/t10-translation-fidelity-guard-static.json`. **No demonstrated translation quality improvement:** EN→ID 27/30, ID→EN 24/30, CP4 BLOCKED. Genuine quality gains require a predeclared separate engine/translation candidate and previously unseen held-out QA inputs; do not memorize fixes for the frozen 60 samples.
+
