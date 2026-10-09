@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "evidence_type": "T10_VIDEO10_WINPS51_SCRIPT_ENCODING_REGRESSION_FIX",
+  "status": "FIX_COMMITTED_PENDING_NATIVE_WINDOWS_CI_AT_CREATION",
+  "source": "User pasted Windows PowerShell 5.1 ParseException before execution of -Phase Prepare",
+  "symptom": [
+    "The '<' operator is reserved for future use at line 125",
+    "The string is missing the terminator at line 202",
+    "Missing closing braces / missing Finally"
+  ],
+  "root_cause": "tools/t10_video10_media_device.ps1 was UTF-8 without BOM, containing non-ASCII U+2013 en dash in a quoted status message on line 108. Windows PowerShell 5.1 can decode BOM-less UTF-8 under a legacy system code page and corrupt quotation/parse tokens. Ubuntu pwsh parser did not catch this.",
+  "fix": "Replace lone U+2013 with ASCII '-' and enforce ASCII-only source plus native Windows PowerShell 5.1 ParseFile regression in .github/workflows/t10-engine-eval.yml asr-adb-windows-regression job.",
+  "runner_path": "tools/t10_video10_media_device.ps1",
+  "old_runner_blob": "68118dde69559793a738de202e2690085b0f3e10",
+  "new_runner_blob": "f6ce0c62b3c63a8131a75f3b6570a2d86b360f80",
+  "nonascii_count_after_fix": 0,
+  "previous_android_ci_context": "Earlier harness commit had full Android CI/T10 eval PASS, but PowerShell 7 Ubuntu parser could not certify Windows PowerShell 5.1 encoding.",
+  "no_sony_run_has_been_performed": true,
+  "original_asr_wer": "105/367 = 28.61%",
+  "translation_EN_to_ID": "27/30 original reviewer-agreed",
+  "translation_ID_to_EN": "24/30 original reviewer-agreed",
+  "cp4": "BLOCKED",
+  "t10": "ACTIVE"
+}

@@ -105,7 +105,7 @@ try {
         Adb-Raw -Arguments @("install","-r","-t",$tests[0].FullName) | ForEach-Object { Write-Host $_ }
         $runner = Runner-Component
         Write-Host "PREPARE PASS: $runner" -ForegroundColor Green
-        Write-Host "Aktifkan airplane mode, Wi-Fi off, suhu baterai <40C, dan sediakan MP4 asli 10–15 menit dengan audio."
+        Write-Host "Aktifkan airplane mode, Wi-Fi off, suhu baterai <40C, dan sediakan MP4 asli 10-15 menit dengan audio."
         Write-Host '.\tools\t10_video10_media_device.ps1 -Phase Run -VideoPath "C:\video\asli-10-menit.mp4"'
     } else {
         if (!$VideoPath) { throw "Gunakan -VideoPath menunjuk ke video .mp4 asli." }

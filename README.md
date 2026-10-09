@@ -350,3 +350,9 @@ Use your actual session folder name, not the literal `<session>` placeholder. Vi
 
 Preregistered protocol: `.agents/evidence/t10-real-video-media-stage-preregistered.json`. Historical ID clean ASR WER **28.61%** and translation ID→EN **24/30** remain blocker gates, as does genuine full video E2E.
 
+
+### Windows PowerShell 5.1 users — T10 video10 runner encoding fix
+
+If `tools/t10_video10_media_device.ps1 -Phase Prepare` printed a PowerShell parser error complaining about `<`, missing quote terminator, or `Missing closing '}'`, the cause was a BOM-less UTF-8 **en dash** in the script, not invalid input video or an Android runtime failure. The repository now uses **ASCII-only** video10 PowerShell source and runs a **native Windows PowerShell 5.1 parse/ASCII check in CI** (the previous Linux PowerShell 7 parse did not cover legacy Windows decoding). Pull current `main` before retrying.
+
+The fixed commands remain `.\tools\t10_video10_media_device.ps1 -Phase Prepare` and, after MP4/offline setup, `.\tools\t10_video10_media_device.ps1 -Phase Run -VideoPath "C:\Videos\real-10min.mp4"`. The intended result is **media-stage only**, not full ASR/caption/export E2E. T10 ACTIVE, CP4 BLOCKED, T11 TODO.
