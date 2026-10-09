@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "evidence_type": "T10_SONY_REAL_VIDEO_10MIN_MEDIA_STAGE_VERIFIED_FROM_UPLOADED_JSON",
+  "date": "2026-10-10",
+  "linked_user_console_evidence": ".agents/evidence/t10-real-video-media-stage-sony-console-pass.json",
+  "linked_preregistration": ".agents/evidence/t10-real-video-media-stage-preregistered.json",
+  "data_provenance": "Three user-uploaded local JSON files: host-preflight.json, device-media-report.json, validated-media-summary.json; independently SHA256 verified and cross-checked in ChatGPT Python. No raw video bytes were available, necessary, uploaded to repository, or inspected.",
+  "sha256_uploaded_files": {
+    "host_preflight": "27ba63fdabcebbd7b82d64cab8afd02e046b30a51ae26dbad92fb8a68b4b64be",
+    "device_media_report": "935d1d90056a31e737c55c0b65e1017113b26aafd0a8adfabaaf5327cf86e272",
+    "validated_media_summary": "016003c7f45a5225a3503a5d6a78a12695add621b22e4ad1c4124123db5109e0"
+  },
+  "validation": {
+    "uploaded_host_sha_matches_summary": true,
+    "uploaded_device_sha_matches_summary": true,
+    "sha256_source_host_equals_device_before_and_after": true,
+    "video_size_host_equals_device_equals_summary": true,
+    "offline_preflight_airplane_on_wifi_off": true,
+    "valid_video_duration_600_to_900_seconds": true,
+    "valid_pcm_complete_not_truncated": true,
+    "pcm_end_within_five_seconds": true,
+    "valid_thermal_battery_under_43_c": true,
+    "sampled_pss_matches_summary": true,
+    "rtf_matches_summary": true,
+    "cp4_always_blocked": true,
+    "all_checks_passed": true
+  },
+  "hardware": {
+    "manufacturer": "Sony",
+    "model": "SO-03L",
+    "android_sdk": 30,
+    "abi": "arm64-v8a"
+  },
+  "media": {
+    "input_video_name": "video-asli-10-menit.mp4",
+    "video_bytes": 471076143,
+    "sha256_video_before_and_after": "6fec4cfb23033e47144f0aed857461f32f8981072127548254cfce29ba2636bc",
+    "source_unchanged": true,
+    "duration_seconds": 734.570666,
+    "width_px": 720,
+    "height_px": 1290,
+    "rotation_degrees": 0,
+    "video_mime": "video/avc",
+    "audio_mime": "audio/mp4a-latm",
+    "audio_tracks": 1,
+    "audio_sample_rate_hz": 48000,
+    "audio_channels": 2,
+    "pcm_format": "S16_LE",
+    "pcm_decoded_bytes": 141033408,
+    "pcm_chunks": 34432,
+    "pcm_first_pts_seconds": 0,
+    "pcm_last_pts_seconds": 734.528,
+    "audio_tail_gap_ms": 42.666,
+    "pcm_truncated": false
+  },
+  "performance": {
+    "inspect_wall_seconds": 0.9,
+    "decode_wall_seconds": 42.758,
+    "media_stage_wall_seconds": 44.537,
+    "decode_real_time_factor": 0.0582,
+    "sampled_peak_process_pss_mib": 126.463,
+    "sampled_peak_java_heap_mib": 22.269,
+    "memory_is_sampled_not_absolute_peak": true,
+    "battery_start_c": 35.2,
+    "battery_end_c": 35.5,
+    "battery_peak_c": 35.5,
+    "battery_proxy_not_cpu_temperature": true
+  },
+  "observed_status": "MEDIA_STAGE_PASS_NOT_FULL_E2E",
+  "scientific_limits": [
+    "The run uses the installed app's AndroidMediaSource media inspect and PCM decode, not production Whisper ASR/translation/subtitle export.",
+    "Instrumented test elapsed 45.061 seconds is processing wall time and NOT input video duration.",
+    "No process-wide peak memory assurance: PSS and heap are sampled.",
+    "Radio offline preflight values from host JSON were accepted but no network packet capture was performed.",
+    "Temperature is Android battery sensor, not CPU/SoC thermal sensor.",
+    "App T11–T14 production processing pipeline is still not connected; no real full subtitle video E2E gate has been tested.",
+    "One Sony input video and one processing run; not evidence for other codecs/device classes."
+  ],
+  "unaffected_quality_gates": {
+    "ASR_ID_clean_baseline": "105/367 = 28.61% WER; still >20% target",
+    "translation_EN_to_ID_baseline": "27/30 accepted (AI-assisted user review)",
+    "translation_ID_to_EN_baseline": "24/30 accepted; still below >=27/30",
+    "whole_vs_linewise_ab": "no gain; whole retained",
+    "CP4": "BLOCKED",
+    "T10": "ACTIVE",
+    "T11": "TODO"
+  },
+  "next_step": "Record T09 media-stage risk as tested on one real 734.57s Sony MP4. Do not mark CP4 PASS; prioritize a legitimate ASR/translation quality improvement or decide explicitly whether to reconsider CP4 scope without misrepresenting missing full subtitle E2E."
+}
