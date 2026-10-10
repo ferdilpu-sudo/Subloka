@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "researched_on": "2026-10-10",
+  "experiment": "T10_INDONESIAN_COMPACT_OFFLINE_ASR_MODEL_TRIAGE_NOT_BENCHMARK",
+  "device_context": {
+    "real_sony_model": "SO-03L",
+    "android_abi": "arm64-v8a",
+    "total_ram_mib_rounded": 5487,
+    "free_data_mib_rounded": 1732,
+    "temperature_battery_c": 38,
+    "frozen_whisper_base_id_clean": "105 word errors / 367 words = 28.61%",
+    "threshold": "WER <=20%, freeze original eval rubric"
+  },
+  "candidates": [
+    {
+      "id": "maleo_base_id_q8_0",
+      "priority": 1,
+      "repo": "maleo-ai/whisper-base-id",
+      "filename": "ggml-base-id-q8_0.bin",
+      "displayed_size_decimal_mb": 81.8,
+      "upstream_file_sha256": "2ac0dc902f477389be18d8b6f6fbe97695197c12ab1392b2f4bea23732c2cfe8",
+      "source": "https://huggingface.co/maleo-ai/whisper-base-id/blob/main/ggml-base-id-q8_0.bin",
+      "model_card_license_claim": "apache-2.0",
+      "engine_format": "GGML whisper.cpp q8_0",
+      "publisher_reported_fleurs_wer_percent": 15,
+      "local_sha_checked": false,
+      "sony_benchmarked": false,
+      "approved_for_integration": false
+    },
+    {
+      "id": "maleo_tiny_id_q8_0",
+      "priority": 2,
+      "repo": "maleo-ai/whisper-tiny-id",
+      "filename": "ggml-tiny-id-q8_0.bin",
+      "displayed_size_decimal_mb": 43.5,
+      "upstream_file_sha256": "423455afe438ff3b0d1f23613a223d052f34a2482a8dd8ef6433f75ccbf33a17",
+      "source": "https://huggingface.co/maleo-ai/whisper-tiny-id/blob/main/ggml-tiny-id-q8_0.bin",
+      "model_card_license_claim": "apache-2.0",
+      "engine_format": "GGML whisper.cpp q8_0",
+      "publisher_reported_fleurs_wer_percent": 19.1,
+      "local_sha_checked": false,
+      "sony_benchmarked": false,
+      "approved_for_integration": false
+    }
+  ],
+  "alternative_deferred": {
+    "repo": "spacewave/sherpa-onnx-streaming-zipformer2-id",
+    "source": "https://huggingface.co/spacewave/sherpa-onnx-streaming-zipformer2-id/tree/main",
+    "license_claim": "mit",
+    "onnx_int8_encoder_displayed_size_mb": 70.1,
+    "requires_decoder_joiner_tokens": true,
+    "publisher_reported_fleurs_wer_percent": 8.96,
+    "requires_unimplemented_sherpa_onnx_android_integration": true,
+    "selected": false
+  },
+  "scientific_risks": [
+    "Both Maleo model cards list FLEURS Indonesian as a training source and report FLEURS WER; training/evaluation ID intersection unknown.",
+    "FLEURS model-card WER is not SUBLOKA 20-case WER nor independent holdout evidence.",
+    "Model card reported Orange Pi RTF is not Sony SO-03L performance.",
+    "Upstream file hash is public provenance, not a locally downloaded file verification.",
+    "Hugging Face main reference may move; exact local artifact hash MUST match pinned SHA.",
+    "Model license is model card metadata, not verified all training-data rights.",
+    "Need new human-verified consented audio recorded after model training, frozen IDs/manifest/transcripts, preregistered evaluation before inference."
+  ],
+  "implemented": {
+    "protocol": "tools/t10_asr_id_compact_protocol.py",
+    "tests": "tools/test_t10_asr_id_compact_protocol.py",
+    "expected_new_tests": 12,
+    "added_workflow": ".github/workflows/t10-engine-eval.yml",
+    "cli_list": "python tools/t10_asr_id_compact_protocol.py list",
+    "cli_verify": "python tools/t10_asr_id_compact_protocol.py verify --model maleo_base_id_q8_0 --file EXISTING_LOCAL_MODEL.bin",
+    "no_automatic_model_download": true,
+    "no_android_adb_or_inference": true,
+    "windows_test_outcome_reported": false,
+    "ci_outcome_verified": false,
+    "no_local_model_file_verified": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "HumanQA": "INTEGRITY_PASS_SIGNOFF_PENDING"
+  },
+  "next": "User Windows pull + run new 12 tests and list; review license/holdout provenance before explicit user opt-in for GB-unneeded host-only artifact acquisition. Model untouched on Sony."
+}
