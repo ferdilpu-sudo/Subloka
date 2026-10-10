@@ -22,7 +22,9 @@ from t10_translation_argos_protocol import (
     strict_review, pilot_rows, validate_argos_archive, write_csv, sha256, grade,
 )
 from t10_translation_strategy_ab_review import fixture_data, REVIEW_COLUMNS
-from t10_translation_argos_offline_sbd import ensure_offline_sbd
+from t10_translation_argos_offline_sbd import (
+    ensure_offline_sbd, unwrap_local_cached_translation,
+)
 from t10_translation_argos_candidate import (
     no_network, _generate_pilot, local_paths, isolated_argos_env,
     report,
@@ -243,6 +245,86 @@ class T10ArgosIDToENTests(unittest.TestCase):
         )
         return (SimpleNamespace(pkg=pkg, sentencizer=sentencizer),
                 packages, FakeStanza, FakeMini)
+
+
+    def _fake_argos_1_11_cached_translation(self):
+        # Argos get_installed_languages() exposes CachedTranslation
+        # wrapping PackageTranslation, rather than a bare PackageTranslation.
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+
+        class FakePackageTranslation:
+            def __init__(self):
+                self.pkg = direct.pkg
+                self.sentencizer = direct.sentencizer
+                self.from_lang = SimpleNamespace(code="id")
+                self.to_lang = SimpleNamespace(code="en")
+
+        class FakeCachedTranslation:
+            def __init__(self, underlying):
+                self.underlying = underlying
+                self.from_lang = underlying.from_lang
+                self.to_lang = underlying.to_lang
+
+        backend = FakePackageTranslation()
+        cached = FakeCachedTranslation(backend)
+        installed = SimpleNamespace(package_path=backend.pkg.package_path)
+        return (cached, backend, installed, packages, stanza_cls, mini_cls,
+                FakeCachedTranslation, FakePackageTranslation)
+
+    def test_cached_direct_argos_backend_resolves_and_initializes_offline(self):
+        (cached, backend, installed, packages, stanza_cls, mini_cls,
+         cached_cls, packaged_cls) = self._fake_argos_1_11_cached_translation()
+        resolved = unwrap_local_cached_translation(
+            cached, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
+        )
+        self.assertIs(resolved, backend)
+        captured = {}
+        def fake_pipeline(**kwargs):
+            captured.update(kwargs)
+            return object()
+        with no_network():
+            mode = ensure_offline_sbd(
+                resolved, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=fake_pipeline,
+            )
+        self.assertEqual(mode, "PACKAGED_STANZA_RESOURCES_NO_DOWNLOAD")
+        self.assertIsNone(captured["download_method"])
+        self.assertIsNotNone(backend.sentencizer.stanza_pipeline)
+
+    def test_direct_backend_without_cached_wrapper_is_rejected(self):
+        (cached, backend, installed, packages, stanza_cls, mini_cls,
+         cached_cls, packaged_cls) = self._fake_argos_1_11_cached_translation()
+        with self.assertRaisesRegex(RuntimeError, "CachedTranslation"):
+            unwrap_local_cached_translation(
+                backend, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
+            )
+
+    def test_cached_pivot_or_remote_backend_is_rejected(self):
+        (cached, backend, installed, packages, stanza_cls, mini_cls,
+         cached_cls, packaged_cls) = self._fake_argos_1_11_cached_translation()
+        cached.underlying = SimpleNamespace(t1=backend, t2=backend)
+        with self.assertRaisesRegex(RuntimeError, "pivot/remote/identity"):
+            unwrap_local_cached_translation(
+                cached, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
+            )
+
+    def test_cached_backend_from_different_installed_package_is_rejected(self):
+        (cached, backend, installed, packages, stanza_cls, mini_cls,
+         cached_cls, packaged_cls) = self._fake_argos_1_11_cached_translation()
+        installed.package_path = self.dir / "different-installed-package"
+        with self.assertRaisesRegex(RuntimeError, "does not match"):
+            unwrap_local_cached_translation(
+                cached, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
+            )
+
+    def test_cached_backend_wrong_language_pair_is_rejected(self):
+        (cached, backend, installed, packages, stanza_cls, mini_cls,
+         cached_cls, packaged_cls) = self._fake_argos_1_11_cached_translation()
+        backend.to_lang = SimpleNamespace(code="id")
+        with self.assertRaisesRegex(RuntimeError, "direct id->en"):
+            unwrap_local_cached_translation(
+                cached, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
+            )
 
     def test_bundled_stanza_initialization_forces_no_download(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
