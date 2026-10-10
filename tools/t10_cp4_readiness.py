@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -105,10 +106,12 @@ def evaluate(evidence: dict[str, dict]) -> dict:
     # The frozen CP4 clean-ID threshold is applied to this known subset.
     # A failing mandatory subset is enough to keep CP4 blocked; passing a
     # subset could never establish a CP4 PASS.
-    max_errors = int(MAX_ASR_WER * ORIGINAL_ASR_ID_WORDS)
-    needed_translations = int(MIN_TRANSLATION_ACCEPT * TRANSLATION_CASES_PER_DIRECTION)
-    _expect(max_errors == 73 and needed_translations == 27,
+    _expect(MAX_ASR_WER == .20 and MIN_TRANSLATION_ACCEPT == .90,
             "CP4 thresholds changed")
+    max_errors = math.floor(MAX_ASR_WER * ORIGINAL_ASR_ID_WORDS)
+    needed_translations = math.ceil(MIN_TRANSLATION_ACCEPT * TRANSLATION_CASES_PER_DIRECTION)
+    _expect(max_errors == 73 and needed_translations == 27,
+            "CP4 threshold arithmetic changed")
 
     return {
         "schema_version": 1,
