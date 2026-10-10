@@ -416,3 +416,6 @@ python tools/t10_asr_small_ab.py --prepare-small
 ```
 
 The command verifies the full downloaded model's SHA256 before installing it locally. It is not a device ASR test. Wait for **verified** confirmation before running the offline Sony preflight or two-pair pilot. Baseline ID clean ASR **28.61% WER**, ID→EN translation **24/30**, CP4 BLOCKED remain unchanged.
+
+### T10 Whisper Small-q5_1 model preparation + Sony preflight passed (2026-10-10)
+User reports Windows `--prepare-small` now succeeded: **190,085,487-byte Small-q5_1 model** locally verified by SHA256 checking download code. Sony SO-03L `--preflight-only` reports **PASS**, battery **37.2 C**, available `/data` **2,127 MiB**, offline settings confirmed by host ADB. Both GitHub Actions workflows for the corrected model source commit `f6b97f3` completed successfully. The user has **not yet performed on-device model inference**. Next command (start small): `python tools/t10_asr_small_ab.py --max-pairs 2`. Review `summary.json` in the newly created gitignored experiment folder before performing more pairs. Evidence: `.agents/evidence/t10-asr-small-model-host-ready-sony-preflight.json`. This result is not ASR accuracy, quality improvement, or CP4 PASS.

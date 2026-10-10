@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "evidence_type": "T10_ASR_SMALL_Q5_MODEL_HOST_PREPARED_AND_SONY_OFFLINE_PREFLIGHT_USER_CONSOLE",
+  "related_experiment": ".agents/evidence/t10-asr-small-model-preregistered.json",
+  "related_url_correction": ".agents/evidence/t10-asr-small-model-download-url-fix.json",
+  "provenance": "Verbatim outcomes supplied by user in Windows PowerShell console; assistant did not directly inspect local downloaded model or device storage",
+  "command_prepare": "python tools/t10_asr_small_ab.py --prepare-small",
+  "model": {
+    "variant": "Whisper multilingual Small-q5_1",
+    "output_message": "Verified small-q5_1 model (190085487 bytes): C:\\Users\\FLYONZ\\Documents\\GitHub\\Subloka\\.t10-benchmark\\models\\ggml-small-q5_1.bin",
+    "reported_size_bytes": 190085487,
+    "frozen_sha256_expected": "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb",
+    "verification": "User console says Verified; the Python prepare_small() verifies candidate full downloaded file SHA256 before saving.",
+    "location": "Windows host only; model has NOT yet been run or transferred to Sony in this recorded phase."
+  },
+  "command_preflight": "python tools/t10_asr_small_ab.py --preflight-only",
+  "offline_preflight": {
+    "console": "Offline preflight PASS: SO-03L, battery=37.2C, free=2127 MiB.",
+    "device": "Sony SO-03L",
+    "airplane_mode_and_wifi_off": "Verified by current runner through host ADB preflight, not independently inspected here",
+    "battery_temperature_c": 37.2,
+    "battery_measurement": "battery sensor proxy, not CPU die",
+    "initial_threshold_c_less_than": 40,
+    "data_partition_free_mib_reported": 2127,
+    "minimum_free_mib": 600,
+    "result": "PASS"
+  },
+  "github_ci_for_model_url_correction": {
+    "commit": "f6b97f3f407477768406cf80470f0b8df9f33e3c",
+    "android_ci": "PASS",
+    "t10_engine_evaluation": "PASS",
+    "candidate_regressions": "23 deterministic Python tests PASS; no on-device inference included"
+  },
+  "physical_asr_pair_pilot": {
+    "status": "NOT_RUN",
+    "next_command": "python tools/t10_asr_small_ab.py --max-pairs 2",
+    "pairs_planned": 2,
+    "inference_rows_planned": 4,
+    "upload_request": "new .t10-benchmark/small-model-ab-*/summary.json and console output after pilot; do not upload model or WAV"
+  },
+  "official_gates_unchanged": {
+    "original_asr_wer": "105/367=28.61% (over 20% maximum)",
+    "original_translation_ID_EN": "24/30=80% (below 27/30 minimum)",
+    "original_translation_EN_ID": "27/30=90%",
+    "prior_sony_real_12min_media_stage": "PASS (media only, not full subtitle E2E)",
+    "cp4": "BLOCKED",
+    "T10": "ACTIVE",
+    "T11": "TODO"
+  }
+}
