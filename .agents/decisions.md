@@ -31,6 +31,7 @@ Status keputusan: ACCEPTED = kebutuhan/keputusan telah disepakati; PROPOSED = ar
 | ADR-025 | T10 membandingkan whisper.cpp v1.9.4 multilingual `tiny` dan `base`; synthetic smoke tidak boleh menutup CP4 | ACCEPTED | Upstream Android merekomendasikan tiny/base; model dipin dengan SHA-256; keputusan final menunggu WER/resource perangkat fisik |
 | ADR-026 | T10 mengevaluasi ML Kit Translation 17.0.3 EN↔ID dengan explicit model readiness | ACCEPTED | EN/ID didukung on-device; input diproses lokal, tetapi SDK dapat melakukan model/update/metrics traffic sehingga disclosure privasi harus presisi |
 | ADR-027 | Fixture ASR CP4 memakai Google FLEURS dev split EN/ID yang dipin; clean = durasi tipikal, challenging = long-utterance | ACCEPTED | Audio manusia + reference tersedia untuk kedua bahasa; challenging dilaporkan terpisah dan tidak diklaim sebagai uji noise/overlap/aksen |
+| ADR-028 | Tahan promosi kandidat Argos ID→EN 1.9 ke Android setelah Full30; pertahankan ML Kit sampai ada bukti kualitas baru | PROPOSED | Pilot10 PROMISING (+2) tidak bertahan di Full30: Argos 21/30 = ML Kit 21/30, tambahan20 Argos 13/20 vs ML Kit 15/20; review menandai risiko kesalahan kritis. Bukan ambang FAIL Full30 yang ditentukan sebelumnya; perlu persetujuan jika memilih berhenti definitif/menjalankan holdout. CP4 tetap BLOCKED |
 
 ## Rationale keputusan teknis
 
@@ -39,6 +40,8 @@ ADR-007: native dipilih sebagai arah karena hanya Android yang diminta dan pemro
 ADR-008: pilih model multilingual, karena English-only tidak memenuhi bahasa Indonesia. Kandidat model kecil dibandingkan pada dataset EN/ID, bukan langsung mengunci model besar. Jika benchmark gagal, opsi sah ialah optimasi, model lokal lain, atau penyesuaian dukungan dengan persetujuan; tidak boleh beralih ke API tanpa permintaan pengguna.
 
 ADR-009: translation lokal harus dinilai untuk dialog informal, negasi, nama dan angka. Koreksi manual selalu tersedia. “Tanpa biaya API” bukan klaim hasil translation setara layanan cloud atau SDK bebas dari ketentuan distribusi.
+
+ADR-028 (PROPOSED, hasil Full30 2026-10-10): Penilai resmi Windows mencatat Argos/ML Kit sama-sama 21 ACCEPT dari 30 (net 0), 20 tambahan Argos 13/20 versus ML Kit 15/20 (net -2). Review terpisah mengidentifikasi kasus id-ab-13 (kepastian/negasi) dan id-ab-25 (mata uang). Dengan tidak adanya peningkatan agregat dan adanya risiko makna, kandidat Argos tidak direkomendasikan untuk promosi Android saat ini. Ini rekomendasi produk/rekayasa, bukan FAIL berdasarkan threshold Full30 baru atau persetujuan pengguna. Holdout baru hanya diperlukan bila promosi kandidat hendak dipertimbangkan kembali. Pertahankan artefak audit dan ML Kit baseline.
 
 ADR-010: shared layout diperlukan agar preview dan video tidak berbeda. Overlay statis saja tidak membuktikan subtitle bertiming; T14 wajib membuktikan pergantian teks per timestamp. Codec/resolusi akhir mengikuti kemampuan nyata perangkat.
 
