@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-pasted Windows PowerShell console plus inspect upstream Stanza/Argos source; no actual user Windows execution by assistant",
+  "user_reported": {
+    "mock_tests": "38/38 PASS in 0.343s",
+    "real_pilot": "ABORTED before translation",
+    "error_key": "packages",
+    "stack_origin": "Stanza core.__init__ > maintain_processor_list > add_mwt",
+    "resource_keys": [
+      "default_dependencies",
+      "default_md5",
+      "default_processors",
+      "depparse",
+      "lang_name",
+      "lemma",
+      "pos",
+      "pretrain",
+      "tokenize"
+    ],
+    "bundled_tokenizer_list": [
+      "gsd"
+    ],
+    "bundled_model_files": [
+      "gsd.pt"
+    ],
+    "pilot_csv": "NONE"
+  },
+  "root_cause": "Legacy packaged resources.json has default_processors but lacks Stanza's modern packages key. Newer Stanza accesses resources[lang]['packages'] in add_mwt.",
+  "implemented": {
+    "file": "tools/t10_translation_argos_stanza_metadata.py",
+    "pipeline_helper": "tools/t10_translation_argos_offline_sbd.py",
+    "strategy": "Strict temporary metadata copy mapping id.default_processors.tokenize to id.packages.default.tokenize only if declared model .pt exists, passed with Stanza resources_filepath; no editing installed bundle.",
+    "invariant": "download_method=None, offline socket block, same model and SBD weights, no additional model downloads/pivot/cloud, fail closed unknown cases.",
+    "tests": "5 additional synthetic regressions (total 43) not yet rerun by user",
+    "workflow": " .github/workflows/t10-engine-eval.yml watches new helper."
+  },
+  "status": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "argos_quality": "NOT_MEASURED",
+    "windows_43_tests": "PENDING",
+    "windows_pilot": "PENDING"
+  },
+  "next": "User pull main, run 43 mocked regressions. If PASS run original single-line offline Argos pilot using frozen reviewed ML Kit CSV. Share 10-row pilot.csv for human review or error text only if aborted."
+}
