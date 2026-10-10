@@ -276,6 +276,16 @@ def assess(pins: dict[str, str], device: dict | None) -> dict:
             item["rough_two_copies_of_weights_fit_data"] = (
                 device["free_data_kib"] >= weight * 1024 * 2
             )
+            # Screening heuristic only: file weights are not the actual full
+            # model bundle, decompression workspace or runtime memory.
+            item["storage_screen_approx_only"] = (
+                "CONSTRAINED_LESS_THAN_TWO_COPIES_OF_PUBLISHED_WEIGHTS"
+                if not item["rough_two_copies_of_weights_fit_data"]
+                else "TWO_WEIGHTS_MAY_FIT_OTHER_SPACE_REQUIREMENTS_UNKNOWN"
+            )
+            item["estimated_mib_after_one_weight_only"] = round(
+                device["free_data_kib"] / 1024 - weight, 1
+            )
         catalog.append(item)
     return {
         "schema_version": 1,
@@ -356,6 +366,18 @@ def main() -> int:
             print("RESEARCH:", x["id"], "weights ~",
                   x["published_component_weight_mib_approx"], "MiB; "
                   "ARTIFACT SHA/LICENSE/SONY QA NOT VERIFIED")
+            if device:
+                print("STORAGE SCREEN:", x["id"],
+                      x["storage_screen_approx_only"],
+                      "| after single approximate weight",
+                      x["estimated_mib_after_one_weight_only"],
+                      "MiB (excludes runtime/extraction/cache)")
+        if device and all(
+            not x["rough_two_copies_of_weights_fit_data"]
+            for x in result["candidates"]
+        ):
+            print("NO RECOMMENDED GB-SCALE MODEL DOWNLOAD: BOTH RESEARCH"
+                  " CANDIDATES FAIL CONSERVATIVE 2x WEIGHTS STORAGE SCREEN")
         print("NO DOWNLOAD | NO INFERENCE | T10 ACTIVE | CP4 BLOCKED | T11 TODO")
         return 0
     except (OSError, ValueError, TypeError, KeyError,
