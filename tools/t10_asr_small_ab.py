@@ -182,7 +182,20 @@ def run() -> int:
         expected = (PROTOCOL, MANIFEST_SHA, BASELINE_SHA, BASE_SHA, SMALL_SHA, binary_sha, serial, fingerprints)
         if tuple(summary.get(k) for k in keys) != expected:
             raise ValueError("Resume session/device/input hash mismatch")
-        analyze(summary["runs"], fixtures, archived)
+        reviewed = analyze(summary["runs"], fixtures, archived)
+        if not reviewed["small_p95_rtf_target_still_attainable"]:
+            # Once two Small runs exceed RTF 2.0, the predeclared nearest-rank
+            # p95 of 20 cannot pass. Avoid uploading large models again.
+            summary["analysis"] = reviewed
+            summary["status"] = "EARLY_STOP_PERFORMANCE_GATE_FAILED_NOT_CP4"
+            summary["stop_reason"] = (
+                "At least two paired Small runs exceed RTF 2.0; "
+                "the 19th fastest of 20 must therefore also exceed 2.0."
+            )
+            archive_summary(session, summary)
+            print("EARLY STOP: candidate p95 RTF criterion is mathematically unreachable.")
+            print("NO MORE DEVICE INFERENCE. REPORT:", session / "summary.json")
+            return 0
         if len(summary["runs"]) == 40:
             print("Already completed; no additional runs required")
             return 0
@@ -239,6 +252,14 @@ def run() -> int:
             print(f"{len(done):02d}/40 {sid}/{variant}: {row['word_errors']}/"
                   f"{row['reference_words']} edits, RTF={row['rtf']}, "
                   f"RSS={row['sampled_peak_rss_kb']}KiB, battery={row['battery_end_c']}C")
+            if not summary["analysis"]["small_p95_rtf_target_still_attainable"]:
+                summary["status"] = "EARLY_STOP_PERFORMANCE_GATE_FAILED_NOT_CP4"
+                summary["stop_reason"] = (
+                    "At least two paired Small runs exceed RTF 2.0; "
+                    "the 19th fastest of 20 must therefore also exceed 2.0."
+                )
+                print("EARLY STOP: fixed p95 RTF criterion is unattainable; no further samples.")
+                break
         summary["analysis"] = analyze(summary["runs"], fixtures, archived)
         if len(done) == 40:
             summary["status"] = "COMPLETE_DIAGNOSTIC_NOT_CP4"

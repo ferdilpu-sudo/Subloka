@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-ASR-MODEL-BASE-VS-SMALL-Q5-001",
+  "evidence_type": "T10_SONY_ASR_SMALL_Q5_TWO_PAIR_PILOT_USER_CONSOLE_EARLY_PERFORMANCE_REJECTION",
+  "source_provenance": "User-pasted Windows PowerShell CLI output from tools/t10_asr_small_ab.py --max-pairs 2; original summary.json/runs.csv not uploaded or independently re-hashed by assistant.",
+  "declared_hardware": "Sony SO-03L Android 11 target",
+  "console_preflight": "Offline preflight PASS: SO-03L, battery=37.0C, free=2127 MiB.",
+  "session_relative_path": ".t10-benchmark/small-model-ab-20261010T030853Z-94c149",
+  "console_session_status": "PARTIAL_EXPERIMENT_NOT_CP4 paired: 2 /20",
+  "completed_pairs": 2,
+  "completed_inference_runs": 4,
+  "original_audio_total_reference_words_in_completed_pairs": 35,
+  "exact_logged_inference_rows": [
+    {
+      "sample": "id-clean-01",
+      "model": "base",
+      "errors": 4,
+      "reference_words": 17,
+      "rtf": 1.05211,
+      "sampled_rss_kib": 376968,
+      "battery_end_c": 37.7
+    },
+    {
+      "sample": "id-clean-01",
+      "model": "small_q5_1",
+      "errors": 5,
+      "reference_words": 17,
+      "rtf": 2.5069,
+      "sampled_rss_kib": 608612,
+      "battery_end_c": 38
+    },
+    {
+      "sample": "id-clean-02",
+      "model": "small_q5_1",
+      "errors": 8,
+      "reference_words": 18,
+      "rtf": 2.1602,
+      "sampled_rss_kib": 609308,
+      "battery_end_c": 38.2
+    },
+    {
+      "sample": "id-clean-02",
+      "model": "base",
+      "errors": 8,
+      "reference_words": 18,
+      "rtf": 1.18251,
+      "sampled_rss_kib": 376628,
+      "battery_end_c": 38.5
+    }
+  ],
+  "aggregated_from_pasted_console": {
+    "base_errors": 12,
+    "small_errors": 13,
+    "reference_words": 35,
+    "base_wer": 0.34285714285714286,
+    "small_wer": 0.37142857142857144,
+    "candidate_minus_base_errors": 1,
+    "candidate_has_not_demonstrated_wer_improvement": true,
+    "base_max_sampled_rss_kib": 376968,
+    "small_max_sampled_rss_kib": 609308,
+    "small_both_rtfs_over_2": true,
+    "battery_initial_c": 37,
+    "battery_final_c": 38.5,
+    "max_battery_reported_c": 38.5,
+    "test_crashes_reported": false
+  },
+  "performance_pre_registered_rule": {
+    "source": ".agents/evidence/t10-asr-small-model-preregistered.json",
+    "criterion": "Small p95 RTF <= 2.0 over exactly 20 clean-ID samples; nearest-rank p95 of 20 sorted RTF observations uses rank 19.",
+    "maximum_allowed_small_rtfs_strictly_over_2_in_full_set": 1,
+    "currently_observed_small_rtfs_strictly_over_2": 2,
+    "unavoidable_best_possible_p95_lower_bound": 2.1602,
+    "derivation": "Even if all 18 other unobserved Small clips had arbitrarily low RTF, the 19th smallest of 20 includes the slower of the two above 2.0. Thus p95 >=2.1602 >2.0; predeclared criterion is mathematically impossible.",
+    "consequence": "EARLY_PERFORMANCE_REJECT_P95_RTF_UNRECOVERABLE_NOT_CP4",
+    "threshold_modified": false,
+    "original_full_set_wer_known_from_this_pilot": false,
+    "original_full_set_wer_not_modified": true
+  },
+  "recommendation": "Do not run remaining 18 pairs for this pre-registered Small-q5_1 screening on Sony. Keep Base control in place; retain existing model file cached on Windows unless user chooses to remove it. Share summary.json if independent transcript/hash audit is desired. Other genuine ASR models/optimization must use a newly preregistered experiment and unseen confirmation before production.",
+  "implementation_update": "Add logical early-stop status to partial analyzer and guard device resume; no changes to model/CLI/fixture or existing gate criteria.",
+  "historical_unmodified": {
+    "ASR_base_original_clean_ID_WER": "105/367 = 28.61% (above 20% maximum)",
+    "translation_ID_EN": "24/30 (80%) below 27/30",
+    "translation_EN_ID": "27/30 (90%)",
+    "media_734s_Sony_MP4": "MEDIA_STAGE_PASS_NOT_FULL_E2E",
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

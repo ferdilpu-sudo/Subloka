@@ -153,6 +153,45 @@ class T10ASRSmallABTests(unittest.TestCase):
         self.assertFalse(report["preregistered_diagnostic_criteria_met"])
         self.assertEqual(report["cp4"], "BLOCKED")
 
+    def test_two_slow_candidate_pairs_prove_p95_unreachable_early(self):
+        runs, fixtures, archived = make_pairs()
+        first_four = runs[:4]  # 2 complete AB/BA audio pairs
+        small = [r for r in first_four if r["variant"] == "small_q5_1"]
+        self.assertEqual(len(small), 2)
+        small[0]["rtf"] = 2.5069
+        small[1]["rtf"] = 2.1602
+        result = analyze(first_four, fixtures, archived)
+        self.assertEqual(result["paired_samples"], 2)
+        self.assertEqual(result["small_observed_rtf_over_2_count"], 2)
+        self.assertFalse(result["small_p95_rtf_target_still_attainable"])
+        self.assertEqual(result["small_best_possible_p95_rtf_lower_bound"], 2.1602)
+        self.assertEqual(result["verdict"], "EARLY_PERFORMANCE_REJECT_P95_RTF_UNRECOVERABLE_NOT_CP4")
+        self.assertNotIn("preregistered_diagnostic_criteria_met", result)
+        self.assertEqual(result["cp4"], "BLOCKED")
+
+    def test_one_slow_candidate_sample_cannot_reject_fixed_p95_yet(self):
+        runs, fixtures, archived = make_pairs()
+        four = runs[:4]
+        small = [r for r in four if r["variant"] == "small_q5_1"]
+        small[0]["rtf"] = 2.5069
+        small[1]["rtf"] = 1.91
+        result = analyze(four, fixtures, archived)
+        self.assertTrue(result["small_p95_rtf_target_still_attainable"])
+        self.assertEqual(result["small_observed_rtf_over_2_count"], 1)
+        self.assertEqual(result["verdict"], "PARTIAL_DATA_NO_QUALITY_VERDICT")
+
+    def test_complete_20_nearest_rank_p95_fails_from_first_two_slow(self):
+        runs, fixtures, archived = make_pairs()
+        small = [r for r in runs if r["variant"] == "small_q5_1"]
+        small[0]["rtf"] = 2.5069
+        small[1]["rtf"] = 2.1602
+        result = analyze(runs, fixtures, archived)
+        self.assertEqual(result["paired_samples"], 20)
+        self.assertEqual(result["small_p95_rtf"], 2.1602)
+        self.assertFalse(result["small_p95_rtf_target_still_attainable"])
+        self.assertFalse(result["preregistered_diagnostic_criteria_met"])
+        self.assertIn("NOT_ELIGIBLE", result["verdict"])
+
     def test_candidate_too_slow_rejected(self):
         runs, f, a = make_pairs(rtf=2.1)
         report = analyze(runs, f, a)

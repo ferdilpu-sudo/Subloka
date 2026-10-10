@@ -182,9 +182,28 @@ def analyze(runs: list[dict], fixtures: dict, archived: dict) -> dict:
             "paired_small_wer": small_errors / words,
             "small_minus_base_errors": small_errors - base_errors,
         })
+    # Pre-registered p95 uses nearest-rank (19th of 20 samples). Once two
+    # observed Small runs exceed RTF 2.0, even 18 arbitrarily fast remaining
+    # samples cannot recover that fixed performance gate. This is a logically
+    # forced early-stop, NOT a revised threshold or complete 20-sample WER.
+    small_observed = [paired[sid]["small_q5_1"] for sid in sorted(paired)]
+    small_observed_rtfs = [float(row["rtf"]) for row in small_observed]
+    if any(not math.isfinite(rtf) or rtf < 0 for rtf in small_observed_rtfs):
+        raise ValueError("Invalid candidate RTF in observed paired runs")
+    required_rank = math.ceil(20 * .95)
+    max_above_threshold = 20 - required_rank  # At most one RTF >2.0.
+    exceedances = sorted(rtf for rtf in small_observed_rtfs if rtf > 2.0)
+    performance_impossible = len(exceedances) > max_above_threshold
+    result["small_observed_rtf_over_2_count"] = len(exceedances)
+    result["small_p95_rtf_target_still_attainable"] = not performance_impossible
+    result["rtf_gate"] = "p95 nearest-rank 19th of 20 <= 2.0"
+    if performance_impossible:
+        result["small_best_possible_p95_rtf_lower_bound"] = exceedances[
+            len(exceedances) - max_above_threshold - 1
+        ]
     if len(paired) == 20:
-        small_rows = [paired[sid]["small_q5_1"] for sid in sorted(paired)]
-        small_rtfs = sorted(float(row["rtf"]) for row in small_rows)
+        small_rows = small_observed
+        small_rtfs = sorted(small_observed_rtfs)
         rss_values = [row["sampled_peak_rss_kb"] for row in small_rows]
         all_rss_sampled = all(isinstance(v, int) and v > 0 for v in rss_values)
         result["small_p95_rtf"] = small_rtfs[math.ceil(len(small_rtfs) * .95) - 1]
@@ -197,7 +216,10 @@ def analyze(runs: list[dict], fixtures: dict, archived: dict) -> dict:
             if meets else "NOT_ELIGIBLE_FOR_PROMOTION_FROM_THIS_EXPERIMENT"
         )
     else:
-        result["verdict"] = "PARTIAL_DATA_NO_QUALITY_VERDICT"
+        result["verdict"] = (
+            "EARLY_PERFORMANCE_REJECT_P95_RTF_UNRECOVERABLE_NOT_CP4"
+            if performance_impossible else "PARTIAL_DATA_NO_QUALITY_VERDICT"
+        )
     return result
 
 
