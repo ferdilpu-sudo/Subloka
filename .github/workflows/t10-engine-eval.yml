@@ -23,6 +23,8 @@ on:
       - "tools/test_t10_asr_small_ab.py"
       - "tools/t10_asr_next_feasibility.py"
       - "tools/test_t10_asr_next_feasibility.py"
+      - "tools/t10_asr_id_compact_protocol.py"
+      - "tools/test_t10_asr_id_compact_protocol.py"
       - ".agents/evidence/t10-cp4-readiness-audit-windows-13-pass.json"
       - ".agents/evidence/t10-asr-listening-review-final.json"
       - "tools/t10_translation_device_benchmark.ps1"
@@ -280,6 +282,12 @@ jobs:
         run: |
           python -m unittest discover -s tools -p test_t10_asr_next_feasibility.py -v
           python tools/t10_asr_next_feasibility.py
+
+      - name: Verify Indonesian tiny/base ID SHA-pinned candidate research (no network)
+        shell: bash
+        run: |
+          python -m unittest discover -s tools -p test_t10_asr_id_compact_protocol.py -v
+          python tools/t10_asr_id_compact_protocol.py list
 
       - name: Test translation quality review evaluator
         shell: bash
