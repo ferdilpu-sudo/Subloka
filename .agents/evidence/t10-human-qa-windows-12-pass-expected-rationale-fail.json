@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-ORIGINAL-MLKIT-60-HUMAN-QA-EXTERNAL-CHECK",
+  "provenance": "User-pasted Windows PowerShell output; no original local session file uploaded in this turn",
+  "unit_tests": {
+    "command": "python -m unittest discover -s tools -p test_t10_translation_human_qa.py -v",
+    "count": 12,
+    "reported_seconds": 0.591,
+    "reported_status": "PASS_OK"
+  },
+  "user_local_paths": {
+    "raw": ".t10-benchmark/translation-results.csv",
+    "session": ".t10-benchmark/t10-human-qa-20261010T132119",
+    "external_review": "$HOME/Downloads/human-review-reviewed.csv"
+  },
+  "check_result": {
+    "command": "python tools/t10_translation_human_qa.py check RAW SESSION --review EXTERNAL",
+    "status": "EXPECTED_FAIL_CLOSED_MISSING_RATIONALES",
+    "console_error": "ERROR: Missing reviewer rationale for changed AI decisions: en-08, id-30",
+    "unresolved_sample_ids": [
+      "en-08",
+      "id-30"
+    ],
+    "all_raw_fields_validated_in_current_check": false,
+    "mutates_session": false,
+    "reviewer_signoff_produced": false
+  },
+  "previously_uploaded_review": {
+    "sha256": "bbee253eb6aacc07f5451d1ac3008709d5bcd3e993867a627634aa2d369f7887",
+    "source_translation_digest": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+    "en_to_id_accepted_unattested": 28,
+    "id_to_en_accepted_unattested": 25,
+    "reviewer_independence_not_attested": true,
+    "other_review_case_id08": "NUMBER_OR_NAME_ERROR / needs actual reviewer severity check"
+  },
+  "original_raw_sha_reported_in_prior_user_prepare": "f135ec8bf749d0609197137e54691170047d3336b2d246a9f89dd0689cb5de6a",
+  "next": "Independent bilingual reviewer must independently supply rationales or revise labels, review id-08 severity, rerun non-destructive check, then only if actual signoff exists finalize with truthful attribution; no autocompletion.",
+  "gates": {
+    "T10": "ACTIVE",
+    "human_review": "INCOMPLETE_MISSING_REVIEWER_RATIONALES",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
