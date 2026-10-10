@@ -63,3 +63,24 @@ Audit mungkin dan **seharusnya FAIL** selama masih ada template, izin, rekaman a
 ## Ketentuan evaluasi setelah dataset siap
 
 Setelah integritas, provenance dan izin ditinjau sungguh-sungguh oleh pihak berwenang, perlu **persetujuan terpisah sebelum mengunduh model**. Verifikasi file Maleo Base Q8_0 lokal melalui `tools/t10_asr_id_compact_protocol.py verify` dan checksum yang sudah dipin. Buat aturan urutan A/B serta batas RTF/RSS/suhu sebelum evaluasi host dan Sony. Hasil holdout baru harus dilaporkan **terpisah** dari data FLEURS lama; penelitian ini tidak otomatis melewati CP4. Human QA translation juga masih memerlukan sign-off independen.
+
+## Paket pengumpulan berbasis topik — sesudah template 30 slot siap
+
+Bila output Windows telah menunjukkan **Total 30 / Clean 20 / Challenging 10 / Empty 30**, jangan menjalankan ulang `init`. Gunakan generator **hanya metadata dan topik**, yang tidak mengisi transkrip atau flag izin:
+
+```powershell
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$workspace = ".\.t10-benchmark\t10-id-holdout-new"
+& $py tools\t10_id_collection_kit.py create --workspace $workspace
+& $py tools\t10_id_collection_kit.py status --workspace $workspace
+notepad "$workspace\collection_plan.json"
+```
+
+- `create` menghasilkan `collection_plan.json` di folder privat yang sudah diabaikan Git. **Tidak menimpa** plan yang sudah ada, `manifest.json`, rekaman, maupun lock. Bila plan pernah dibuat, jalankan hanya `status`, jangan mengganti plan setelah melihat hasil model.
+- Ada **30 petunjuk topik**, bukan kalimat yang harus dibaca kata demi kata. Setiap pembicara pseudonim `spk-01` sampai `spk-05` mendapat empat tugas clean dan dua tugas challenging. Setiap pembicara harus sungguh-sungguh bersedia; ID ini **hanya jadwal usulan**, bukan bukti adanya orang tersebut.
+- Minta peserta berbicara **dengan kata-kata sendiri**, sekitar 12–20 kata per klip, dalam Bahasa Indonesia; variasi challenging boleh berupa jeda, angka, dan variasi tempo normal dalam suasana aman. Jangan sengaja merekam informasi pribadi atau memicu keadaan berbahaya. Nilai data ini adalah *prompted spontaneous speech*, bukan rekaman bacaan persis. Rekaman yang tidak memenuhi 1–30 detik/format harus disiapkan ulang secara sah.
+- Bila pembicara masih di bawah umur, periksa kebutuhan izin orang tua/wali dan hindari pengumpulan tanpa persetujuan yang sesuai. Jangan menekan orang lain untuk berpartisipasi. Simpan dokumentasi izin secara aman di luar Git.
+- **Jangan salin `topic_cue_not_reference_transcript` ke kolom `reference`**. Reviewer manusia harus mendengarkan audio, menuliskan kata yang benar-benar terucap, dan memeriksanya sebelum melihat prediksi ASR. Pelaporan kualitas mesti menyebut data ini sebagai *prompted spontaneous speech*; jangan menyamakan hasilnya dengan keseluruhan situasi pemakaian nyata.
+- Perintah `status` hanya membaca metadata lokal dan menghitung isian yang ada. Hitungan bernama `*_not_verified` dan `*_not_authenticated` **tidak membuktikan akurasi audio, persetujuan maupun review**. Bahkan jika seluruh hitungan menjadi 30, gunakan `audit`, cek bukti manusia secara terpisah, dan `seal`/`verify` **sebelum** inferensi. Status tetap `CP4 BLOCKED` sampai persyaratan lain terpenuhi.
+- Jumlah kata clean yang benar-benar ditranskrip harus mencapai **≥250 kata ter-normalisasi**; rencana topik ini tidak menjamin jumlah tersebut. Tidak boleh menambah kata fiktif agar lolos validator.
+- Tidak ada audio, transkrip, identitas, checksum file hasil rekaman atau persetujuan nyata yang dihasilkan oleh generator, dan tidak ada pengiriman jaringan/ADB/inferensi model.
