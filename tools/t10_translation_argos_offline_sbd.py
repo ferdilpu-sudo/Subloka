@@ -12,6 +12,8 @@ sentence model, or changes the pre-registered scoring thresholds.
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import traceback
 
 
 
@@ -61,6 +63,56 @@ def unwrap_local_cached_translation(
             Path(expected_path).resolve() != Path(backend_path).resolve()):
         raise RuntimeError("Argos direct backend does not match the isolated installed package")
     return backend
+
+
+def stanza_failure_diagnostics(
+    local_stanza: Path, lang: str, error: Exception,
+) -> str:
+    """Give bounded local-only metadata, never model contents or absolute paths."""
+    missing = error.args[0] if isinstance(error, KeyError) and len(error.args) == 1 else None
+    missing_key = repr(missing)[:100] if isinstance(missing, (str, int)) else "(not a simple key)"
+    try:
+        data = json.loads((local_stanza / "resources.json").read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            structure = "resources_not_object"
+        else:
+            languages = sorted(str(x) for x in data.keys())
+            entry = data.get(lang)
+            if isinstance(entry, dict):
+                keys = sorted(str(x) for x in entry.keys())
+                token = entry.get("tokenize")
+                if isinstance(token, dict):
+                    models = sorted(str(x) for x in token.keys())
+                else:
+                    models = []
+                structure = (
+                    f"resources_languages={languages[:12]!r}; "
+                    f"language_keys={keys[:20]!r}; "
+                    f"tokenize_packages={models[:12]!r}"
+                )
+            else:
+                structure = (
+                    f"resources_languages={languages[:12]!r}; "
+                    "language_entry_missing_or_not_object"
+                )
+    except (OSError, UnicodeError, ValueError) as resource_error:
+        structure = f"resources_read_error={type(resource_error).__name__}"
+
+    # Stanza expects language/tokenize/<package>.pt inside bundled SBD tree.
+    local_tokenizers = sorted(
+        x.name for x in (local_stanza / lang / "tokenize").glob("*.pt")
+        if x.is_file()
+    )
+    trace = traceback.extract_tb(error.__traceback__)
+    origin = " > ".join(
+        f"{Path(frame.filename).name}:{frame.name}:{frame.lineno}"
+        for frame in trace[-3:]
+    )
+    return (
+        f"missing_key={missing_key}; {structure}; "
+        f"local_tokenize_models={local_tokenizers[:12]!r}; "
+        f"origin={origin[:240]}"
+    )
 
 
 def ensure_offline_sbd(
@@ -120,9 +172,13 @@ def ensure_offline_sbd(
                 download_method=None,  # Stanza: NONE, disallows ALL resource downloads.
             )
         except Exception as error:
+            detail = stanza_failure_diagnostics(
+                local_stanza, sentencizer.stanza_lang_code, error
+            )
             raise RuntimeError(
                 "Local bundled Stanza tokenizer could not be initialized offline "
-                f"({type(error).__name__}); no network fallback is allowed"
+                f"({type(error).__name__}). {detail}. "
+                "No network fallback is allowed; report this diagnostic only."
             ) from error
         sentencizer.stanza_pipeline = pipeline
         return "PACKAGED_STANZA_RESOURCES_NO_DOWNLOAD"
