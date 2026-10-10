@@ -79,6 +79,47 @@ class FeasibilityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_data_free_kib("bad output")
 
+
+    def test_df_android_toybox_mounted_on_header_variants(self):
+        # Toybox emits TWO header tokens "Mounted on" but one row token "/data".
+        self.assertEqual(parse_data_free_kib(
+            "Filesystem 1K-blocks Used Available Use% Mounted on\n"
+            "/dev/block/dm-5 55000000 52900000 2100000 97% /data\n"
+        ), 2100000)
+        # Some implementations compress the mount header to a single token.
+        for mount_label in ("Mounted", "Mounted_on", "Mountpoint"):
+            with self.subTest(header=mount_label):
+                self.assertEqual(parse_data_free_kib(
+                    "Filesystem 1024-blocks Used Avail Use% " + mount_label + "\n"
+                    "/dev/block/dm-5\t55000000\t52900000\t2100000\t97%\t/data\n"
+                ), 2100000)
+
+    def test_df_fail_closed_on_wrong_mount_or_extra_rows(self):
+        header = "Filesystem 1K-blocks Used Available Use% Mounted on\n"
+        row = "/dev/block/dm-5 55000000 52900000 2100000 97% /data\n"
+        for malformed in (
+            header + row + "/dev/block/dm-6 200000 100000 100000 50% /cache\n",
+            header + row.replace("/data", "/cache"),
+            header + row.replace("2100000", "abc"),
+            header + row.replace("97%", "not-percent"),
+            header + row.replace("55000000", "1"),
+        ):
+            with self.subTest(text=malformed):
+                with self.assertRaises(ValueError):
+                    parse_data_free_kib(malformed)
+
+    def test_df_fail_closed_on_missing_or_misordered_columns(self):
+        row = "/dev/block/dm-5 55000000 52900000 2100000 97% /data\n"
+        for header in (
+            "Filesystem 1K-blocks Used Free Use% Mounted on\n",
+            "Filesystem 1K-blocks Available Used Use% Mounted on\n",
+            "Filesystem Used Available Use% Mounted on\n",
+            "Filesystem 1K-blocks Used Available Mounted on\n",
+        ):
+            with self.subTest(header=header):
+                with self.assertRaises(ValueError):
+                    parse_data_free_kib(header + row)
+
     def test_battery_proxy_checked_not_cpu(self):
         self.assertEqual(parse_battery_c(DEVICE["battery"]), 37.2)
         with self.assertRaises(ValueError):
