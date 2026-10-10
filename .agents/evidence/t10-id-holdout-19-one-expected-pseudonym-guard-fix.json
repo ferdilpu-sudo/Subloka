@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_PRIVATE_INDEPENDENT_ID_HOLDOUT_SYNTHETIC_WINDOWS_TEST_EXPECTATION_FIX",
+  "evidence_source": "User-pasted local Windows Python unittest traceback",
+  "observed_before_fix": {
+    "suite": "tools/test_t10_id_independent_holdout.py",
+    "total_tests": 19,
+    "duration_seconds": 9.382,
+    "result": "FAILED (failures=1)",
+    "failing_test": "test_private_empty_init_is_not_real_dataset_and_cannot_overwrite",
+    "actual_exception": "ValueError: Only pseudonymous speaker/reviewer IDs permitted",
+    "incorrectly_expected_regex": "permission"
+  },
+  "root_cause": "The deliberately empty 30-slot holdout template has blank speaker_id and reference_reviewed_by. audit() rejects those earlier than consent_declared. The code correctly fails closed; test had assumed a later error.",
+  "corrective_commit": "aa6690bd273b777dd847e7747df037a5f8c34f28",
+  "changes": {
+    "test_only": "tools/test_t10_id_independent_holdout.py",
+    "expected_regex_now": "pseudonymous speaker/reviewer IDs",
+    "explanation": "A separate test_missing_consent_is_rejected still specifically verifies permission rejection.",
+    "script_changed": false,
+    "tests_total_unchanged": 19,
+    "real_recordings_or_consent_generated": false
+  },
+  "validation": {
+    "updated_windows_test_run_reported": false,
+    "github_ci_checked": false,
+    "physical_device_asr_run": false,
+    "human_independence_attested": false,
+    "protocol_quality_gate_promoted": false
+  },
+  "next": "Pull main and rerun 19-test suite. Keep private manifest incomplete and do not claim audit PASS or acquire model without consent and independent data readiness.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
