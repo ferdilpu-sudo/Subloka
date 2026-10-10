@@ -11,7 +11,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from t10_translation_review import content_digest, fingerprint, load
 from t10_translation_human_qa import (
-    DRAFT, FIXTURES, HUMAN_COLUMNS, prepare, finalize, validate_human_sheet,
+    DRAFT, FIXTURES, HUMAN_COLUMNS, prepare, finalize, validate_human_sheet, check_review,
 )
 
 
@@ -177,6 +177,50 @@ class T10TranslationHumanQATests(unittest.TestCase):
         self.write(self.raw, tuple(content[0]), content)
         with self.assertRaisesRegex(ValueError, "Fixture/source text mismatch"):
             self.prepare()
+
+
+    def test_external_review_readonly_check_counts_without_signoff(self):
+        self.prepare()
+        self.completed_rows()
+        external = self.root / "external-human-review.csv"
+        external.write_bytes((self.session / "human-review.csv").read_bytes())
+        raw_before = fingerprint(self.raw)
+        source_before = fingerprint(external)
+        result = check_review(self.raw, self.session, external, FIXTURES, self.draft)
+        self.assertEqual(result["sample_count"], 60)
+        self.assertEqual(result["en_to_id_accepted"], 30)
+        self.assertEqual(result["id_to_en_accepted"], 28)
+        self.assertFalse(result["human_review_independence_verified"])
+        self.assertEqual(result["cp4_status"], "BLOCKED")
+        self.assertEqual(fingerprint(self.raw), raw_before)
+        self.assertEqual(fingerprint(external), source_before)
+        self.assertFalse((self.session / "human-signoff.json").exists())
+
+    def test_external_review_check_lists_all_missing_disagreement_notes(self):
+        self.prepare()
+        self.completed_rows(reject=(), override_notes=False)
+        external = self.root / "external-human-review.csv"
+        external.write_bytes((self.session / "human-review.csv").read_bytes())
+        with self.assertRaisesRegex(ValueError, "id-02, id-05"):
+            check_review(self.raw, self.session, external, FIXTURES, self.draft)
+        self.assertFalse((self.session / "human-quality-report.json").exists())
+
+    def test_external_review_check_refuses_raw_or_locked_column_change(self):
+        self.prepare()
+        self.completed_rows()
+        external = self.root / "external-human-review.csv"
+        external.write_bytes((self.session / "human-review.csv").read_bytes())
+        rated = self.review_rows()
+        rated[0]["source_text"] = "edited original source!"
+        self.write(external, HUMAN_COLUMNS, rated)
+        with self.assertRaisesRegex(ValueError, "Original model evidence edited"):
+            check_review(self.raw, self.session, external, FIXTURES, self.draft)
+        external.write_bytes((self.session / "human-review.csv").read_bytes())
+        altered = load(self.raw)
+        altered[0]["translation"] = "tampered model output"
+        self.write(self.raw, tuple(altered[0]), altered)
+        with self.assertRaisesRegex(ValueError, "Original raw CSV changed"):
+            check_review(self.raw, self.session, external, FIXTURES, self.draft)
 
 
 if __name__ == "__main__":
