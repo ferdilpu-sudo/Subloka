@@ -191,8 +191,7 @@ def diagnostic_df_lines(text: str) -> list[str]:
     result = []
     for number, line in enumerate(lines):
         # Block device path is not needed to diagnose header/token alignment.
-        safe_line = re.sub(r"^([ \\t]*)/dev/[^ \\t]+",
-                           r"\\1<filesystem-redacted>", line)
+        safe_line = re.sub(r"^\s*/dev/\S+", "<filesystem-redacted>", line)
         result.append(f"line[{number}] token_count={len(line.split())} text={safe_line!r}")
     return result
 
