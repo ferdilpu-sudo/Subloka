@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ID_PRIVATE_30_TOPIC_COLLECTION_KIT_IMPLEMENTED_NOT_RUN",
+  "evidence_source": "GitHub connector source changes and prior user-reported private 30-slot QA; no actual human audio/data",
+  "prior_verified": {
+    "windows_holdout_synthetic_tests": "19/19 PASS",
+    "user_private_manifest_template": {
+      "total": 30,
+      "clean": 20,
+      "challenging": 10,
+      "empty_unverified": 30,
+      "gitignored": true
+    },
+    "real_human_recordings": 0
+  },
+  "implementation": {
+    "code": "tools/t10_id_collection_kit.py",
+    "tests": "tools/test_t10_id_collection_kit.py",
+    "instructions": "tools/t10_id_independent_holdout.md",
+    "workflow": ".github/workflows/t10-engine-eval.yml",
+    "command_create": "python tools/t10_id_collection_kit.py create --workspace .t10-benchmark/t10-id-holdout-new",
+    "command_status": "python tools/t10_id_collection_kit.py status --workspace .t10-benchmark/t10-id-holdout-new",
+    "workplace": "Git-ignored private workspace under .t10-benchmark only",
+    "emits_file": "collection_plan.json (once, inside existing private workspace, never overwrites manifest)",
+    "suggested_items": {
+      "clean": 20,
+      "challenging": 10,
+      "total": 30,
+      "pseudonymous_speakers_suggested": 5,
+      "clean_per_speaker": 4,
+      "challenging_per_speaker": 2
+    },
+    "utterance_method": "topic cues only, speaker chooses spontaneous Indonesian wording, not any generated reference transcript",
+    "status_output": "Aggregate counts only; file presence and data/flag counts explicitly unverified",
+    "new_test_methods": 12,
+    "windows_tests_reported_pass": false,
+    "github_ci_result_verified": false
+  },
+  "negative_guarantees": {
+    "no_real_audio_generated": true,
+    "no_consent_or_human_review_auto_declared": true,
+    "no_training_independence_claim": true,
+    "no_transcript_auto_filled": true,
+    "no_local_audio_sharing": true,
+    "no_model_download": true,
+    "no_adb_or_inference": true,
+    "no_change_frozen_id_fleurs_wer": true,
+    "no_cp4_promotion": true
+  },
+  "note": "Topic-cued speech research holdout is not representative of every real-world scenario; sample must be genuinely consented and transcribed from audio by independent human review before any model predictions. The plan does not authenticate consent or independence.",
+  "next": "User Windows pull updated main, run 12 new synthetic tests, create private collection_plan.json once, run counts-only status. No further template init. Then collect actual volunteer recordings and human-reviewed references separately.",
+  "statuses": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
