@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_REAL_ARCHIVE_11_METADATA_PASS_19_SYNTHETIC_UNIT_TESTS_FAIL_FIX_COMMITTED",
+  "provenance": "Actual user Windows PowerShell commands and entire published Hugging Face API JSON output; project private CSV not directly accessed",
+  "previous_verified": {
+    "public_metadata_bytes": 31362056,
+    "public_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "upstream_commit": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "eligible_human_test_metadata_rows": 15598,
+    "categories": 11,
+    "distinct_test_speaker_labels_each_category": 3
+  },
+  "observed_unit_suite_before_fixture_fix": {
+    "name": "test_t10_public_id_corpus.py",
+    "total": 19,
+    "seconds": 0.446,
+    "result": "FAILED (failures=1, errors=1)",
+    "error_test": "test_archive_size_preflight_is_only_public_json_not_tar",
+    "fail_test": "test_cli_archive_sizes_preserves_local_metadata",
+    "cause": "Synthetic CSV fixture had only Declarative while mocked API contained all 11 TARs; production guard rightfully rejects mismatch",
+    "powershell_guard_threw": true
+  },
+  "actual_archive_sizes": {
+    "api_source": "https://huggingface.co/api/datasets/Atika88/Indonesian-ASR-11-Class-Dataset/tree/c65fe8bcff0547214c34cfbea248b4045a0d867c/data/audio_shards/by_category",
+    "original_local_csv_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "call_result": "PASS",
+    "count": 11,
+    "total_archive_bytes_publisher_api": 15542917120,
+    "sorted": [
+      {
+        "category": "Imperative",
+        "upstream_archive_size_bytes": 907765760,
+        "upstream_lfs_sha256_not_locally_verified": "54725d7ecd573c6fbe88cc6d43337be3910599842dc1711b8e7f5fbae88dc938",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Exclamatory",
+        "upstream_archive_size_bytes": 1049487360,
+        "upstream_lfs_sha256_not_locally_verified": "5aa44d3ac9c9315b63138282a9e09923ece1fcc5fc3bcd3d80113371691483e4",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Negation",
+        "upstream_archive_size_bytes": 1094379520,
+        "upstream_lfs_sha256_not_locally_verified": "404dccbea5ab43ca1daaf69d8595b24db0240fc6bc778cfa7c93a70565706556",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Rhetorical",
+        "upstream_archive_size_bytes": 1207500800,
+        "upstream_lfs_sha256_not_locally_verified": "55288e6640f977d22bde88708f6c85833ab88458fdd4ba12b6087308ea587bb0",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Declarative",
+        "upstream_archive_size_bytes": 1240248320,
+        "upstream_lfs_sha256_not_locally_verified": "cb551b8c91f3fd14b6c0b6df6b551500e1faf88f10f5c0acb42fee926a56aa89",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Interrogative",
+        "upstream_archive_size_bytes": 1377024000,
+        "upstream_lfs_sha256_not_locally_verified": "8422f71cc8cbdb20c16a4be9c6a449facecee62493a6e0c44c4e4154cc0c1037",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Scheduling",
+        "upstream_archive_size_bytes": 1518274560,
+        "upstream_lfs_sha256_not_locally_verified": "dbe670fdffd3150505956ff55c56edda7bbdc36a55a308de8d0ea4bf630b5522",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Clarification",
+        "upstream_archive_size_bytes": 1598545920,
+        "upstream_lfs_sha256_not_locally_verified": "b0f47ea336cf550cea7aec79e4864c711a0be36635f064f4a7004f321e420028",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Confirmation",
+        "upstream_archive_size_bytes": 1712168960,
+        "upstream_lfs_sha256_not_locally_verified": "debb43f09a13e05f79f1324b82079fa58f116e90567cde50e28b13ea61c7bdce",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Conditional",
+        "upstream_archive_size_bytes": 1847552000,
+        "upstream_lfs_sha256_not_locally_verified": "34b6d43a92e90b1e3473f75d20e76a8caa3d92673537a5fcdf39cb183b50356e",
+        "locally_downloaded": false
+      },
+      {
+        "category": "Persuasive",
+        "upstream_archive_size_bytes": 1989969920,
+        "upstream_lfs_sha256_not_locally_verified": "e58307613560ecd854358c62555f517ba68d4a5a1e7ff0e223142c4735096b6c",
+        "locally_downloaded": false
+      }
+    ],
+    "only_remote_tree_metadata_requested": true,
+    "archive_sha_from_upstream_metadata_not_local_verification": true,
+    "all_approved_for_download": false,
+    "tar_or_wav_downloaded": false,
+    "no_model_download_or_inference": true
+  },
+  "corrective_action": {
+    "code_changed": "tools/test_t10_public_id_corpus.py ONLY",
+    "fixture_fix": "Seed other 10 synthetic categories to match 11-category API for positive archive tests; preserve 11-category production guard",
+    "added_negative_test": "Partial one-category CSV still rejected against 11-category tree",
+    "new_test_total": 20,
+    "new_windows_pass_verified": false,
+    "github_ci_verified": false
+  },
+  "recommended_next": "Pull main, rerun 20 synthetic test cases, then optionally select 30 human/test Imperative metadata rows WITHOUT downloading ~865.7 MiB archive. Future selective HTTP range access is a research option but unproven for the actual Atika TAR; full archive download needs separate size/storage/user approval.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
