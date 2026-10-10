@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10_SONY_OFFLINE_ID_ASR_READONLY_PREFLIGHT_20261010",
+  "source": "User-pasted terminal of successful --probe-device --json. JSON report was generated on user Windows but not uploaded in this exchange.",
+  "device_snapshot": {
+    "model": "SO-03L",
+    "abi": "arm64-v8a",
+    "ram_total_mib_rounded_stdout": 5487,
+    "available_data_mib_rounded_stdout": 1732,
+    "battery_temperature_c": 38,
+    "ram_total_is_not_free_ram": true,
+    "battery_temperature_is_not_cpu_temperature": true,
+    "storage_reported_mountpoint_from_prior_real_diagnostic": "/data/user/0",
+    "current_radio_settings_not_in_user_console": true
+  },
+  "candidate_screen": [
+    {
+      "id": "sherpa_qwen3_asr_0_6b_int8",
+      "published_approx_weights_mib": 937,
+      "one_weights_left_mib_rounded_stdout_basis": 795,
+      "two_weights_mib": 1874,
+      "available_mib": 1732,
+      "two_weights_fit": false,
+      "exact_model_checksum_and_license_unverified": true,
+      "sony_asr_quality_unverified": true,
+      "downloads_permitted": false
+    },
+    {
+      "id": "wav2vec2_xlsr_large_indonesian",
+      "published_approx_weights_mib": 1202,
+      "one_weights_left_mib_rounded_stdout_basis": 530,
+      "two_weights_mib": 2404,
+      "available_mib": 1732,
+      "two_weights_fit": false,
+      "exact_model_checksum_and_license_unverified": true,
+      "sony_asr_quality_unverified": true,
+      "downloads_permitted": false
+    }
+  ],
+  "stdout": [
+    "DEVICE SNAPSHOT: SO-03L arm64-v8a RAM total MiB 5487 free /data MiB 1732 battery C 38.0",
+    "RESEARCH: sherpa_qwen3_asr_0_6b_int8 weights ~ 937 MiB; ARTIFACT SHA/LICENSE/SONY QA NOT VERIFIED",
+    "RESEARCH: wav2vec2_xlsr_large_indonesian weights ~ 1202 MiB; ARTIFACT SHA/LICENSE/SONY QA NOT VERIFIED",
+    "NO DOWNLOAD | NO INFERENCE | T10 ACTIVE | CP4 BLOCKED | T11 TODO"
+  ],
+  "scope": {
+    "real_android_device_snapshot_succeeded": true,
+    "actual_21_test_stdout_supplied": false,
+    "model_download": false,
+    "model_inference": false,
+    "asr_quality_benchmark_new": false,
+    "translation_model_promoted": false,
+    "cp4_remains_blocked": true,
+    "local_json_bytes_sha_not_independently_inspected": true
+  },
+  "implementation_followup": {
+    "code": "tools/t10_asr_next_feasibility.py",
+    "tests": "tools/test_t10_asr_next_feasibility.py",
+    "new_tests": 2,
+    "expected_total_tests": 23,
+    "new_windows_test_pass": false,
+    "ci_test_pass_unverified": true,
+    "storage_screen_display": "Approximate two-copy weights screen only, not capacity/safety certification",
+    "no_download_invariant": true
+  },
+  "next": "Pull and run 23 synthetic tests; defer both GB-scale model downloads. Research smaller Indonesian offline candidates separately with frozen source/license/checksum and independent holdout protocol before phone run.",
+  "statuses": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "human_translation_signoff": "PENDING"
+  }
+}
