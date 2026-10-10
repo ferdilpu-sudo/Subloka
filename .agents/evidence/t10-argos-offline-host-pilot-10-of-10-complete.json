@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-pasted Windows PowerShell output; no host files uploaded or inspected by assistant",
+  "windows_report": {
+    "unit_tests": {
+      "suite": "tools/test_t10_translation_argos_candidate.py",
+      "count": 52,
+      "result": "PASS",
+      "elapsed_seconds": 0.401
+    },
+    "command": "tools/t10_translation_argos_candidate.py pilot --review $HOME/Downloads/translation-strategy-ab-review.csv",
+    "offline_sbd_mode": "PACKAGED_STANZA_LEGACY_METADATA_AND_CHECKPOINT_NO_DOWNLOAD",
+    "inference": {
+      "model": "Pinned Argos direct Indonesian to English 1.9 host-only",
+      "completed": 10,
+      "expected": 10,
+      "ids": [
+        "id-ab-01",
+        "id-ab-02",
+        "id-ab-03",
+        "id-ab-04",
+        "id-ab-05",
+        "id-ab-06",
+        "id-ab-07",
+        "id-ab-08",
+        "id-ab-09",
+        "id-ab-10"
+      ],
+      "host_ms": [
+        1094,
+        109,
+        157,
+        187,
+        156,
+        141,
+        156,
+        110,
+        109,
+        109
+      ],
+      "first_ms": 1094,
+      "mean_last_nine_ms": 137.111,
+      "total_ms": 2328,
+      "mean_all_ms": 232.8
+    },
+    "raw_csv_reported_path": ".t10-benchmark/argos-id-en-pilot-20261010T053116Z-cc3c4db/pilot.csv",
+    "status_inferred_from_runner": "HOST_PILOT_COMPLETE_REVIEW_PENDING_NOT_CP4",
+    "runner_message": "No candidate acceptance labels inferred. Upload CSV to review."
+  },
+  "verification_limits": {
+    "actual_csv_bytes_read": false,
+    "actual_session_json_read": false,
+    "acceptance_labels_generated": false,
+    "translation_quality_measured": false,
+    "evidence_note": "Reported path is Windows local and gitignored; hash/schema/content must be verified upon user upload, not inferred from log."
+  },
+  "preregistered_qa": {
+    "pilot_selection": "First ten fixed Indonesian-to-English paragraph fixture IDs, same as ML Kit baseline",
+    "accept_rule": "At least 2 wins fixing rejected ML Kit rows, net >=2 additional accepted, zero new critical negation/number/name errors",
+    "next_task": "Review uploaded pilot.csv, preserve raw and baseline, create reviewed copy; call report with --session and --review only after complete independent ratings",
+    "passing_scope": "PROMISING for full 30 + independent holdout only; no CP4 promotion",
+    "host_latency_scope": "Host Windows only, cannot extrapolate to Android"
+  },
+  "gates": {
+    "T10": "ACTIVE_HOST_PILOT_COMPLETE_REVIEW_PENDING",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "Argos_quality": "NOT_GRADED"
+  },
+  "latest_log_date": "2026-10-10"
+}
