@@ -29,6 +29,9 @@ on:
       - "tools/test_t10_id_independent_holdout.py"
       - "tools/t10_id_collection_kit.py"
       - "tools/test_t10_id_collection_kit.py"
+      - "tools/t10_public_id_corpus.py"
+      - "tools/test_t10_public_id_corpus.py"
+      - "tools/t10_public_id_corpus.md"
       - "tools/t10_id_independent_holdout.md"
       - ".agents/evidence/t10-cp4-readiness-audit-windows-13-pass.json"
       - ".agents/evidence/t10-asr-listening-review-final.json"
@@ -303,6 +306,12 @@ jobs:
         shell: bash
         run: |
           python -m unittest discover -s tools -p test_t10_id_collection_kit.py -v
+
+      - name: Verify external public Indonesian corpus selection guards (NO audio/network)
+        shell: bash
+        run: |
+          python -m unittest discover -s tools -p test_t10_public_id_corpus.py -v
+          python tools/t10_public_id_corpus.py source
 
       - name: Test translation quality review evaluator
         shell: bash
