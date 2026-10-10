@@ -91,7 +91,9 @@ class IndependentHoldoutSyntheticTests(unittest.TestCase):
         self.assertTrue(all(x["consent_declared"] is False for x in slots))
         self.assertTrue(all(x["human_reference_reviewed"] is False for x in slots))
         self.assertTrue(all(not x["reference"] and not x["audio_sha256"] for x in slots))
-        with self.assertRaisesRegex(ValueError, "permission"):
+        # Audit checks empty speaker/reviewer pseudonyms before consent.
+        # The separate test_missing_consent_is_rejected isolates that gate.
+        with self.assertRaisesRegex(ValueError, "pseudonymous speaker/reviewer IDs"):
             audit(other)
         with self.assertRaises(FileExistsError):
             init(other)
