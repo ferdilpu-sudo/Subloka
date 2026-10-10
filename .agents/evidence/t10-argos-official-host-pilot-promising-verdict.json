@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-pasted Windows PowerShell output of successful project-native report command; prior user-uploaded raw pilot and session verified in earlier turn",
+  "official_reporter_console": {
+    "line1": "Candidate reviewed: 8 /10; whole ML Kit: 6 /10; net 2",
+    "line2": "VERDICT: PROMISING_FOR_FULL_30_AND_NEW_INDEPENDENT_HOLDOUT | CP4 BLOCKED"
+  },
+  "pilot_quality_gate": {
+    "pilot_size": 10,
+    "mlkit_whole_accepted": 6,
+    "argos_accepted": 8,
+    "net_accepted_gain": 2,
+    "preregistered_pilot_gate": "PASSED",
+    "verdict": "PROMISING_FOR_FULL_30_AND_NEW_INDEPENDENT_HOLDOUT",
+    "condition": "Not CP4; subsequent full30, independent unseen holdout and Android proof required",
+    "inferred_from_preregistered_verdict": {
+      "prior_rejects_fixed_at_least": 2,
+      "new_critical_errors": 0
+    }
+  },
+  "immutable_refs": {
+    "pilot_session": "argos-id-en-pilot-20261010T053116Z-cc3c4db",
+    "original_pilot_raw_sha256": "c7ca76b9d260a95ffac7e6111104e25104eba6c866bc5b0fa0337b60de9699cf",
+    "reviewed_mlkit_source_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+    "argos_model_sha256": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4"
+  },
+  "limitations": {
+    "official_report_json_uploaded": false,
+    "official_report_json_independently_verified": false,
+    "android_integrated_or_tested": false,
+    "all30_translations_generated": false,
+    "new_independent_holdout_assessed": false,
+    "notes": "User-console reporter output substantiates local report verdict; no report file hash or unseen trial result has been fabricated"
+  },
+  "next": "Prepare distinct host-only full30 inference and review protocol preserving frozen baseline and recognizing initial 10 as overlap, then unseen independent holdout and device proof.",
+  "gates": {
+    "T10": "ACTIVE_PILOT_PASS_PROMISING",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
