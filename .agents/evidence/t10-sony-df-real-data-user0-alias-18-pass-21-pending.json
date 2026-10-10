@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_SONY_ID_ASR_READONLY_DF_REAL_MOUNT_ALIAS",
+  "provenance": "User-pasted successful Windows 18-test suite and redacted real-device ADB df diagnostic; no raw unredacted ADB file",
+  "host_tests_before_fix": {
+    "count": 18,
+    "status": "PASS",
+    "elapsed_seconds": 0.025
+  },
+  "real_sony_diagnostic": {
+    "command": "tools/t10_asr_next_feasibility.py --diagnose-df",
+    "output": [
+      "ANDROID DF DIAGNOSTIC ONLY (block-device source redacted, NOT preflight PASS):",
+      "line[0] token_count=7 text='Filesystem       1K-blocks     Used Available Use% Mounted on'",
+      "line[1] token_count=6 text='<filesystem-redacted>  48023344 46097288   1778600  97% /data/user/0'",
+      "NO DOWNLOAD | NO INFERENCE | CP4 BLOCKED"
+    ],
+    "queried_path": "/data",
+    "reported_mounted_on": "/data/user/0",
+    "one_k_blocks": 48023344,
+    "used_kib": 46097288,
+    "available_kib": 1778600,
+    "reported_usage_percent": "97%",
+    "not_a_full_preflight": true
+  },
+  "observed_root_cause": "Parser rejected non-/data mountpoint although df -k /data on this Sony returned /data/user/0. Header and field token counts were already valid.",
+  "fix": {
+    "source": "tools/t10_asr_next_feasibility.py",
+    "accepted_mountpoints": [
+      "/data",
+      "/data/user/0"
+    ],
+    "disallowed_unknown_nested_mounts": true,
+    "recorded_source_mount_in_probe": "df_reported_mountpoint",
+    "synthetic_test_file": "tools/test_t10_asr_next_feasibility.py",
+    "new_tests": 3,
+    "total_expected_tests": 21,
+    "full_21_test_windows_pass_reported": false,
+    "actual_sony_probe_retry_run": false,
+    "user_device_modified": false,
+    "download_permitted": false,
+    "model_inference_run": false
+  },
+  "evidence_limitations": [
+    "Filesystem source path was redacted in user diagnostic, not reconstructed",
+    "Reported 1778600 KiB free is from df diagnostic; full read-only preflight still pending",
+    "Weight file sizes are approximate and do not imply available runtime RAM or model fit",
+    "No candidate ASR model has been selected or tested on Sony"
+  ],
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "HumanQA": "INTEGRITY_PASS_SIGNOFF_PENDING"
+  }
+}
