@@ -15,6 +15,8 @@ from pathlib import Path
 import json
 import traceback
 from t10_translation_argos_stanza_metadata import local_stanza_metadata
+from t10_translation_argos_stanza_checkpoint import temporary_legacy_tokenizer_checkpoint
+from contextlib import nullcontext
 
 
 
@@ -123,6 +125,8 @@ def ensure_offline_sbd(
     stanza_cls=None,
     mini_cls=None,
     pipeline_factory=None,
+    checkpoint_load_fn=None,
+    checkpoint_save_fn=None,
 ) -> str:
     """Initialize exclusively bundled local sentence-boundary resources.
 
@@ -175,9 +179,30 @@ def ensure_offline_sbd(
                     "logging_level": "WARNING",
                     "download_method": None,  # No Stanza resource/model downloads.
                 }
+                checkpoint_context = nullcontext((None, "UNCHANGED"))
                 if metadata_file is not None:
                     pipeline_args["resources_filepath"] = metadata_file
-                pipeline = pipeline_factory(**pipeline_args)
+                    # The legacy metadata adapter validated this name and the
+                    # corresponding local .pt checkpoint before staging.
+                    overlay_data = json.loads(
+                        Path(metadata_file).read_text(encoding="utf-8")
+                    )
+                    tokenizer_name = overlay_data[sentencizer.stanza_lang_code][
+                        "packages"
+                    ]["default"]["tokenize"]
+                    checkpoint_context = temporary_legacy_tokenizer_checkpoint(
+                        local_stanza, sentencizer.stanza_lang_code,
+                        tokenizer_name, packages_dir.parent,
+                        load_fn=checkpoint_load_fn, save_fn=checkpoint_save_fn,
+                    )
+                with checkpoint_context as (temporary_model, checkpoint_mode):
+                    if temporary_model is not None:
+                        # Stanza accepts tokenize_model_path and loads it
+                        # during Pipeline construction, while temp file exists.
+                        pipeline_args["tokenize_model_path"] = temporary_model
+                    pipeline = pipeline_factory(**pipeline_args)
+                    if metadata_file is not None and checkpoint_mode != "UNCHANGED":
+                        sbd_mode = checkpoint_mode
         except Exception as error:
             detail = stanza_failure_diagnostics(
                 local_stanza, sentencizer.stanza_lang_code, error
