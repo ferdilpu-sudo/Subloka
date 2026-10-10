@@ -387,11 +387,12 @@ class T10ArgosIDToENTests(unittest.TestCase):
         (direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").unlink()
         called = []
         with no_network():
-            with self.assertRaisesRegex(RuntimeError, "Legacy Stanza default tokenizer model"):
+            with self.assertRaisesRegex(RuntimeError, "could not be initialized offline") as cm:
                 ensure_offline_sbd(
                     direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
                     pipeline_factory=lambda **kwargs: called.append(kwargs)
                 )
+        self.assertIn("Legacy Stanza default tokenizer model", str(cm.exception.__cause__))
         self.assertEqual(called, [])
 
     def test_legacy_stanza_default_model_must_match_resource_listing(self):
@@ -401,11 +402,12 @@ class T10ArgosIDToENTests(unittest.TestCase):
             encoding="utf-8"
         )
         with no_network():
-            with self.assertRaisesRegex(RuntimeError, "absent from resource metadata"):
+            with self.assertRaisesRegex(RuntimeError, "could not be initialized offline") as cm:
                 ensure_offline_sbd(
                     direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
                     pipeline_factory=lambda **kwargs: None
                 )
+        self.assertIn("absent from resource metadata", str(cm.exception.__cause__))
 
     def test_legacy_stanza_default_tokenizer_rejects_path_like_name(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
@@ -414,11 +416,12 @@ class T10ArgosIDToENTests(unittest.TestCase):
             encoding="utf-8"
         )
         with no_network():
-            with self.assertRaisesRegex(RuntimeError, "no safe default tokenizer"):
+            with self.assertRaisesRegex(RuntimeError, "could not be initialized offline") as cm:
                 ensure_offline_sbd(
                     direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
                     pipeline_factory=lambda **kwargs: None
                 )
+        self.assertIn("no safe default tokenizer", str(cm.exception.__cause__))
 
     def test_bundled_stanza_initialization_forces_no_download(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
