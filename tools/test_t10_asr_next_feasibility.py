@@ -98,13 +98,13 @@ class FeasibilityTests(unittest.TestCase):
     def test_df_observed_sony_android_11_data_user0_mount(self):
         # Captured by the user from real SO-03L via read-only --diagnose-df.
         observed = (
-            "Filesystem       1K-blocks     Used Available Use% Mounted on\\n"
-            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\\n"
+            "Filesystem       1K-blocks     Used Available Use% Mounted on\n"
+            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\n"
         )
         self.assertEqual(parse_data_free_kib(observed), 1778600)
 
     def test_df_reject_unobserved_nested_mount_aliases(self):
-        header = "Filesystem 1K-blocks Used Available Use% Mounted on\\n"
+        header = "Filesystem 1K-blocks Used Available Use% Mounted on\n"
         base = "/dev/block/dm-5 48023344 46097288 1778600 97% "
         for bad in (
             "/data/user", "/data/user/1", "/data/user/0/other",
@@ -112,16 +112,16 @@ class FeasibilityTests(unittest.TestCase):
         ):
             with self.subTest(mountpoint=bad):
                 with self.assertRaisesRegex(ValueError, "Unexpected Android df -k row"):
-                    parse_data_free_kib(header + base + bad + "\\n")
+                    parse_data_free_kib(header + base + bad + "\n")
 
     def test_sony_probe_records_true_reported_df_mountpoint(self):
         observed = (
-            "Filesystem       1K-blocks     Used Available Use% Mounted on\\n"
-            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\\n"
+            "Filesystem       1K-blocks     Used Available Use% Mounted on\n"
+            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\n"
         )
         def fake_query(adb, args):
             if args == ["devices", "-l"]:
-                return "List of devices attached\\nR58M902144 device\\n"
+                return "List of devices attached\nR58M902144 device\n"
             return observed if args[2:] == list(ALLOWED_QUERIES["df"]) else next(
                 DEVICE[k] for k, tail in ALLOWED_QUERIES.items()
                 if args[2:] == list(tail)
