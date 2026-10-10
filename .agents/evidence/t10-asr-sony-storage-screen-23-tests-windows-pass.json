@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "checkpoint": "T10_SONY_ASR_NO_DOWNLOAD_FEASIBILITY",
+  "source": "User-pasted Windows PowerShell unittest report; console evidence only",
+  "user_windows_tests": {
+    "suite": "tools/test_t10_asr_next_feasibility.py",
+    "expected": 23,
+    "reported_ran": 23,
+    "duration_seconds": 0.03,
+    "result": "PASS_OK"
+  },
+  "previously_verified_sony_snapshot": {
+    "model": "SO-03L",
+    "abi": "arm64-v8a",
+    "total_ram_mib_rounded": 5487,
+    "free_data_mib_rounded": 1732,
+    "battery_c": 38,
+    "source": "Previous successful user Windows read-only --probe-device output, not rerun now"
+  },
+  "candidate_screen": [
+    {
+      "id": "sherpa_qwen3_asr_0_6b_int8",
+      "published_weight_mib_approx": 937,
+      "needs_two_copies_mib_approx": 1874,
+      "free_data_mib_rounded": 1732,
+      "conservative_two_copy_fit": false
+    },
+    {
+      "id": "wav2vec2_xlsr_large_indonesian",
+      "published_weight_mib_approx": 1202,
+      "needs_two_copies_mib_approx": 2404,
+      "free_data_mib_rounded": 1732,
+      "conservative_two_copy_fit": false
+    }
+  ],
+  "scientifically_unverified": [
+    "CI workflow result not confirmed",
+    "No physical Android model inference or new WER collected",
+    "No exact model artifact archive SHA/license/distribution validated",
+    "No independent new ASR holdout frozen",
+    "Local JSON device probe bytes/SHA not uploaded",
+    "Historical translation human QA independent signoff still pending"
+  ],
+  "inference_or_model_download_performed": false,
+  "thresholds_unchanged": true,
+  "next": "Host-side research into genuinely smaller Indonesian-capable offline ASR and pinned Android-compatible artifacts without GB downloads. Do not repeat rejected Small q5_1 or beam1.",
+  "status": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
