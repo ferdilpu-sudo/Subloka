@@ -25,7 +25,9 @@ from t10_translation_strategy_ab_review import fixture_data, REVIEW_COLUMNS
 from t10_translation_argos_offline_sbd import (
     ensure_offline_sbd, unwrap_local_cached_translation,
 )
-from t10_translation_argos_stanza_checkpoint import temporary_legacy_tokenizer_checkpoint
+from t10_translation_argos_stanza_checkpoint import (
+    temporary_legacy_tokenizer_checkpoint, legacy_tokenizer_config_compatible,
+)
 from t10_translation_argos_candidate import (
     no_network, _generate_pilot, local_paths, isolated_argos_env,
     report,
@@ -341,7 +343,9 @@ class T10ArgosIDToENTests(unittest.TestCase):
         original = {
             "model": {"tokenizer_weight": b"unchanged"},
             "vocab": {"special": "unchanged"},
-            "config": {"lang": "id", "dropout": 0.25},
+            "config": {"lang": "id", "dropout": 0.25,
+                       "feat_funcs": ["space_before", "all_caps", "numeric",
+                                      "end_of_para", "start_of_para"]},
         }
         observed = {"original": original}
         def load_fn(path, *, map_location, weights_only):
@@ -383,6 +387,12 @@ class T10ArgosIDToENTests(unittest.TestCase):
         self.assertEqual(observed["resource"]["id"]["packages"],
                          {"default": {"tokenize": "gsd"}})
         self.assertEqual(checkpoint["saved"]["config"]["feat_dropout"], 0.0)
+        self.assertFalse(checkpoint["saved"]["config"]["use_dictionary"])
+        self.assertEqual(checkpoint["saved"]["config"]["feat_funcs"],
+                         ["space_before", "capitalized", "numeric",
+                          "end_of_para", "start_of_para"])
+        self.assertEqual(len(checkpoint["saved"]["config"]["feat_funcs"]),
+                         len(checkpoint["original"]["config"]["feat_funcs"]))
         self.assertIsNone(checkpoint["saved"]["lexicon"])
         self.assertIs(checkpoint["saved"]["model"], checkpoint["original"]["model"])
         self.assertIs(checkpoint["saved"]["vocab"], checkpoint["original"]["vocab"])
@@ -394,6 +404,54 @@ class T10ArgosIDToENTests(unittest.TestCase):
         self.assertFalse(observed["checkpoint_path"].exists())
         self.assertIsNotNone(direct.sentencizer.stanza_pipeline)
 
+
+
+    def test_legacy_all_caps_feature_equivalent_for_per_character_inputs(self):
+        config = {"feat_funcs": ["space_before", "all_caps", "numeric",
+                                  "capitalized", "all_caps", "end_of_para"],
+                  "use_dictionary": False}
+        translated = legacy_tokenizer_config_compatible(config)
+        self.assertEqual(translated["feat_funcs"],
+                         ["space_before", "capitalized", "numeric",
+                          "capitalized", "capitalized", "end_of_para"])
+        self.assertEqual(len(translated["feat_funcs"]), len(config["feat_funcs"]))
+        self.assertEqual(config["feat_funcs"][1], "all_caps")
+        # Earlier Stanza uses str.isupper(), newer Stanza uses
+        # str[0].isupper(); inputs are individual Unicode text characters.
+        for unit in ("A", "z", "7", " ", "É", "ß", "İ", "Ω", "中", "𝔄"):
+            self.assertEqual(unit.isupper(), unit[0].isupper())
+
+    def test_legacy_feature_schema_rejects_unknown_without_silent_drop(self):
+        for bad in (["all_caps", "unsupported"], ["ALL_CAPS"],
+                    ["../all_caps"], [], "all_caps"):
+            with self.subTest(bad=bad):
+                with self.assertRaisesRegex(RuntimeError, "Unrecognized legacy"):
+                    legacy_tokenizer_config_compatible({"feat_funcs": bad})
+
+    def test_legacy_dictionary_flag_absent_defaults_false_preserving_explicit_true(self):
+        original = {"feat_funcs": ["all_caps", "numeric"]}
+        translated = legacy_tokenizer_config_compatible(original)
+        self.assertIs(translated["use_dictionary"], False)
+        self.assertNotIn("use_dictionary", original)
+        explicitly_true = legacy_tokenizer_config_compatible({
+            "feat_funcs": ["all_caps"], "use_dictionary": True,
+        })
+        self.assertIs(explicitly_true["use_dictionary"], True)
+
+    def test_legacy_conversion_keeps_existing_feature_positions_and_config(self):
+        original = {
+            "feat_funcs": ("end_of_para", "all_caps", "numeric", "space_before"),
+            "feat_dropout": 0.3,
+            "use_dictionary": False,
+            "hidden_dim": 256,
+        }
+        compatible = legacy_tokenizer_config_compatible(original)
+        self.assertIs(type(compatible["feat_funcs"]), tuple)
+        self.assertEqual(compatible["feat_funcs"],
+                         ("end_of_para", "capitalized", "numeric", "space_before"))
+        self.assertEqual(compatible["hidden_dim"], 256)
+        self.assertEqual(compatible["feat_dropout"], 0.3)
+        self.assertEqual(original["feat_funcs"][1], "all_caps")
 
     def test_legacy_checkpoint_refuses_malformed_payload(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
@@ -427,7 +485,10 @@ class T10ArgosIDToENTests(unittest.TestCase):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
         load_fn, save_fn, observed = self._synthetic_legacy_checkpoint_io()
         modern = {**observed["original"],
-                  "config": {**observed["original"]["config"], "feat_dropout": 0.05},
+                  "config": {**observed["original"]["config"], "feat_dropout": 0.05,
+                             "feat_funcs": ["space_before", "capitalized", "numeric",
+                                            "end_of_para", "start_of_para"],
+                             "use_dictionary": False},
                   "lexicon": None}
         with temporary_legacy_tokenizer_checkpoint(
             direct.pkg.packaged_sbd_path, "id", "gsd", packages.parent,
