@@ -22,7 +22,9 @@ import uuid
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
-from t10_translation_argos_offline_sbd import ensure_offline_sbd
+from t10_translation_argos_offline_sbd import (
+    ensure_offline_sbd, unwrap_local_cached_translation,
+)
 from t10_translation_argos_protocol import (
     ROOT, MODEL_URL, MODEL_FILENAME, MODEL_SHA256, MODEL_BYTES_MIN,
     MODEL_BYTES_MAX, REVIEW_SHA256, PILOT_IDS, DIAGNOSTIC,
@@ -158,11 +160,16 @@ def pilot(review: Path, workdir: Path, *, translate_fn=None) -> Path:
             if len(sources) != 1 or len(targets) != 1:
                 raise RuntimeError("Expected isolated Indonesian and English language objects")
             direct = sources[0].get_translation(targets[0])
+            # Argos 1.11 exposes CachedTranslation(PackageTranslation);
+            # only the inner PackageTranslation owns pkg and sentencizer.
+            # Reject pivots/remote backends, but infer via the original
+            # cached translation to preserve the same Argos behavior.
+            backend = unwrap_local_cached_translation(direct, packages_id_en[0])
             # Argos lazily constructs Stanza.Pipeline with its default
             # DOWNLOAD_RESOURCES option at first translate(). Pin the SAME
             # bundled SBD resources to strictly local files before inference.
             # Keep the no_network guard for ALL initialization and inference.
-            sbd_mode = ensure_offline_sbd(direct, packages)
+            sbd_mode = ensure_offline_sbd(backend, packages)
             print("OFFLINE SENTENCE BOUNDARY READY:", sbd_mode)
             def offline_translate(sentence: str) -> str:
                 return direct.translate(sentence)
