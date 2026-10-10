@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ORIGINAL_MLKIT_EN_ID_ID_EN_60_HUMAN_QA",
+  "source": "User pasted successful Windows PowerShell output. Local source/QA session files not uploaded.",
+  "git_sync": {
+    "method": "git pull --ff-only origin main",
+    "range": "fa0dc05..734e66e",
+    "status": "PASS"
+  },
+  "original_device_csv": {
+    "path": ".t10-benchmark/translation-results.csv",
+    "existed_in_user_windows": true,
+    "reported_raw_sha256": "f135ec8bf749d0609197137e54691170047d3336b2d246a9f89dd0689cb5de6a"
+  },
+  "prepare": {
+    "status": "PASS_USER_REPORTED",
+    "script": "tools/t10_translation_human_qa.py prepare",
+    "session": ".t10-benchmark/t10-human-qa-20261010T132119",
+    "session_created": true,
+    "ai_draft_exact_output_match": true,
+    "sample_count": 60,
+    "original_fixture_identity_validated_by_script": true,
+    "generated_expected": [
+      "human-review.csv",
+      "review-session.json",
+      "REVIEW_INSTRUCTIONS.md"
+    ],
+    "all_human_status_blank": true,
+    "ai_draft_only_provisional": true,
+    "actual_human_decisions_obtained": false,
+    "independent_reviewer_attestation": false,
+    "finalized": false
+  },
+  "strict_next": "Independent bilingual reviewer must fill all 60 human_status and human_notes where needed without editing raw and provisional columns. Do not fabricate labels, signatures or invoke finalize before completed authentic review.",
+  "audit_limitations": [
+    "raw input SHA is script-reported from Windows console, not independently measured in assistant runtime",
+    "review-session.json and human-review.csv bytes not uploaded",
+    "AI exact-output digest verifies matching device output, not semantic correctness or reviewer independence"
+  ],
+  "gates": {
+    "T10": "ACTIVE_HUMAN_QA_PREPARED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
