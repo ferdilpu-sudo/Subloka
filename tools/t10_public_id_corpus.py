@@ -214,23 +214,27 @@ def choose_samples(workspace: Path, category: str, limit: int = 30) -> dict:
             (REVISION + "|" + key + "|" + r["audio_path"]).encode("utf-8")
         ).hexdigest())
     selected = []
-    seen_ref = set()
+    seen_audio_paths = set()
+    unique_references = set()
     while len(selected) < limit:
         progressed = False
         for speaker in sorted(by_speaker):
             while by_speaker[speaker]:
                 row = by_speaker[speaker].pop(0)
-                text_normal = " ".join(normalize(row["transcript"]))
-                if text_normal in seen_ref:
+                if row["audio_path"] in seen_audio_paths:
                     continue
                 selected.append(row)
-                seen_ref.add(text_normal)
+                seen_audio_paths.add(row["audio_path"])
+                unique_references.add(" ".join(normalize(row["transcript"])))
                 progressed = True
                 break
             if len(selected) >= limit:
                 break
         if not progressed:
-            raise ValueError("Insufficient distinct references in chosen category")
+            raise ValueError("Insufficient distinct audio paths in chosen category")
+    # Author documents only ~19 distinct sentence prompts per category;
+    # speaker-disjoint audio often repeats text. Report repetitions honestly,
+    # rather than pretending the external subset tests unseen vocabulary.
     total_words = sum(len(normalize(x["transcript"])) for x in selected)
     if total_words < 180:
         raise ValueError("Selected external diagnostic has too few normalized words")
@@ -247,6 +251,11 @@ def choose_samples(workspace: Path, category: str, limit: int = 30) -> dict:
         "source_archive_sha256_not_locally_verified": True,
         "tar_archive_size_not_preflighted": True,
         "sample_count": len(selected),
+        "distinct_audio_paths": len(seen_audio_paths),
+        "distinct_reference_prompts": len(unique_references),
+        "repeated_reference_prompts": len(selected) - len(unique_references),
+        "reference_texts_may_repeat_across_speakers": True,
+        "not_unseen_prompt_or_open_vocabulary_benchmark": True,
         "normalized_reference_words": total_words,
         "public_speaker_label_count": len({r["speaker_id"] for r in selected}),
         "all_audio_downloaded": False,
