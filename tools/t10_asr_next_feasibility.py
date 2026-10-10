@@ -122,8 +122,9 @@ def parse_data_free_kib(text: str) -> int:
     """Read /data Available in KiB from a single-row Android `df -k /data`.
 
     Android toybox uses a two-word "Mounted on" HEADER but a single
-    mountpoint value (/data). Normalize the HEADER phrase first; never align
-    raw header-token and row-token counts directly.
+    mountpoint value. Sony SO-03L reports /data/user/0 for the
+    explicit `df -k /data` query; admit this exact observed alias only.
+    Never align raw header-token and row-token counts directly.
     """
     lines = [x.strip() for x in text.splitlines() if x.strip()]
     if len(lines) != 2:
@@ -145,7 +146,10 @@ def parse_data_free_kib(text: str) -> int:
         raise ValueError("Unexpected Android df -k header")
 
     values = re.split(r"\s+", lines[1])
-    if len(values) != len(header) or values[-1] != "/data":
+    # The actual Sony SO-03L Android 11 diagnostic printed `/data/user/0`
+    # as the mountpoint for `df -k /data`. This is a narrowly observed
+    # mount alias, not permission to accept arbitrary nested paths.
+    if len(values) != len(header) or values[-1] not in ("/data", "/data/user/0"):
         raise ValueError("Unexpected Android df -k row")
     if not all(re.fullmatch(r"[0-9]+", values[index]) for index in (1, 2, 3)):
         raise ValueError("Invalid Android df -k numeric fields")
@@ -229,6 +233,7 @@ def probe_device(adb: str, query: Callable[[str, list[str]], str] = run_adb) -> 
         "abi": abi,
         "mem_total_kib": ram,
         "free_data_kib": data,
+        "df_reported_mountpoint": values["df"].splitlines()[-1].split()[-1],
         "battery_c": battery,
         "battery_is_not_cpu_temperature": True,
         "airplane_mode_on": airplane,
