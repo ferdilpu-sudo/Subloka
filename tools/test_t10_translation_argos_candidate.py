@@ -25,6 +25,7 @@ from t10_translation_strategy_ab_review import fixture_data, REVIEW_COLUMNS
 from t10_translation_argos_offline_sbd import (
     ensure_offline_sbd, unwrap_local_cached_translation,
 )
+from t10_translation_argos_stanza_checkpoint import temporary_legacy_tokenizer_checkpoint
 from t10_translation_argos_candidate import (
     no_network, _generate_pilot, local_paths, isolated_argos_env,
     report,
@@ -335,6 +336,26 @@ class T10ArgosIDToENTests(unittest.TestCase):
             )
 
 
+    def _synthetic_legacy_checkpoint_io(self):
+        # Simulate old Stanza 1.2 checkpoint without reading torch/model weights.
+        original = {
+            "model": {"tokenizer_weight": b"unchanged"},
+            "vocab": {"special": "unchanged"},
+            "config": {"lang": "id", "dropout": 0.25},
+        }
+        observed = {"original": original}
+        def load_fn(path, *, map_location, weights_only):
+            self.assertEqual(map_location, "cpu")
+            self.assertIs(weights_only, True)
+            self.assertTrue(Path(path).is_file())
+            observed["loaded"] = True
+            return original
+        def save_fn(payload, path):
+            observed["saved"] = payload
+            observed["saved_path"] = Path(path)
+            Path(path).write_bytes(b"synthetic tempfile checkpoint")
+        return load_fn, save_fn, observed
+
     def test_legacy_stanza_metadata_overlay_preserves_original_and_model(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
         resources = direct.pkg.packaged_sbd_path / "resources.json"
@@ -342,26 +363,115 @@ class T10ArgosIDToENTests(unittest.TestCase):
         resources.write_text(legacy, encoding="utf-8")
         original_model = (direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").read_bytes()
         observed = {}
+        load_fn, save_fn, checkpoint = self._synthetic_legacy_checkpoint_io()
         def fake_pipeline(**kwargs):
             self.assertIsNone(kwargs["download_method"])
             overlay = Path(kwargs["resources_filepath"])
             observed["path"] = overlay
             observed["resource"] = json.loads(overlay.read_text(encoding="utf-8"))
+            observed["checkpoint_path"] = Path(kwargs["tokenize_model_path"])
             self.assertTrue(overlay.is_file())
+            self.assertTrue(observed["checkpoint_path"].is_file())
             return object()
         with no_network():
             mode = ensure_offline_sbd(
                 direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
-                pipeline_factory=fake_pipeline
+                pipeline_factory=fake_pipeline,
+                checkpoint_load_fn=load_fn, checkpoint_save_fn=save_fn,
             )
-        self.assertEqual(mode, "PACKAGED_STANZA_LEGACY_METADATA_OVERLAY_NO_DOWNLOAD")
+        self.assertEqual(mode, "PACKAGED_STANZA_LEGACY_METADATA_AND_CHECKPOINT_NO_DOWNLOAD")
         self.assertEqual(observed["resource"]["id"]["packages"],
                          {"default": {"tokenize": "gsd"}})
+        self.assertEqual(checkpoint["saved"]["config"]["feat_dropout"], 0.0)
+        self.assertIsNone(checkpoint["saved"]["lexicon"])
+        self.assertIs(checkpoint["saved"]["model"], checkpoint["original"]["model"])
+        self.assertIs(checkpoint["saved"]["vocab"], checkpoint["original"]["vocab"])
+        self.assertNotIn("feat_dropout", checkpoint["original"]["config"])
         self.assertEqual(resources.read_text(encoding="utf-8"), legacy)
         self.assertEqual((direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").read_bytes(),
                          original_model)
         self.assertFalse(observed["path"].exists())
+        self.assertFalse(observed["checkpoint_path"].exists())
         self.assertIsNotNone(direct.sentencizer.stanza_pipeline)
+
+
+    def test_legacy_checkpoint_refuses_malformed_payload(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        model = direct.pkg.packaged_sbd_path
+        writes = []
+        with self.assertRaisesRegex(RuntimeError, "Unexpected legacy Stanza checkpoint"):
+            with temporary_legacy_tokenizer_checkpoint(
+                model, "id", "gsd", packages.parent,
+                load_fn=lambda *a, **k: {"config": {}, "model": {}},
+                save_fn=lambda *a, **k: writes.append(1),
+            ):
+                pass
+        self.assertEqual(writes, [])
+
+    def test_legacy_checkpoint_rejects_untrusted_weights_only_fallback(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        def refuse_old_pickle(*args, **kwargs):
+            self.assertIs(kwargs["weights_only"], True)
+            raise RuntimeError("unsafe older checkpoint encoding")
+        calls = []
+        with self.assertRaisesRegex(RuntimeError, "unsafe older checkpoint encoding"):
+            with temporary_legacy_tokenizer_checkpoint(
+                direct.pkg.packaged_sbd_path, "id", "gsd", packages.parent,
+                load_fn=refuse_old_pickle,
+                save_fn=lambda *a, **k: calls.append(1),
+            ):
+                pass
+        self.assertEqual(calls, [])
+
+    def test_legacy_checkpoint_already_has_current_fields_no_copy(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        load_fn, save_fn, observed = self._synthetic_legacy_checkpoint_io()
+        modern = {**observed["original"],
+                  "config": {**observed["original"]["config"], "feat_dropout": 0.05},
+                  "lexicon": None}
+        with temporary_legacy_tokenizer_checkpoint(
+            direct.pkg.packaged_sbd_path, "id", "gsd", packages.parent,
+            load_fn=lambda *args, **kwargs: modern,
+            save_fn=save_fn,
+        ) as (temp_file, mode):
+            self.assertIsNone(temp_file)
+            self.assertEqual(mode, "PACKAGED_STANZA_LEGACY_METADATA_ONLY_NO_DOWNLOAD")
+        self.assertNotIn("saved", observed)
+
+    def test_legacy_checkpoint_cleanup_after_pipeline_failure(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        (direct.pkg.packaged_sbd_path / "resources.json").write_text(
+            '{"id":{"default_processors":{"tokenize":"gsd"},"tokenize":{"gsd":{}}}}',
+            encoding="utf-8"
+        )
+        load_fn, save_fn, observed = self._synthetic_legacy_checkpoint_io()
+        seen = []
+        def bad_pipeline(**kwargs):
+            seen.append((Path(kwargs["resources_filepath"]),
+                         Path(kwargs["tokenize_model_path"])))
+            raise KeyError("subsequent-incompatibility")
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "missing_key='subsequent-incompatibility'"):
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=bad_pipeline,
+                    checkpoint_load_fn=load_fn, checkpoint_save_fn=save_fn,
+                )
+        self.assertEqual(len(seen), 1)
+        self.assertFalse(seen[0][0].exists())
+        self.assertFalse(seen[0][1].exists())
+        self.assertIsNone(direct.sentencizer.stanza_pipeline)
+
+    def test_legacy_checkpoint_rejects_other_model_location(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        with self.assertRaisesRegex(RuntimeError, "outside the isolated model workspace"):
+            with temporary_legacy_tokenizer_checkpoint(
+                direct.pkg.packaged_sbd_path, "id", "gsd",
+                self.dir / "elsewhere",
+                load_fn=lambda *a, **k: {},
+                save_fn=lambda *a, **k: None,
+            ):
+                pass
 
     def test_current_stanza_resources_do_not_need_metadata_overlay(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
