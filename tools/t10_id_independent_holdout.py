@@ -21,6 +21,7 @@ from t10_wer import normalize
 from t10_asr_next_feasibility import read_frozen_pins
 from t10_asr_id_compact_protocol import CANDIDATES
 
+PRIVATE_BASE = Path(__file__).resolve().parent.parent / ".t10-benchmark"
 SCHEMA_VERSION = 1
 MIN_COUNTS = {"clean": 20, "challenging": 10}
 MIN_SPEAKERS = 5
@@ -37,6 +38,15 @@ PSEUDONYM = re.compile(r"^(spk|rev)-[a-z0-9][a-z0-9_-]{1,30}$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 ORIGIN = "fresh_consented_recording_not_public_corpus"
 CONSENT = "offline_asr_evaluation_only"
+
+
+def require_private_workspace(workspace: Path) -> None:
+    """Keep voice recordings, raw references and declared consent outside Git."""
+    base = PRIVATE_BASE.resolve()
+    root = workspace.resolve()
+    if (workspace.is_symlink() or root == base or base not in root.parents
+            or any(part.is_symlink() for part in (workspace, workspace.parent))):
+        raise ValueError("Private holdout MUST be inside gitignored .t10-benchmark/<name>")
 
 
 def sha256_file(path: Path) -> str:
@@ -62,6 +72,7 @@ def parse_recorded_utc(value: object) -> None:
 
 
 def load_manifest(workspace: Path) -> tuple[dict, bytes]:
+    require_private_workspace(workspace)
     if workspace.is_symlink():
         raise ValueError("Workspace symlink prohibited")
     path = workspace / "manifest.json"
@@ -189,19 +200,36 @@ def audit(workspace: Path) -> dict:
 
 
 def init(workspace: Path) -> None:
-    if workspace.is_symlink() or (workspace / "manifest.json").exists():
-        raise FileExistsError("Private manifest already exists; refusing overwrite")
+    require_private_workspace(workspace)
+    if (workspace / "manifest.json").exists() or (workspace / "manifest.lock.json").exists():
+        raise FileExistsError("Private manifest/lock already exists; refusing overwrite")
     workspace.mkdir(parents=True, exist_ok=True)
     (workspace / "audio").mkdir(exist_ok=True)
-    template = {"schema_version": 1, "purpose": "independent_id_asr_holdout", "samples": []}
+    # Explicitly INCOMPLETE row slots: no real speaker, recording,
+    # reviewer, reference, human consent or truth claims are generated.
+    slots = []
+    for kind, count in MIN_COUNTS.items():
+        for idx in range(1, count + 1):
+            sid = f"id-{kind}-{idx:02d}"
+            slots.append({
+                "id": sid,
+                "category": kind, "language": "id",
+                "audio": f"audio/{sid}.wav", "audio_sha256": "",
+                "reference": "", "speaker_id": "", "recorded_utc": "",
+                "consent_scope": CONSENT, "consent_declared": False,
+                "human_reference_reviewed": False,
+                "reference_reviewed_by": "", "origin": "",
+            })
+    template = {"schema_version": 1, "purpose": "independent_id_asr_holdout", "samples": slots}
     with (workspace / "manifest.json").open("x", encoding="utf-8") as file:
         json.dump(template, file, ensure_ascii=False, indent=2)
         file.write("\n")
-    print("PRIVATE EMPTY HOLDOUT INITIALIZED:", workspace)
+    print("PRIVATE HOLDOUT TEMPLATE INITIALIZED:", workspace, "30 EMPTY SLOTS")
     print("NO REAL AUDIO, TRANSCRIPT OR CONSENT HAS BEEN VERIFIED")
 
 
 def seal(workspace: Path) -> dict:
+    require_private_workspace(workspace)
     path = workspace / "manifest.lock.json"
     if path.exists() or path.is_symlink():
         raise FileExistsError("Frozen holdout lock exists; cannot overwrite")
@@ -220,6 +248,7 @@ def seal(workspace: Path) -> dict:
 
 
 def verify(workspace: Path) -> dict:
+    require_private_workspace(workspace)
     path = workspace / "manifest.lock.json"
     if not path.is_file() or path.is_symlink():
         raise ValueError("Missing immutable holdout lock")
