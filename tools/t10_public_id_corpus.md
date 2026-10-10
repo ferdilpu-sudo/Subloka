@@ -129,3 +129,31 @@ if ($LASTEXITCODE -ne 0) { throw "T10 TAR range probe tests FAILED" }
 Tes tambahan **12 kasus sintetis**, hasil Windows **PENDING**. Bila tes lulus tetapi HTTP probe bernilai `RANGE_NOT_HONORED_NO_BODY_READ`, stop dan **jangan** meneruskan ke unduhan besar. Bila server memberikan 206 valid, evaluasi indeks TAR/berapa banyak round-trip metadata yang dibutuhkan **sebelum** mengembangkan pengambilan hanya 30 WAV. Jangan berasumsi ratusan ribu request Range ekonomis, murah, atau benar. Jika server memberi 206 namun 512 header bukan TAR yang valid, stop untuk investigasi lebih lanjut.
 
 Dataset Atika tetap **evaluasi publik tambahan**, dengan teks bacaan yang berulang antar peserta dan hanya tiga label pembicara test/kategori; tidak boleh dimasukkan ke holdout privat rekaman baru atau dinyatakan mengatasi CP4.
+
+## Checkpoint Range 206 PASS dan pilot header TAR berurutan (2026-10-10)
+
+Actual Windows: `tools/test_t10_atika_tar_range_probe.py` **12/12 PASS dalam 0,006 detik**; permintaan HTTPS `Range: bytes=0-511` terhadap `Imperative.tar` pada pin revisi terbukti menghasilkan **HTTP 206**, `Content-Range` / total ukuran arsip konsisten, dan **checksum 512-byte header TAR valid**. Header pertama menunjukkan isi file pertama `91364` byte. **Belum ada satu pun WAV disalin**, 30 metadata test tetap write-once, belum ada model/ADB/inference. Terminal kemudian menampilkan `elseif : The term 'elseif' is not recognized`; ini hanya sintaks PowerShell karena `elseif` dijalankan sebagai perintah terpisah dari blok `if`, bukan kegagalan Range.
+
+Untuk menghindari unduhan penuh 865,7 MiB sebelum menilai ongkos indexing, alat *terpisah* `tools/t10_atika_tar_header_walk.py` menelusuri **maksimal 8 header berurutan** dari offset nol. Header berikutnya dihitung dari ukuran file sebelumnya dengan kelipatan blok TAR 512 byte. Setiap header dibaca lewat satu HTTPS Range `206` persis 512 byte dan batas pembacaan 513 byte. Maksimum percobaan remote = **8 requests, 4.104 body bytes**; default 6. Tidak ada payload audio yang disimpan atau isi/path peserta yang ditampilkan. Jika server mendadak mengabaikan Range (`HTTP 200`), berhenti tanpa membaca body dan exit code 2.
+
+Pilot membaca **snapshot seleksi privat yang sudah tersedia**, memeriksa kategori Imperative, SHA metadata publik `3ba42e...`, 30 path WAV yang unik, dan revisi pin tanpa menyalin berkas. Output hanya agregat header yang berhasil, offset lanjutan, hitungan nama yang *persis* cocok dengan 30 path metadata, dan status `CP4 BLOCKED`. Kecocokan nol tidak otomatis berarti gagal: kemungkinan path member TAR berbeda prefiks dari jalur CSV. Pilot **bukan** pengindeks seluruh arsip atau metode unduhan 30 WAV; ratusan/ribuan permintaan terpisah tidak boleh diasumsikan praktis.
+
+### Pengujian Windows berikutnya
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_header_walk.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR header walk tests FAILED" }
+& $py tools\t10_atika_tar_header_walk.py --workspace $public --max-headers 6
+$rc = $LASTEXITCODE
+if ($rc -eq 0) { Write-Host "T10 BOUNDED HEADER WALK PASS" -ForegroundColor Green }
+elseif ($rc -eq 2) { Write-Host "HTTP Range ignored; no TAR downloaded" -ForegroundColor Yellow }
+else { throw "TAR header walk failed ($rc)" }
+```
+
+**Catatan:** Salin blok `if/elseif/else` lengkap sekaligus ke PowerShell; jangan menjalankan `elseif` sendiri setelah sebuah `if` telah ditutup. Total **14 unit test baru**, Windows QA **belum diterima**; CI juga belum dikonfirmasi. Tidak perlu ulangi probe pertama, `fetch-metadata`, `select`, atau unduh TAR.
+
+Jika pilot berhasil: lakukan analisis ongkos pemetaan TAR sebelum mengembangkan ekstraksi; periksa kemungkinan adanya indeks WAV kategori yang sudah dipublikasikan. Jangan mengunduh TAR besar, menjalankan scan tanpa batas, atau mengklaim WER/CP4 PASS.
