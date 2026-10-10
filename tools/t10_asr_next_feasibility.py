@@ -179,6 +179,31 @@ def run_adb(adb: str, args: list[str], timeout: int = 12) -> str:
     return p.stdout
 
 
+def diagnostic_df_lines(text: str) -> list[str]:
+    """Format Android df stdout for diagnosis; mask block device names.
+
+    Do not expose ADB serials; never parse numbers here as evidence of
+    capacity or deem the actual device probe successful.
+    """
+    lines = text.splitlines()
+    if not lines or len(lines) > 24 or len(text) > 4000:
+        raise ValueError("Unexpected df diagnostic length")
+    result = []
+    for number, line in enumerate(lines):
+        # Block device path is not needed to diagnose header/token alignment.
+        safe_line = re.sub(r"^([ \\t]*)/dev/[^ \\t]+",
+                           r"\\1<filesystem-redacted>", line)
+        result.append(f"line[{number}] token_count={len(line.split())} text={safe_line!r}")
+    return result
+
+
+def diagnose_device_df(adb: str, query: Callable[[str, list[str]], str] = run_adb) -> list[str]:
+    """Query ONLY ADB device list and df -k /data; no state changes."""
+    serial = adb_devices(query(adb, ["devices", "-l"]))
+    raw = query(adb, ["-s", serial, *ALLOWED_QUERIES["df"]])
+    return diagnostic_df_lines(raw)
+
+
 def probe_device(adb: str, query: Callable[[str, list[str]], str] = run_adb) -> dict:
     serial = adb_devices(query(adb, ["devices", "-l"]))
     values = {
@@ -192,7 +217,10 @@ def probe_device(adb: str, query: Callable[[str, list[str]], str] = run_adb) -> 
     if abi not in ("arm64-v8a", "armeabi-v7a", "x86_64"):
         raise ValueError("Unsupported Android ABI for candidate feasibility")
     ram = parse_mem_total(values["mem"])
-    data = parse_data_free_kib(values["df"])
+    try:
+        data = parse_data_free_kib(values["df"])
+    except ValueError as exc:
+        raise ValueError(str(exc) + "; run --diagnose-df for sanitized read-only output") from exc
     battery = parse_battery_c(values["battery"])
     airplane = radio_setting(values["airplane"], "airplane_mode_on")
     wifi = radio_setting(values["wifi"], "wifi_on")
@@ -271,6 +299,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--probe-device", action="store_true",
                         help="Read-only ADB device snapshot (no transfers or inference)")
+    parser.add_argument("--diagnose-df", action="store_true",
+                        help="Print sanitized df -k /data output shape only; no probe PASS")
     parser.add_argument("--adb", default=None,
                         help="ADB executable path; default searches PATH")
     parser.add_argument("--json", type=Path, default=None,
@@ -279,7 +309,9 @@ def main() -> int:
     try:
         pins = read_frozen_pins()
         device = None
-        if args.probe_device:
+        if args.diagnose_df and (args.probe_device or args.json is not None):
+            raise ValueError("--diagnose-df is diagnostic-only; do not combine with --probe-device or --json")
+        if args.probe_device or args.diagnose_df:
             adb = args.adb or shutil.which("adb")
             if not adb and sys.platform == "win32":
                 import os
@@ -294,6 +326,12 @@ def main() -> int:
                 adb = next((str(p) for p in candidates if p.is_file()), None)
             if not adb:
                 raise ValueError("ADB unavailable; add Android SDK platform-tools to PATH")
+            if args.diagnose_df:
+                print("ANDROID DF DIAGNOSTIC ONLY (block-device source redacted, NOT preflight PASS):")
+                for line in diagnose_device_df(adb):
+                    print(line)
+                print("NO DOWNLOAD | NO INFERENCE | CP4 BLOCKED")
+                return 0
             device = probe_device(adb)
         result = assess(pins, device)
         if args.json is not None:
