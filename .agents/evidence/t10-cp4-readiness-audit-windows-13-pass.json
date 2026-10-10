@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-CP4-CONVERGED-EVIDENCE-AUDIT-001",
+  "source": "User-pasted Windows PowerShell output, no raw JSON upload",
+  "host_command": " .\\.t10-benchmark\\argos-venv\\Scripts\\python.exe -m unittest discover -s tools -p test_t10_cp4_readiness.py -v",
+  "unit_tests": {
+    "count": 13,
+    "status": "PASS",
+    "reported_duration_seconds": 0.131
+  },
+  "report_command": " .\\.t10-benchmark\\argos-venv\\Scripts\\python.exe tools\\t10_cp4_readiness.py --json .\\.t10-benchmark\\t10-cp4-readiness.json",
+  "reporter_console": [
+    "ASR Indonesian clean: 105/367 edits, WER 28.61%; requires >= 32 fewer errors",
+    "Original CP4 ID->EN accepted: 24 /30, needs 27 /30 (gap 3 )",
+    "Sony video 734s: MEDIA_STAGE_PASS, NOT full E2E",
+    "Argos host full30: 21/30 vs 21/30, net 0; NOT Android",
+    "T10 ACTIVE | CP4 BLOCKED | T11 TODO"
+  ],
+  "verified_scope": "Repository auditor regression-suite PASS and existing-evidence report executed on user's Windows host",
+  "unverified": "Locally generated t10-cp4-readiness.json raw bytes/hash not uploaded; no new ASR/translation/audio/media measurements; not physical device E2E",
+  "protected_gates": {
+    "ASR_ID_clean_micro_WER": "105/367 (28.61%) vs <=20%",
+    "translation_original_ID_EN": "24/30 vs >=27/30",
+    "translation_original_EN_ID": "27/30",
+    "media_video_734s": "MEDIA_STAGE_PASS_NOT_FULL_E2E",
+    "argos_host_full30": "net 0 only, not device",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "next": "Obtain independently verified bilingual human review of original 60 ML Kit outputs using existing tools/t10_translation_human_qa.py where possible; develop a separately preregistered Indonesian ASR model alternative and genuinely independent validation set before any further Sony inference. Retain frozen baselines."
+}
