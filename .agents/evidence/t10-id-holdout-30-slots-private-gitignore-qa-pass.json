@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint_id": "T10_INDEPENDENT_ID_HOLDOUT_PRIVATE_TEMPLATE_READONLY_QA_30_20_10_30_IGNORED",
+  "provenance": "User-submitted actual Windows PowerShell stdout after earlier private init; private manifest/audio bytes not uploaded or inspected by assistant",
+  "workspace_relative": ".t10-benchmark/t10-id-holdout-new",
+  "checks": {
+    "manifest_loaded_as_json": true,
+    "displayed_total_samples": 30,
+    "displayed_clean_samples": 20,
+    "displayed_challenging_samples": 10,
+    "displayed_empty_unverified": 30,
+    "template_guard_threw_error": false,
+    "empty_predicate": [
+      "consent_declared != true",
+      "human_reference_reviewed != true",
+      "reference is empty",
+      "audio_sha256 is empty"
+    ],
+    "git_check_ignore_exit_inferred_from_positive_print": true,
+    "git_check_ignore_output": ".\\.t10-benchmark\\t10-id-holdout-new\\manifest.json",
+    "selected_manifest_ignored_by_git": true
+  },
+  "status": "PRIVATE_TEMPLATE_STRUCTURE_AND_GITIGNORE_QA_PASS_ONLY",
+  "limitations": {
+    "individual_manifest_rows_independently_opened": false,
+    "audio_recordings_accepted": false,
+    "real_consent_or_reviewer_authenticated": false,
+    "private_audio_and_references_absent_or_unreviewed": true,
+    "holdout_audit_pass": false,
+    "immutable_holdout_seal_created": false,
+    "candidate_local_file_sha_verified": false,
+    "model_download_or_asr_inference": false,
+    "new_asr_word_error_rate_measured": false,
+    "cp4_promoted": false
+  },
+  "prior_windows_regression": {
+    "tests": 19,
+    "elapsed_seconds": 7.496,
+    "result": "PASS"
+  },
+  "next": "Collect new consented and genuinely independent Indonesian speech and human-reviewed text privately before audit/seal. Avoid uploading participant data or claiming eligibility based on a blank template.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
