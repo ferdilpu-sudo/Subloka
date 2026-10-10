@@ -14,6 +14,55 @@ from __future__ import annotations
 from pathlib import Path
 
 
+
+def unwrap_local_cached_translation(
+    translation,
+    installed_package,
+    *,
+    cached_cls=None,
+    packaged_cls=None,
+):
+    """Resolve Argos 1.11's direct CachedTranslation(PackageTranslation).
+
+    Language.get_translation() returns a caching wrapper, not the package
+    backend itself. Reject any identity, composite, remote, or other backend;
+    never fall back to a different inference engine.
+    """
+    if cached_cls is None or packaged_cls is None:
+        from argostranslate.translate import CachedTranslation, PackageTranslation
+        if cached_cls is None:
+            cached_cls = CachedTranslation
+        if packaged_cls is None:
+            packaged_cls = PackageTranslation
+
+    backend = getattr(translation, "underlying", None)
+    if not isinstance(translation, cached_cls) or not isinstance(backend, packaged_cls):
+        raise RuntimeError(
+            "Expected Argos CachedTranslation wrapping one direct PackageTranslation; "
+            "pivot/remote/identity backends are forbidden"
+        )
+
+    source_codes = (
+        getattr(getattr(translation, "from_lang", None), "code", None),
+        getattr(getattr(backend, "from_lang", None), "code", None),
+        getattr(getattr(backend, "pkg", None), "from_code", None),
+    )
+    target_codes = (
+        getattr(getattr(translation, "to_lang", None), "code", None),
+        getattr(getattr(backend, "to_lang", None), "code", None),
+        getattr(getattr(backend, "pkg", None), "to_code", None),
+    )
+    if source_codes != ("id", "id", "id") or target_codes != ("en", "en", "en"):
+        raise RuntimeError("Argos translation must be the installed direct id->en package")
+
+    expected_path = getattr(installed_package, "package_path", None)
+    backend_path = getattr(backend.pkg, "package_path", None)
+    if (expected_path is None or backend_path is None or
+            Path(expected_path).resolve() != Path(backend_path).resolve()):
+        raise RuntimeError("Argos direct backend does not match the isolated installed package")
+    return backend
+
+
 def ensure_offline_sbd(
     direct,
     packages_dir: Path,
