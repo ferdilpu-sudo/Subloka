@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_SONY_ASR_NO_DOWNLOAD_FEASIBILITY_READONLY",
+  "provenance": "User-pasted PowerShell Windows unittest output after pulling main to 1eb4734; assistant inspected GitHub code, patched parser, independently reproduced synthetic parsing.",
+  "reported_windows_before_fix": {
+    "commit": "1eb4734",
+    "tests_total": 12,
+    "passed": 9,
+    "errors": 3,
+    "elapsed_seconds": 0.088,
+    "verdict": "FAILED",
+    "failing_test_names": [
+      "test_df_available_kib_strict",
+      "test_probe_mock_only_allowed_read_commands_and_serial",
+      "test_published_weight_is_not_runtime_ram_claim"
+    ],
+    "shared_exception": "ValueError: Unexpected Android df -k row",
+    "actual_android_preflight_performed": false
+  },
+  "cause": "Android df -k header has two whitespace tokens Mounted on but row has single /data mountpoint. Original parser compared lexical token counts rather than logical field counts.",
+  "frozen_valid_fixture": "Filesystem 1K-blocks Used Available Use% Mounted on\\n/dev/block/dm-5 55000000 52900000 2100000 97% /data\\n",
+  "repair": {
+    "source": "tools/t10_asr_next_feasibility.py",
+    "tests": "tools/test_t10_asr_next_feasibility.py",
+    "new_total_test_count": 15,
+    "header_normalization": "Mounted on -> Mounted_on",
+    "accepts_compact_headers": [
+      "Mounted",
+      "Mounted_on",
+      "Mountpoint"
+    ],
+    "rejects": [
+      "wrong mountpoint",
+      "more than one data row",
+      "missing/misordered columns",
+      "invalid numeric/percent",
+      "impossible capacity"
+    ],
+    "did_not_modify": [
+      "ASR model artifacts",
+      "frozen benchmark outputs",
+      "device files",
+      "network settings",
+      "CP4 rubric"
+    ]
+  },
+  "validation": {
+    "assistant_synthetic_parser_smoke_pass": true,
+    "github_updated_files_verified": true,
+    "host_windows_full_updated_suite_pass": false,
+    "ci_pass_confirmed": false,
+    "sony_phone_probe_run": false
+  },
+  "next": "User git pull, rerun 15 unit tests; only if OK run read-only --probe-device with unique report path; no downloads or inference until further decision.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
