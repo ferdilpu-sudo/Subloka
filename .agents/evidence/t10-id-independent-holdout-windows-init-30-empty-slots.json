@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10_NEW_INDEPENDENT_ID_ASR_PRIVATE_TEMPLATE_INITIALIZATION",
+  "evidence_source": "User-provided local Windows PowerShell stdout after successful git pull",
+  "workspace_relative": ".t10-benchmark/t10-id-holdout-new",
+  "gitignore_policy": ".t10-benchmark/",
+  "command": "python tools/t10_id_independent_holdout.py init --workspace ./.t10-benchmark/t10-id-holdout-new",
+  "observed_stdout": [
+    "PRIVATE HOLDOUT TEMPLATE INITIALIZED: .t10-benchmark\\t10-id-holdout-new 30 EMPTY SLOTS",
+    "NO REAL AUDIO, TRANSCRIPT OR CONSENT HAS BEEN VERIFIED",
+    "HUMAN INDEPENDENCE NOT AUTHENTICATED | NO DOWNLOAD | NO ADB | NO INFERENCE | CP4 BLOCKED"
+  ],
+  "outcome": "INIT_SUCCESS_EMPTY_PLACEHOLDER_TEMPLATE_ONLY",
+  "intended_sample_counts": {
+    "clean": 20,
+    "challenging": 10,
+    "total": 30
+  },
+  "independent_file_bytes_checked_by_assistant": false,
+  "actual_audio_recordings_collected": false,
+  "actual_transcripts_collected": false,
+  "sample_consent_verified": false,
+  "human_review_verified": false,
+  "holdout_audit_pass": false,
+  "holdout_sealed": false,
+  "model_download": false,
+  "host_or_sony_asr_inference": false,
+  "former_windows_synthetic_suite": {
+    "tests": 19,
+    "result": "OK",
+    "duration_seconds": 7.496
+  },
+  "next_action": "Read-only PowerShell structural validation of 30 blank slots locally, then obtain actual consented Indonesian recordings and independent human-reviewed references before audit/seal. Never commit private data.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
