@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_RANGE_FIRST_TAR_HEADER_WINDOWS_12_12_PASS_HTTP206",
+  "source": "User Windows PowerShell output of tests and one live HTTP Range request",
+  "tests": {
+    "suite": "tools/test_t10_atika_tar_range_probe.py",
+    "total": 12,
+    "duration_seconds": 0.006,
+    "result": "OK"
+  },
+  "network": {
+    "source_archive": "Atika88/Indonesian-ASR-11-Class-Dataset / Imperative.tar",
+    "pinned_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "remote_archive_total_bytes": 907765760,
+    "upstream_lfs_sha256_not_locally_verified": "54725d7ecd573c6fbe88cc6d43337be3910599842dc1711b8e7f5fbae88dc938",
+    "request_header": "Range: bytes=0-511",
+    "http_status": 206,
+    "first_tar_header_valid": true,
+    "first_member_data_bytes_from_header": 91364,
+    "request_body_limit": 513,
+    "tar_random_range_first_header_verified": true,
+    "selected_clip_offsets_found": false
+  },
+  "user_shell_error": {
+    "command": "elseif ($LASTEXITCODE -ne 0) {...}",
+    "reason": "PowerShell elseif issued as separate statement after prior if completed; parser treats it as unknown command",
+    "related_to_network_or_python_failure": false,
+    "python_probe_exited_zero_as_indicated_by_preceding_branch": false
+  },
+  "selection": {
+    "private_metadata_file": ".t10-benchmark/t10-public-atika/external_test_30_selection.json",
+    "selected_public_test_audio_paths": 30,
+    "public_test_speaker_labels": 3,
+    "local_wav_files_verified": 0
+  },
+  "limitations": {
+    "only_first_tar_header_read": true,
+    "archive_bytes_or_SHA_locally_verified": false,
+    "tar_member_index_available": false,
+    "full_archive_downloaded": false,
+    "model_downloaded_or_inference": false,
+    "private_new_consent_holdout_unchanged": true,
+    "cp4_promoted": false
+  },
+  "next": "Build bounded short TAR header-chain walk feasibility pilot without WAV download; never use massive 865.7MiB archive or unbounded requests.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
