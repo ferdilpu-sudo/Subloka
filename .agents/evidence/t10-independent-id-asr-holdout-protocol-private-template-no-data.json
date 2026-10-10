@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_INDEPENDENT_INDONESIAN_ASR_HOLDOUT_PROTOCOL_IMPLEMENTED_NOT_COLLECTED",
+  "scope": "No actual speech recording, consent, transcript, reviewer, model download, host inference or Android inference collected; code and synthetic tests only",
+  "motivation": {
+    "frozen_original_id_clean_asr": "Whisper Base 105 word errors / 367 reference words = 28.61% WER; <=20% target unchanged",
+    "maleo_upstream_fleurs_training_source_claimed": true,
+    "publisher_reported_fleurs_scores_independent_from_original_suboka": false,
+    "reason": "Disjointness of reported FLEURS evaluation from Maleo training data is not independently verified; need a new well-documented research holdout"
+  },
+  "private_tool": {
+    "source": "tools/t10_id_independent_holdout.py",
+    "instructions": "tools/t10_id_independent_holdout.md",
+    "workspace_policy": "Must be inside repository gitignored .t10-benchmark/<private-workspace>",
+    "commands": [
+      "init",
+      "audit",
+      "seal",
+      "verify"
+    ],
+    "initial_template": "30 placeholder slots (20 clean / 10 challenging), no real reference, no audio_sha256, consent_declared=false, human_reference_reviewed=false",
+    "requires_real_data": true,
+    "required_per_sample": [
+      "Existing local mono PCM16 16000 Hz WAV 1-30 seconds",
+      "SHA256 of original WAV byte stream",
+      "Human-reviewed reference text before seeing any ASR prediction",
+      "pseudonym speaker/reviewer IDs, timezone-aware recording time",
+      "actual informed consent declaration, explicit offline ASR eval scope",
+      "truthful origin declaration: fresh consented nonpublic recording"
+    ],
+    "protocol_additional_requirements": {
+      "clean_samples": 20,
+      "challenging_samples": 10,
+      "minimum_distinct_pseudonymous_speakers": 5,
+      "minimum_normalized_clean_reference_words": 250,
+      "must_be_audio_and_reference_nonduplicates": true,
+      "research_only_not_change_cp4_gate": true
+    },
+    "review_controls": {
+      "declarations_do_not_authenticate_consent": true,
+      "audio_nonoverlap_with_training_not_verifiable_by_script": true,
+      "private_transcripts_never_enter_lock_file": true,
+      "seal_only_once_after_audit": true,
+      "verification_rejects_immutable_audio_or_manifest_bytes_changes": true,
+      "source_evidence_pinned_and_models_only_sha_metadata": true
+    }
+  },
+  "test_and_ci": {
+    "synthetic_test_file": "tools/test_t10_id_independent_holdout.py",
+    "test_cases_expected": 19,
+    "github_ci": ".github/workflows/t10-engine-eval.yml",
+    "windows_tests_not_yet_run": true,
+    "ci_status_unverified": true,
+    "unit_fixtures_are_synthetic_not_user_speech": true
+  },
+  "limitations": [
+    "Consent and human review claims cannot be authenticated by boolean fields or unit tests",
+    "Any real data, identity, reviewer sign-off and rights provenance remain entirely uncollected",
+    "Sealed holdout is not an ASR quality result and never substitutes original FLEURS baseline",
+    "ASR model byte hashes from publisher not local model verification, no download/inference conducted",
+    "CP4 remains blocked by original ID ASR WER, translation ID->EN quality, and missing full end-to-end testing"
+  ],
+  "next": "User Windows pull, run 19 synthetic tests, init empty private workspace; independently collect consented clips and verified transcript later, audit and seal before any candidate inference.",
+  "status": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "human_translation_signoff": "PENDING"
+  }
+}
