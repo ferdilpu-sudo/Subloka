@@ -119,21 +119,42 @@ def parse_mem_total(text: str) -> int:
 
 
 def parse_data_free_kib(text: str) -> int:
-    lines = [x.strip() for x in text.splitlines() if x.strip()]
-    # Android toybox: Filesystem 1K-blocks Used Available Use% Mounted on
-    # Wrapped mount points and unknown formats fail closed.
-    if len(lines) < 2 or not re.search(r"(?i)\b(available|avail)\b", lines[0]):
-        raise ValueError("Unexpected Android df -k header")
-    col = re.split(r"\s+", lines[0])
-    idx = next((i for i, x in enumerate(col) if x.lower() in ("available", "avail")), -1)
-    values = re.split(r"\s+", lines[-1])
-    if idx < 0 or len(values) != len(col) or values[-1] != "/data":
-        raise ValueError("Unexpected Android df -k row")
-    val = values[idx]
-    if not re.fullmatch(r"[0-9]+", val) or not 0 <= int(val) < 2**48:
-        raise ValueError("Invalid /data available KiB")
-    return int(val)
+    """Read /data Available in KiB from a single-row Android `df -k /data`.
 
+    Android toybox uses a two-word "Mounted on" HEADER but a single
+    mountpoint value (/data). Normalize the HEADER phrase first; never align
+    raw header-token and row-token counts directly.
+    """
+    lines = [x.strip() for x in text.splitlines() if x.strip()]
+    if len(lines) != 2:
+        raise ValueError("Unexpected Android df -k output: expected header and one /data row")
+    header = re.split(r"\\s+", lines[0])
+    if [part.lower() for part in header[-2:]] == ["mounted", "on"]:
+        header = header[:-2] + ["Mounted_on"]
+    elif header and header[-1].lower() in ("mounted_on", "mounted", "mountpoint"):
+        header[-1] = "Mounted_on"
+    else:
+        raise ValueError("Unexpected Android df -k mount header")
+
+    names = [item.lower() for item in header]
+    if (len(names) != 6 or names[0] != "filesystem"
+            or names[1] not in ("1k-blocks", "1024-blocks")
+            or names[2] != "used"
+            or names[3] not in ("available", "avail")
+            or names[4] != "use%" or names[5] != "mounted_on"):
+        raise ValueError("Unexpected Android df -k header")
+
+    values = re.split(r"\\s+", lines[1])
+    if len(values) != len(header) or values[-1] != "/data":
+        raise ValueError("Unexpected Android df -k row")
+    if not all(re.fullmatch(r"[0-9]+", values[index]) for index in (1, 2, 3)):
+        raise ValueError("Invalid Android df -k numeric fields")
+    if not re.fullmatch(r"[0-9]{1,3}%", values[4]):
+        raise ValueError("Invalid Android df -k capacity percentage")
+    total, used, available = (int(values[i]) for i in (1, 2, 3))
+    if not (0 < total < 2**48 and 0 <= used <= total and 0 <= available <= total):
+        raise ValueError("Invalid Android /data capacity numbers")
+    return available
 
 def parse_battery_c(text: str) -> float:
     m = re.search(r"(?m)^\s*temperature:\s*([0-9]+)\s*$", text)
