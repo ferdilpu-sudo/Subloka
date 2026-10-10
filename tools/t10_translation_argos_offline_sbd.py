@@ -14,6 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import traceback
+from t10_translation_argos_stanza_metadata import local_stanza_metadata
 
 
 
@@ -163,14 +164,20 @@ def ensure_offline_sbd(
             from stanza import Pipeline
             pipeline_factory = Pipeline
         try:
-            pipeline = pipeline_factory(
-                lang=sentencizer.stanza_lang_code,
-                dir=str(local_stanza),
-                processors="tokenize",
-                use_gpu=False,
-                logging_level="WARNING",
-                download_method=None,  # Stanza: NONE, disallows ALL resource downloads.
-            )
+            with local_stanza_metadata(
+                local_stanza, sentencizer.stanza_lang_code, packages_dir.parent,
+            ) as (metadata_file, sbd_mode):
+                pipeline_args = {
+                    "lang": sentencizer.stanza_lang_code,
+                    "dir": str(local_stanza),
+                    "processors": "tokenize",
+                    "use_gpu": False,
+                    "logging_level": "WARNING",
+                    "download_method": None,  # No Stanza resource/model downloads.
+                }
+                if metadata_file is not None:
+                    pipeline_args["resources_filepath"] = metadata_file
+                pipeline = pipeline_factory(**pipeline_args)
         except Exception as error:
             detail = stanza_failure_diagnostics(
                 local_stanza, sentencizer.stanza_lang_code, error
@@ -181,7 +188,7 @@ def ensure_offline_sbd(
                 "No network fallback is allowed; report this diagnostic only."
             ) from error
         sentencizer.stanza_pipeline = pipeline
-        return "PACKAGED_STANZA_RESOURCES_NO_DOWNLOAD"
+        return sbd_mode
 
     if isinstance(sentencizer, mini_cls):
         local_mini = package_path / "minisbd"
