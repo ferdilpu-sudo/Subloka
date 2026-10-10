@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-uploaded pilot.csv and session.json, independently byte-checked",
+  "artifact_verification": {
+    "original_raw_sha256": "c7ca76b9d260a95ffac7e6111104e25104eba6c866bc5b0fa0337b60de9699cf",
+    "session_raw_sha256": "c7ca76b9d260a95ffac7e6111104e25104eba6c866bc5b0fa0337b60de9699cf",
+    "pinned_model_sha256": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4",
+    "frozen_mlkit_review_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+    "session_status": "HOST_PILOT_COMPLETE_REVIEW_PENDING_NOT_CP4",
+    "row_count": 10,
+    "expected_ids_present_in_order": true,
+    "unchanged_raw_review_fields": true
+  },
+  "review_state": "AI_ASSISTED_PROPOSED_DRAFT_NOT_INDEPENDENT_HUMAN_SIGNOFF",
+  "per_case": [
+    {
+      "sample": "id-ab-01",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Negation and prohibition preserved; awkward English"
+    },
+    {
+      "sample": "id-ab-02",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Prohibition and door reference preserved"
+    },
+    {
+      "sample": "id-ab-03",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Four seats, price and exclusion preserved; tense awkward"
+    },
+    {
+      "sample": "id-ab-04",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Departure times and notification preserved; unnatural plural"
+    },
+    {
+      "sample": "id-ab-05",
+      "baseline_status": "NUMBER_OR_NAME_ERROR",
+      "proposed_candidate_status": "NUMBER_OR_NAME_ERROR",
+      "summary": "Laras mistranslated as Array; pronoun He"
+    },
+    {
+      "sample": "id-ab-06",
+      "baseline_status": "MAJOR_MEANING_ERROR",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Argos behind the door fixes ML Kit directional error"
+    },
+    {
+      "sample": "id-ab-07",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Meaning preserved; guards/storage less precise"
+    },
+    {
+      "sample": "id-ab-08",
+      "baseline_status": "MAJOR_MEANING_ERROR",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Return train correctly understood; 20-minute delay"
+    },
+    {
+      "sample": "id-ab-09",
+      "baseline_status": "MAJOR_MEANING_ERROR",
+      "proposed_candidate_status": "MAJOR_MEANING_ERROR",
+      "summary": "Sibling gender invented and his contradicts sister"
+    },
+    {
+      "sample": "id-ab-10",
+      "baseline_status": "ACCEPT",
+      "proposed_candidate_status": "ACCEPT",
+      "summary": "Ninety seconds and not sent to editor preserved"
+    }
+  ],
+  "proposed_score": {
+    "baseline_accept": 6,
+    "argos_accept": 8,
+    "candidate_wins": 2,
+    "candidate_losses": 0,
+    "net_additional_accepted": 2,
+    "new_critical_errors": [],
+    "preregistered_pilot_threshold_met": true,
+    "verdict": "PROMISING_FOR_FULL_30_AND_NEW_INDEPENDENT_HOLDOUT"
+  },
+  "reviewed_draft_sha256": "2824a2442908e2eee297d3f89c5ad28cecba2096d68e641d3c39c0de1ac68157",
+  "reviewer_artifact": "pilot-reviewed-draft.csv (chat deliverable; no model/source edits)",
+  "missing": "Human verification of proposed labels; original Windows session official report command; full 30 and independent unseen holdout; Android integration and physical-device proof",
+  "gates": {
+    "T10": "ACTIVE_REVIEW_PROVISIONALLY_PROMISING",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
