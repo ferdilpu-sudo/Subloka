@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "user_reported": {
+    "unit_tests": "36/36 PASS in 0.340s",
+    "real_pilot": "ABORTED before any translation",
+    "error": "Local bundled Stanza tokenizer could not be initialized offline (KeyError); no network fallback is allowed",
+    "pilot_csv": "NOT_CREATED"
+  },
+  "assessment": {
+    "root_cause": "NOT YET DETERMINED: precise KeyError key and Stanza stack origin hidden by old error wrapper",
+    "hypothesis": "Bundled Stanza resources.json/processor metadata or incompatible tokenizer files; diagnosis required",
+    "network_guard": "ACTIVE, never relaxed"
+  },
+  "repo_changes": {
+    "diagnostics": "Read-only local resource summary (missing_key, resource keys, available tokenize .pt basenames, stack origin), no model contents or absolute paths",
+    "test_cases_added": 2,
+    "expected_test_total": 38,
+    "model_or_scoring_changes": "NONE",
+    "fallback": "NONE"
+  },
+  "next_action": "Windows host git pull --ff-only origin main; rerun all 38 tests; retry same offline pilot only if tests PASS; collect sanitized ERROR line for specific fix",
+  "gates": {
+    "T10": "ACTIVE",
+    "T11": "TODO",
+    "CP4": "BLOCKED",
+    "Argos_quality": "UNKNOWN"
+  }
+}
