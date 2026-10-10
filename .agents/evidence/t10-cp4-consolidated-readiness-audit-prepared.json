@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-CP4-CONVERGED-EVIDENCE-AUDIT-001",
+  "purpose": "Consolidate immutably pinned T10 blocker evidence without re-scoring, running models, promoting candidates, or conflating datasets",
+  "new_files": [
+    "tools/t10_cp4_readiness.py",
+    "tools/test_t10_cp4_readiness.py"
+  ],
+  "source_evidence": [
+    ".agents/evidence/t10-asr-decode-final-20pairs.json",
+    ".agents/evidence/t10-asr-small-model-two-pair-pilot-early-reject.json",
+    ".agents/evidence/t10-real-video-media-stage-sony-json-verified.json",
+    ".agents/evidence/t10-translation-strategy-ab-review-complete.json",
+    ".agents/evidence/t10-argos-full30-official-net-zero-no-promotion.json"
+  ],
+  "known_quality": {
+    "asr_clean_id_base": {
+      "errors": 105,
+      "reference_words": 367,
+      "wer": 0.28610354223433243,
+      "target_max_wer": 0.2,
+      "max_allowed_errors": 73,
+      "minimum_fewer_errors": 32,
+      "provenance": "device benchmark reported + archived transcript consistency, raw runs not independently examined"
+    },
+    "asr_beam1": {
+      "errors": 110,
+      "reference_words": 367,
+      "outcome": "WORSE"
+    },
+    "asr_small_q5": {
+      "tested_pairs": 2,
+      "rtf": [
+        2.5069,
+        2.1602
+      ],
+      "status": "EARLY_PERFORMANCE_REJECT"
+    },
+    "original_cp4_translation": {
+      "sample_type": "historical single segments",
+      "id_to_en_accepted": 24,
+      "en_to_id_accepted": 27,
+      "total_each": 30,
+      "min_accepted_each": 27,
+      "identity": "NOT the 60-paragraph strategy A/B; independent human attestation not proved"
+    },
+    "later_mlkit_paragraph_strategy": {
+      "sample_type": "separate 30 ID and 30 EN paragraph A/B",
+      "whole_id_to_en_accepted": 21,
+      "whole_en_to_id_accepted": 22,
+      "not_original_cp4": true
+    },
+    "argos_host_full30": {
+      "sample_type": "separate ID→EN paragraph host-only",
+      "argos_accepted": 21,
+      "mlkit_control_accepted": 21,
+      "net": 0,
+      "extra20_net": -2,
+      "independent_holdout": false,
+      "android_inference": false
+    },
+    "sony_12min_media": {
+      "source_duration_seconds": 734.570666,
+      "status": "MEDIA_STAGE_PASS_NOT_FULL_E2E",
+      "actual_video_to_subtitle_export_e2e": "NOT_RUN"
+    }
+  },
+  "implementation": {
+    "new_tests": 13,
+    "ci_verification": "PENDING_AT_COMMIT",
+    "windows_execution": "NOT_RUN_BY_ASSISTANT",
+    "workspace_report": "optional .t10-benchmark/t10-cp4-readiness.json, write-once"
+  },
+  "decision": "T10 ACTIVE; CP4 BLOCKED; T11 TODO. Keep ML Kit, avoid Argos promotion or repeated negative candidates without a new preregistered independent experiment.",
+  "next_action": "On Windows git pull, run 13 unit tests then read-only audit; use evidence to decide whether to preregister new ASR candidate or get explicit user scope decision."
+}
