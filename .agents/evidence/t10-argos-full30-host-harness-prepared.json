@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "milestone": "OFFICIAL_FIRST_10_PILOT_PROMISING_AND_HOST_FULL30_RUNNER_PREPARED",
+  "official_ten_pilot": {
+    "source": "User Windows reporter console",
+    "mlkit_accepted": 6,
+    "argos_accepted": 8,
+    "net_gain": 2,
+    "verdict": "PROMISING_FOR_FULL_30_AND_NEW_INDEPENDENT_HOLDOUT",
+    "cp4": "BLOCKED",
+    "session": "argos-id-en-pilot-20261010T053116Z-cc3c4db",
+    "raw_sha256": "c7ca76b9d260a95ffac7e6111104e25104eba6c866bc5b0fa0337b60de9699cf"
+  },
+  "new_full30": {
+    "files": [
+      "tools/t10_translation_argos_full30_protocol.py",
+      "tools/t10_translation_argos_full30.py",
+      "tools/test_t10_translation_argos_full30.py"
+    ],
+    "new_cli": "python tools/t10_translation_argos_full30.py run --review <original-frozen-120-row-MLKit-review.csv>",
+    "new_report": "python tools/t10_translation_argos_full30.py report --session <complete-full30-session> --review <filled-review-copy.csv>",
+    "sample_ids": "id-ab-01..id-ab-30 fixed",
+    "pilot_overlap": "first 10 already in pilot",
+    "new_relative_to_pilot": "20 existing frozen fixtures, NOT an independent new holdout",
+    "security": "source review sha, model archive, direct package path and offline guard validated; no network or model changes; separate timestamped session; immutable raw rows and scores",
+    "results": "NONE: no Windows full30 inference performed and new tests have not yet run",
+    "regressions": "11 synthetic no-Argos tests pending Windows/CI verification",
+    "scoring": "DESCRIPTIVE_ONLY; independent unseen holdout mandatory; CP4 never promoted"
+  },
+  "next_steps": [
+    "git pull --ff-only origin main",
+    "run full30-specific 11-unit-test suite",
+    "if PASS run full30 offline host",
+    "upload full30.csv and session.json for independent review of all 30 outputs",
+    "design and freeze wholly unseen holdout, then device Android tests"
+  ],
+  "gates": {
+    "T10": "ACTIVE_FIRST10_PILOT_PROMISING_FULL30_PREPARED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
