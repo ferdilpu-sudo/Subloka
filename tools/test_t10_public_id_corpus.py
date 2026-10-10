@@ -175,6 +175,32 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "schema"):
             inspect(self.root)
 
+    def _seed_all_11_archive_categories(self):
+        """Archive preflight needs full CSV category coverage, unlike older
+        Declarative-only unit fixtures. Never weaken production safety checks.
+        """
+        categories = (
+            "Clarification", "Conditional", "Confirmation", "Declarative",
+            "Exclamatory", "Imperative", "Interrogative", "Negation",
+            "Persuasive", "Rhetorical", "Scheduling"
+        )
+        for idx, category in enumerate(categories, start=1):
+            if category == "Declarative":
+                continue
+            row = dict(self.rows[0])
+            row["category"] = category
+            row["audio_path"] = f"data/synthetic-fixture/{category}/M1/{idx:02d}.wav"
+            row["transcript"] = (
+                "Ini hanya metadata buatan untuk memeriksa sebelas kategori "
+                + category + " nomor " + str(idx)
+            )
+            self.rows.append(row)
+        self.write_metadata()
+        self.assertEqual(
+            {item["category"] for item in inspect(self.root)["categories"]},
+            set(categories)
+        )
+
     def _mock_archive_listing(self, *, missing=False, unsafe_size=False, redirect=False):
         names = (
             "Clarification", "Conditional", "Confirmation", "Declarative",
@@ -202,7 +228,16 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
                 return False
         return MockResponse()
 
+    def test_archive_preflight_single_category_fixture_fails_closed(self):
+        # A partial upstream metadata CSV must not silently authorize
+        # a subset of the remote 11-category archive listing.
+        with patch("t10_public_id_corpus.urllib.request.urlopen",
+                   return_value=self._mock_archive_listing()):
+            with self.assertRaisesRegex(ValueError, "mismatch"):
+                archive_sizes(self.root)
+
     def test_archive_size_preflight_is_only_public_json_not_tar(self):
+        self._seed_all_11_archive_categories()
         with patch("t10_public_id_corpus.urllib.request.urlopen",
                    return_value=self._mock_archive_listing()) as req:
             report = archive_sizes(self.root)
@@ -219,12 +254,14 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
         self.assertFalse(any(self.root.glob("*.tar")))
 
     def test_archive_size_preflight_rejects_missing_category(self):
+        self._seed_all_11_archive_categories()
         with patch("t10_public_id_corpus.urllib.request.urlopen",
                    return_value=self._mock_archive_listing(missing=True)):
             with self.assertRaisesRegex(ValueError, "mismatch"):
                 archive_sizes(self.root)
 
     def test_archive_size_preflight_rejects_unsafe_size_and_redirect(self):
+        self._seed_all_11_archive_categories()
         for params, error in (({"unsafe_size": True}, "implausible"),
                               ({"redirect": True}, "HTTPS huggingface.co")):
             with self.subTest(params=params):
@@ -234,6 +271,7 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
                         archive_sizes(self.root)
 
     def test_cli_archive_sizes_preserves_local_metadata(self):
+        self._seed_all_11_archive_categories()
         original = (self.root / METADATA_FILENAME).read_bytes()
         buffer = io.StringIO()
         with patch("t10_public_id_corpus.urllib.request.urlopen",
