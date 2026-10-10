@@ -241,6 +241,11 @@ def choose_samples(workspace: Path, category: str, limit: int = 30) -> dict:
         "metadata_sha256": digest,
         "source_split": "test",
         "selected_category": category,
+        "source_category_tar_url_not_downloaded": (
+            f"{ROOT_URL}/resolve/{REVISION}/data/audio_shards/by_category/{category}.tar"
+        ),
+        "source_archive_sha256_not_locally_verified": True,
+        "tar_archive_size_not_preflighted": True,
         "sample_count": len(selected),
         "normalized_reference_words": total_words,
         "public_speaker_label_count": len({r["speaker_id"] for r in selected}),
