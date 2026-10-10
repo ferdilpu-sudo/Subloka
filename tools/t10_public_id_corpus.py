@@ -196,6 +196,73 @@ def inspect(workspace: Path) -> dict:
     }
 
 
+def archive_sizes(workspace: Path) -> dict:
+    """Read tiny pinned HF repository tree JSON; NEVER fetch TAR or WAV bytes."""
+    local = inspect(workspace)  # Requires already downloaded CSV in gitignored root
+    expected = {x["category"] for x in local["categories"]}
+    url = (
+        f"https://huggingface.co/api/datasets/{REPO_ID}/tree/{REVISION}"
+        "/data/audio_shards/by_category"
+    )
+    request = urllib.request.Request(
+        url, headers={"User-Agent": "Subloka-T10-public-archive-preflight/1"}
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        if not response.url.startswith("https://huggingface.co/"):
+            raise ValueError("Archive size metadata must be fetched from HTTPS huggingface.co")
+        raw = response.read(1_000_001)
+    if len(raw) > 1_000_000:
+        raise ValueError("Archive metadata API unexpectedly exceeded 1MB")
+    try:
+        entries = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Malformed HF archive metadata JSON") from exc
+    if not isinstance(entries, list):
+        raise ValueError("HF archive metadata is not a list")
+    shards: dict[str, dict] = {}
+    for item in entries:
+        if not isinstance(item, dict) or item.get("type") != "file":
+            continue
+        archive_path = item.get("path")
+        if (not isinstance(archive_path, str)
+                or not re.fullmatch(r"data/audio_shards/by_category/[A-Za-z]+\.tar", archive_path)):
+            continue
+        category = Path(archive_path).stem
+        size = item.get("size")
+        if category in shards or type(size) is not int or not 1_000_000 <= size <= 5_000_000_000:
+            raise ValueError("Duplicate archive, missing size or implausible TAR bytes")
+        lfs = item.get("lfs")
+        lfs_sha = lfs.get("oid") if isinstance(lfs, dict) else None
+        if lfs_sha is not None and not re.fullmatch(r"[a-f0-9]{64}", str(lfs_sha)):
+            raise ValueError("Unexpected upstream LFS object digest")
+        shards[category] = {
+            "category": category,
+            "archive_bytes_publisher_api": size,
+            "archive_mib_publisher_api": round(size / (1024 * 1024), 1),
+            "pinned_tar_url_NOT_DOWNLOADED": (
+                f"{ROOT_URL}/resolve/{REVISION}/{archive_path}"
+            ),
+            "lfs_sha256_upstream_metadata_unverified": lfs_sha,
+            "local_archive_exists_or_verified": False,
+            "approved_for_download": False,
+        }
+    if set(shards) != expected or len(shards) != 11:
+        raise ValueError("Remote TAR category listing mismatch with locally pinned metadata")
+    ordered = sorted(shards.values(), key=lambda x: (x["archive_bytes_publisher_api"], x["category"]))
+    return {
+        "source_revision": REVISION,
+        "metadata_csv_sha256": local["sha256_local_metadata"],
+        "archive_api_url": url,
+        "archive_size_evidence": "Published HF repository tree metadata only; no download",
+        "archive_count": len(ordered),
+        "total_archive_bytes_publisher_api": sum(s["archive_bytes_publisher_api"] for s in ordered),
+        "categories_by_archive_size": ordered,
+        "tar_or_wav_downloaded": False,
+        "model_downloaded_or_inference_performed": False,
+        "CP4": "BLOCKED",
+    }
+
+
 def choose_samples(workspace: Path, category: str, limit: int = 30) -> dict:
     if not ALLOWED_CATEGORIES.fullmatch(category):
         raise ValueError("Category must be an exact reasonable upstream category label")
@@ -297,7 +364,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("source", help="Show researched source without network")
-    for cmd in ("fetch-metadata", "inspect", "select"):
+    for cmd in ("fetch-metadata", "inspect", "archive-sizes", "select"):
         pp = sub.add_parser(cmd)
         pp.add_argument("--workspace", type=Path, required=True)
         if cmd == "select":
@@ -310,6 +377,8 @@ def main() -> int:
             report = fetch_metadata(args.workspace)
         elif args.command == "inspect":
             report = inspect(args.workspace)
+        elif args.command == "archive-sizes":
+            report = archive_sizes(args.workspace)
         else:
             report = select(args.workspace, args.category)
         print(json.dumps(report, ensure_ascii=False, indent=2))
