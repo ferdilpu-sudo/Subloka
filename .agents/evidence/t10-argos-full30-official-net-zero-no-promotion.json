@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ARGOS_ID_EN_HOST_FULL30_DESCRIPTIVE_NOT_HOLDOUT_NOT_CP4",
+  "source": "User-supplied successful output from tools/t10_translation_argos_full30.py report on Windows, contextualized by previously uploaded verified full30.csv/session.json and reviewed draft",
+  "official_reporter_console": [
+    "FULL30 REVIEWED: Argos 21 /30; ML Kit 21 /30; net 0",
+    "ADDITIONAL 20 EXISTING FIXTURES: Argos 13 /20; ML Kit 15 /20; net -2",
+    "DESCRIPTIVE ONLY | INDEPENDENT HOLDOUT REQUIRED | CP4 BLOCKED"
+  ],
+  "raw_evidence_pins": {
+    "original_full30_sha256": "fa8595768e348b4d875737631718ca91984438ee8ea7a15c425f2a4f48b6d694",
+    "frozen_mlkit_review_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+    "pinned_argos_model_sha256": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4",
+    "reviewed_draft_sha256": "b1b39cfb73455d1e442747ef89e75d3e17997ad9ff63119572647807bdc52399"
+  },
+  "confirmed_aggregates": {
+    "full30": {
+      "argos_accept": 21,
+      "mlkit_accept": 21,
+      "net_additional_accepted": 0,
+      "sample_count": 30
+    },
+    "additional_existing20": {
+      "argos_accept": 13,
+      "mlkit_accept": 15,
+      "net_additional_accepted": -2,
+      "sample_count": 20
+    },
+    "first10_overlap_from_previous_official_pilot": {
+      "argos_accept": 8,
+      "mlkit_accept": 6,
+      "net_additional_accepted": 2,
+      "sample_count": 10
+    },
+    "independent_holdout_completed": false,
+    "android_inference_completed": false
+  },
+  "previously_reviewed_case_specific_evidence": {
+    "source": "Previously created reviewed draft, not a per-case list printed by official reporter",
+    "proposed_wins": [
+      "id-ab-06",
+      "id-ab-08",
+      "id-ab-18",
+      "id-ab-24",
+      "id-ab-29"
+    ],
+    "proposed_losses": [
+      "id-ab-13",
+      "id-ab-15",
+      "id-ab-19",
+      "id-ab-25",
+      "id-ab-28"
+    ],
+    "critical_risk_cases": [
+      {
+        "sample": "id-ab-13",
+        "status": "NEGATION_ERROR",
+        "reason": "Belum tentu berlaku was translated as categorical does not apply"
+      },
+      {
+        "sample": "id-ab-25",
+        "status": "NUMBER_OR_NAME_ERROR",
+        "reason": "Rupiah mistranslated as rupees"
+      }
+    ],
+    "note": "Detailed labels are review-draft-derived, official stdout validates only aggregates. Upload full30-review-report.json for independent final-file audit."
+  },
+  "decision": {
+    "reporter_verdict": "DESCRIPTIVE ONLY | INDEPENDENT HOLDOUT REQUIRED | CP4 BLOCKED",
+    "engineering_recommendation": "No Argos Android promotion given net 0 across 30, -2 extra20 and reviewed critical risks; retain ML Kit",
+    "adr": "ADR-028 PROPOSED; not user-approved final decision",
+    "threshold_integrity": "No retroactive full30 PASS/FAIL threshold invented",
+    "holdout": "Required for renewed advancement, not performed; avoid automatically assuming continued investment justified"
+  },
+  "verification_limits": {
+    "official_reporter_ran_on_user_windows": true,
+    "reporter_json_uploaded": false,
+    "reporter_json_sha_independently_verified": false,
+    "actual_android_device_test": false,
+    "explicit_11_full30_unit_test_pass_reported": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "Argos_candidate": "NO_ADVANCEMENT_RECOMMENDED_FROM_FULL30",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
