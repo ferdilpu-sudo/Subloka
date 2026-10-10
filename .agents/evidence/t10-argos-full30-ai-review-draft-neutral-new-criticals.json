@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ARGOS_ID_EN_HOST_FULL30_DESCRIPTIVE_NOT_HOLDOUT_NOT_CP4",
+  "uploaded_windows_session": {
+    "status": "HOST_FULL30_COMPLETE_REVIEW_PENDING_NOT_CP4",
+    "real_host_full30_complete": true,
+    "raw_full30_sha256": "fa8595768e348b4d875737631718ca91984438ee8ea7a15c425f2a4f48b6d694",
+    "session_raw_sha256_matches": true,
+    "mlkit_frozen_review_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+    "argos_model_archive_sha256": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4",
+    "sample_ids": "id-ab-01..id-ab-30 ordered",
+    "all_translations_nonempty": true,
+    "candidate_review_originally_blank": true
+  },
+  "ai_assisted_provisional_quality": {
+    "all30": {
+      "mlkit_accept": 21,
+      "argos_accept": 21,
+      "wins": 5,
+      "losses": 5,
+      "net": 0
+    },
+    "initial_pilot_overlap10": {
+      "mlkit_accept": 6,
+      "argos_accept": 8,
+      "wins": 2,
+      "losses": 0,
+      "net": 2
+    },
+    "additional20_existing_fixtures": {
+      "mlkit_accept": 15,
+      "argos_accept": 13,
+      "wins": 3,
+      "losses": 5,
+      "net": -2
+    },
+    "win_ids": [
+      "id-ab-06",
+      "id-ab-08",
+      "id-ab-18",
+      "id-ab-24",
+      "id-ab-29"
+    ],
+    "loss_ids": [
+      "id-ab-13",
+      "id-ab-15",
+      "id-ab-19",
+      "id-ab-25",
+      "id-ab-28"
+    ],
+    "new_critical_errors": [
+      {
+        "sample": "id-ab-13",
+        "status": "NEGATION_ERROR",
+        "reason": "Indonesian belum tentu berlaku -> English does not apply; categorical nonapplicability replaced uncertainty."
+      },
+      {
+        "sample": "id-ab-25",
+        "status": "NUMBER_OR_NAME_ERROR",
+        "reason": "Currency rupiah replaced with rupees; amounts preserved but currency wrong."
+      }
+    ],
+    "rejected_candidate_statuses": {
+      "ACCEPT": 21,
+      "MAJOR_MEANING_ERROR": 6,
+      "NUMBER_OR_NAME_ERROR": 2,
+      "NEGATION_ERROR": 1
+    },
+    "label_set": "AI_ASSISTED_PRELIMINARY_AWAITING_HUMAN_SIGNOFF",
+    "borderline_to_check": [
+      "id-ab-15",
+      "id-ab-18",
+      "id-ab-19",
+      "id-ab-24",
+      "id-ab-28",
+      "id-ab-30"
+    ],
+    "reviewed_csv_filename": "full30-reviewed-draft.csv",
+    "reviewed_csv_sha256": "b1b39cfb73455d1e442747ef89e75d3e17997ad9ff63119572647807bdc52399",
+    "edited_raw_fields": false,
+    "analysis_preview_file": "full30-qa-preview.json"
+  },
+  "execution_and_limits": {
+    "original_10_pilot_official_verdict": "PROMISING_FOR_FULL_30_AND_NEW_INDEPENDENT_HOLDOUT",
+    "official_full30_report_run": false,
+    "unseen_independent_holdout_run": false,
+    "android_device_qa_run": false,
+    "cp4": "BLOCKED",
+    "next": "User review draft and run tools/t10_translation_argos_full30.py report in Windows; no CP4 promotion based on current evidence."
+  }
+}
