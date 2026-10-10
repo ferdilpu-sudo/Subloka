@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ID_ASR_SONY_READ_ONLY_FEASIBILITY_DF_REAL_OUTPUT_DIAG",
+  "provenance": "User-pasted local Windows PowerShell stdout, repo source inspected and patched; physical df stdout not yet supplied",
+  "observed": {
+    "unit_tests_before_diagnostic": {
+      "count": 15,
+      "elapsed_seconds": 0.024,
+      "verdict": "PASS"
+    },
+    "actual_sony_probe": {
+      "command": "python tools/t10_asr_next_feasibility.py --probe-device --json <unique-path>",
+      "verdict": "FAILED_CLOSED",
+      "error": "ERROR: T10 feasibility preflight failed: Unexpected Android df -k row",
+      "real_df_stdout_captured": false,
+      "ram_capacity_verified": false,
+      "free_data_verified": false,
+      "battery_proxy_verified": false,
+      "output_json_verified": false,
+      "phone_model_inference": false,
+      "model_download": false
+    }
+  },
+  "code_evidence": {
+    "exception_origin": "parse_data_free_kib(text): len(row field tokens)!=6 OR final mountpoint token!='/data', after passing header schema",
+    "reason_unresolved": "Real Sony df -k /data stdout has not been provided; cannot safely guess row format or mountpoint",
+    "conservative_resolution": "New read-only diagnostic to inspect sanitized df output shape before parser changes",
+    "new_cli": "python tools/t10_asr_next_feasibility.py --diagnose-df",
+    "adb_commands": [
+      "adb devices -l",
+      "adb -s <verified-only-ready-device> shell df -k /data"
+    ],
+    "redactions": [
+      "block-device filesystem path",
+      "device serial not printed"
+    ],
+    "no_phone_state_mutation": true,
+    "no_user_json_output": true,
+    "no_download": true,
+    "no_model_inference": true,
+    "forbidden_args_with_diagnose_df": [
+      "--json",
+      "--probe-device"
+    ],
+    "test_file": "tools/test_t10_asr_next_feasibility.py",
+    "newly_added_tests": 3,
+    "total_expected_unit_tests": 18,
+    "new_suite_verified_windows": false,
+    "next": "Pull main, run 18 new tests; if PASS run --diagnose-df (no --json), paste sanitized lines from real Sony; patch storage parser only on grounded real output."
+  },
+  "project_gate": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
