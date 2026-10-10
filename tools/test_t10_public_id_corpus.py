@@ -17,7 +17,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from t10_public_id_corpus import (
     METADATA_FILENAME, REQUIRED, REVISION, SELECTION_FILENAME, choose_samples,
-    fetch_metadata, inspect, main, parse_bool, select, source_info, valid_human_test,
+    archive_sizes, fetch_metadata, inspect, main, parse_bool, select, source_info, valid_human_test,
 )
 
 
@@ -174,6 +174,78 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
         source.write_text("audio_path,split\n1,2\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "schema"):
             inspect(self.root)
+
+    def _mock_archive_listing(self, *, missing=False, unsafe_size=False, redirect=False):
+        names = (
+            "Clarification", "Conditional", "Confirmation", "Declarative",
+            "Exclamatory", "Imperative", "Interrogative", "Negation",
+            "Persuasive", "Rhetorical", "Scheduling"
+        )
+        entries = [{
+            "type": "file",
+            "path": f"data/audio_shards/by_category/{name}.tar",
+            "size": (0 if unsafe_size and name == "Imperative" else 1_000_000_000 + idx),
+            "lfs": {"oid": "a" * 64},
+        } for idx, name in enumerate(names)]
+        if missing:
+            entries.pop()
+        payload = json.dumps(entries).encode("utf-8")
+        class MockResponse:
+            url = "https://bad-domain.example/file" if redirect else "https://huggingface.co/api/datasets/"
+            def __init__(self):
+                self.stream = io.BytesIO(payload)
+            def read(self, n):
+                return self.stream.read(n)
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+        return MockResponse()
+
+    def test_archive_size_preflight_is_only_public_json_not_tar(self):
+        with patch("t10_public_id_corpus.urllib.request.urlopen",
+                   return_value=self._mock_archive_listing()) as req:
+            report = archive_sizes(self.root)
+        self.assertEqual(req.call_count, 1)
+        self.assertEqual(report["archive_count"], 11)
+        self.assertEqual(report["total_archive_bytes_publisher_api"], 11_000_000_055)
+        self.assertTrue(report["archive_api_url"].startswith("https://huggingface.co/api/"))
+        self.assertFalse(report["tar_or_wav_downloaded"])
+        self.assertEqual(report["CP4"], "BLOCKED")
+        for shard in report["categories_by_archive_size"]:
+            self.assertFalse(shard["approved_for_download"])
+            self.assertFalse(shard["local_archive_exists_or_verified"])
+            self.assertIn("/resolve/", shard["pinned_tar_url_NOT_DOWNLOADED"])
+        self.assertFalse(any(self.root.glob("*.tar")))
+
+    def test_archive_size_preflight_rejects_missing_category(self):
+        with patch("t10_public_id_corpus.urllib.request.urlopen",
+                   return_value=self._mock_archive_listing(missing=True)):
+            with self.assertRaisesRegex(ValueError, "mismatch"):
+                archive_sizes(self.root)
+
+    def test_archive_size_preflight_rejects_unsafe_size_and_redirect(self):
+        for params, error in (({"unsafe_size": True}, "implausible"),
+                              ({"redirect": True}, "HTTPS huggingface.co")):
+            with self.subTest(params=params):
+                with patch("t10_public_id_corpus.urllib.request.urlopen",
+                           return_value=self._mock_archive_listing(**params)):
+                    with self.assertRaisesRegex(ValueError, error):
+                        archive_sizes(self.root)
+
+    def test_cli_archive_sizes_preserves_local_metadata(self):
+        original = (self.root / METADATA_FILENAME).read_bytes()
+        buffer = io.StringIO()
+        with patch("t10_public_id_corpus.urllib.request.urlopen",
+                   return_value=self._mock_archive_listing()), patch.object(
+                       sys, "argv", [
+                           "t10_public_id_corpus.py", "archive-sizes",
+                           "--workspace", str(self.root),
+                       ]), redirect_stdout(buffer):
+            self.assertEqual(main(), 0)
+        self.assertIn("NO AUDIO SHARD DOWNLOAD", buffer.getvalue())
+        self.assertIn("CP4 BLOCKED", buffer.getvalue())
+        self.assertEqual(original, (self.root / METADATA_FILENAME).read_bytes())
 
     def test_public_workspace_forbidden_and_cli_source_no_network(self):
         with tempfile.TemporaryDirectory() as public:
