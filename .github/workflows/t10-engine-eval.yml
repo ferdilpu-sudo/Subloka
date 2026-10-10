@@ -38,6 +38,13 @@ on:
       - "tools/t10_translation_argos_full30_protocol.py"
       - "tools/t10_translation_argos_full30.py"
       - "tools/test_t10_translation_argos_full30.py"
+      - "tools/t10_cp4_readiness.py"
+      - "tools/test_t10_cp4_readiness.py"
+      - ".agents/evidence/t10-asr-decode-final-20pairs.json"
+      - ".agents/evidence/t10-asr-small-model-two-pair-pilot-early-reject.json"
+      - ".agents/evidence/t10-real-video-media-stage-sony-json-verified.json"
+      - ".agents/evidence/t10-translation-strategy-ab-review-complete.json"
+      - ".agents/evidence/t10-argos-full30-official-net-zero-no-promotion.json"
       - "tools/t10_video10_media_device.ps1"
       - "tools/t10_video10_media_review.py"
       - "tools/test_t10_video10_media_review.py"
@@ -280,6 +287,12 @@ jobs:
       - name: Validate Argos full30 descriptive offline protocol (mocks, NOT HOLDOUT/CP4)
         shell: bash
         run: python -m unittest discover -s tools -p test_t10_translation_argos_full30.py
+
+      - name: Audit CP4 fail-closed evidence matrix (NOT a gate PASS)
+        shell: bash
+        run: |
+          python -m unittest discover -s tools -p test_t10_cp4_readiness.py -v
+          python tools/t10_cp4_readiness.py
 
       - name: Test new independent paragraph strategy A/B reviewer
         shell: bash
