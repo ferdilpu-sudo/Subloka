@@ -27,6 +27,9 @@ class IndependentHoldoutSyntheticTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name) / "private"
+        privacy = patch("t10_id_independent_holdout.PRIVATE_BASE", Path(self.temp.name))
+        privacy.start()
+        self.addCleanup(privacy.stop)
         self.root.mkdir()
         (self.root / "audio").mkdir()
         self.rows = []
@@ -81,12 +84,38 @@ class IndependentHoldoutSyntheticTests(unittest.TestCase):
         other = self.root.parent / "new-private"
         with redirect_stdout(io.StringIO()):
             init(other)
-        self.assertEqual(json.loads((other / "manifest.json").read_text())["samples"], [])
-        with self.assertRaisesRegex(ValueError, "Exactly 20"):
+        slots = json.loads((other / "manifest.json").read_text())["samples"]
+        self.assertEqual(len(slots), 30)
+        self.assertEqual(slots[0]["id"], "id-clean-01")
+        self.assertEqual(slots[-1]["id"], "id-challenging-10")
+        self.assertTrue(all(x["consent_declared"] is False for x in slots))
+        self.assertTrue(all(x["human_reference_reviewed"] is False for x in slots))
+        self.assertTrue(all(not x["reference"] and not x["audio_sha256"] for x in slots))
+        with self.assertRaisesRegex(ValueError, "permission"):
             audit(other)
         with self.assertRaises(FileExistsError):
             init(other)
         self.assertFalse((other / "manifest.lock.json").exists())
+
+    def test_private_root_is_enforced_for_all_commands(self):
+        with tempfile.TemporaryDirectory() as unrelated:
+            public = Path(unrelated) / "not-gitignored"
+            with self.assertRaisesRegex(ValueError, "gitignored"):
+                init(public)
+            with self.assertRaisesRegex(ValueError, "gitignored"):
+                audit(public)
+            with self.assertRaisesRegex(ValueError, "gitignored"):
+                seal(public)
+            with self.assertRaisesRegex(ValueError, "gitignored"):
+                verify(public)
+
+    def test_template_cannot_be_mistaken_for_real_consent_or_review(self):
+        workspace = self.root.parent / "fresh-slots"
+        with redirect_stdout(io.StringIO()):
+            init(workspace)
+        with self.assertRaises(ValueError):
+            seal(workspace)
+        self.assertFalse((workspace / "manifest.lock.json").exists())
 
     def test_missing_consent_is_rejected(self):
         self.rows[0]["consent_declared"] = False
