@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "observed_on": "2026-10-10",
+  "checkpoint": "T10_ATIKA_PUBLIC_METADATA_WINDOWS_15_PASS_SHA_AND_INSPECT_THEN_ARCHIVE_SIZE_PREFLIGHT_PREPARED",
+  "provenance": "Exact Windows PowerShell user-supplied unit test, fetch-metadata and inspect output; privately downloaded CSV not directly accessed by assistant",
+  "real_windows_observed": {
+    "python_test_suite": "tools/test_t10_public_id_corpus.py",
+    "tests_passed": 15,
+    "tests_seconds": 0.384,
+    "suite": "OK",
+    "csv_downloaded_bytes": 31362056,
+    "csv_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "private_csv_path": ".t10-benchmark/t10-public-atika/upstream_metadata.csv",
+    "dataset": "Atika88/Indonesian-ASR-11-Class-Dataset",
+    "upstream_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "human_test_eligible_metadata_rows": 15598,
+    "categories": 11,
+    "speaker_labels_per_category_test": 3,
+    "smallest_publisher_test_wav_sums_bytes": [
+      {
+        "category": "Imperative",
+        "test_human_rows": 1350,
+        "unpacked_test_wav_bytes": 120431478
+      },
+      {
+        "category": "Exclamatory",
+        "test_human_rows": 1425,
+        "unpacked_test_wav_bytes": 142078684
+      },
+      {
+        "category": "Negation",
+        "test_human_rows": 1425,
+        "unpacked_test_wav_bytes": 148081252
+      }
+    ],
+    "audio_shard_bytes_network_measured": false,
+    "audio_or_tar_downloaded": false,
+    "asr_model_downloaded_or_inference_run": false,
+    "source_model_training_disjointness_claim_allowed": false
+  },
+  "newly_added": {
+    "existing_script": "tools/t10_public_id_corpus.py",
+    "new_cli": "python tools/t10_public_id_corpus.py archive-sizes --workspace .t10-benchmark/t10-public-atika",
+    "metadata_api_url": "https://huggingface.co/api/datasets/Atika88/Indonesian-ASR-11-Class-Dataset/tree/c65fe8bcff0547214c34cfbea248b4045a0d867c/data/audio_shards/by_category",
+    "max_api_response_bytes": 1000000,
+    "local_metadata_required": true,
+    "requires_exactly_11_category_tars": true,
+    "output_approval_to_download": false,
+    "does_not_download_tar_or_wav": true,
+    "test_methods_added": 4,
+    "test_methods_total_after_change": 19,
+    "new_19_test_windows_pass_reported": false,
+    "ci_result_verified": false,
+    "instructions": "tools/t10_public_id_corpus.md",
+    "docs_updated": [
+      ".agents/plan.md",
+      ".agents/testing.md"
+    ]
+  },
+  "cautions": [
+    "Test-split unpacked WAV sums are NOT TAR file download sizes (archives contain all splits).",
+    "3 public speaker labels/category do not fulfill separate private ≥5 participant holdout.",
+    "Publisher scripted read speech repeats prompts; cannot establish unseen-text generalization.",
+    "Publisher public archive SHA metadata is not actual archive byte-level verification.",
+    "Private new human consent holdout remains untouched with 30 empty slots.",
+    "Original frozen 105/367 28.61% WER and CP4 quality release gate unchanged."
+  ],
+  "next": "User Windows pulls main and reruns 19 tests; then calls archive-sizes for 11 actual upstream TAR byte sizes (metadata only). Never re-download existing write-once CSV, never acquire GB archives before explicit size/bandwidth review.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
