@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "observed_windows": {
+    "unit_tests": "48/48 PASS in 0.460s",
+    "sbd": "PACKAGED_STANZA_LEGACY_METADATA_AND_CHECKPOINT_NO_DOWNLOAD",
+    "pilot_session": "argos-id-en-pilot-20261010T052149Z-7dd8c52",
+    "completed_translations": 0,
+    "pilot_status": "HOST_PILOT_ABORTED_NO_QUALITY_VERDICT",
+    "error": "Feature function \"all_caps\" is undefined.",
+    "valid_pilot_csv": false
+  },
+  "source_evidence": {
+    "old_stanza": "stanza/models/tokenization/data.py at v1.2.3: all_caps feature = lambda x: 1 if x.isupper() else 0",
+    "argos_pinned_stanza": "stanza/models/tokenization/data.py at v1.10.1: capitalized feature = lambda x: 1 if x[0].isupper() else 0; all_caps case removed",
+    "unit_shape": "Stanza v1.10.1 TokenizationDataset generates unit-level input from individual chars, so same boolean for every char, preserving per-character feature vector shape."
+  },
+  "change": {
+    "files": [
+      "tools/t10_translation_argos_stanza_checkpoint.py",
+      "tools/test_t10_translation_argos_candidate.py",
+      ".agents/plan.md",
+      ".agents/testing.md"
+    ],
+    "behavior": "Only temporary Stanza checkpoint config feature-name alias all_caps->capitalized with identical single-character semantics, preserving order/length/duplicates, and default missing old use_dictionary to false. Unknown feature names fail closed.",
+    "unchanged": "original bundled Stanza model and resources, tensor weights, dictionary vocab, pinned Argos model, reviewed CSV, sample selection, score thresholds, fully offline no_network guard",
+    "tests_added": 4,
+    "expected_synthetic_test_count": 52,
+    "windows_test_result": "PENDING",
+    "real_model_translation": "PENDING"
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "Argos_quality": "NOT_MEASURED"
+  },
+  "next": "Pull main and run 52 synthetic tests. If PASS rerun identical offline Windows Argos pilot; upload pilot.csv if ten outputs, otherwise share exact error and partial abort session metadata."
+}
