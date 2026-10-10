@@ -32,6 +32,7 @@ on:
       - "tools/t10_translation_argos_protocol.py"
       - "tools/t10_translation_argos_candidate.py"
       - "tools/t10_translation_argos_offline_sbd.py"
+      - "tools/t10_translation_argos_stanza_metadata.py"
       - "tools/test_t10_translation_argos_candidate.py"
       - "tools/t10_video10_media_device.ps1"
       - "tools/t10_video10_media_review.py"
