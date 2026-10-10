@@ -104,3 +104,28 @@ if ($LASTEXITCODE -ne 0) { throw "T10 public 30-case selection FAILED" }
 Perintah select membuat satu file privat `external_test_30_selection.json` (write-once); source test dan human, 30 path WAV berbeda, tiga label pembicara test dan kemungkinan teks kalimat berulang akan dicatat. Tidak ada klaim bebas tumpang tindih model training, tidak ada Human QA atau CP4 PASS. Jika pernah memilih kategori dan file seleksi sudah ada, **jangan ulangi atau menimpa**.
 
 Untuk mendapatkan audio secara lebih hemat dari unduhan TAR minimal 865,7 MiB, Hugging Face mendokumentasikan dukungan **HTTP byte-range requests**. Namun belum ada verifikasi range pada objek TAR Atika di host pengguna; tidak boleh diasumsikan bahwa 30 WAV dapat diambil secara acak tanpa indeks offset TAR dan byte-integrity validation. Pemeriksaan desain range, jika dilakukan, harus dibatasi beberapa byte serta meminta respons 206/Content-Range yang benar. Unduhan penuh TAR atau model harus menunggu persetujuan eksplisit setelah ukuran dan kebutuhan dataset dipastikan.
+
+## Checkpoint Imperative terpilih + pemeriksaan byte-range — 2026-10-10
+
+Windows menjalankan **20 unit test PASS dalam 0,342 s**, kemudian berhasil melakukan *write-once* `select --category Imperative`, menghasilkan file privat `.t10-benchmark/t10-public-atika/external_test_30_selection.json` berisi **30 pilihan metadata**, partisi `test`, dan **3 label pembicara**. Output tegas: `actual_audio_downloaded=false`, CP4 BLOCKED. **Jangan ulangi select.**
+
+Arsip paling kecil tetap `Imperative.tar`, berukuran **907.765.760 byte (865,7 MiB)** berdasarkan metadata API penerbit; SHA-256 LFS yang diterbitkan adalah `54725d7ecd573c6fbe88cc6d43337be3910599842dc1711b8e7f5fbae88dc938`. Ini bukan SHA file lokal, dan **tidak** mengizinkan pengunduhan TAR besar.
+
+### Pemeriksaan byte-range terbatas tanpa mengunduh TAR
+
+Alat `tools/t10_atika_tar_range_probe.py` menjalankan **satu** HTTP GET HTTPS dengan `Range: bytes=0-511` dan `Accept-Encoding: identity` untuk URL arsip kategori Imperative pada revisi yang telah dipin. Jika server mengabaikan Range (`200 OK`), skrip **tidak membaca body apa pun** dan mengembalikan kode 2. Jika server menjawab `206 Partial Content`, skrip menuntut Content-Range persis `bytes 0-511/907765760`, Content-Length jika diberikan harus 512, membaca paling banyak **513 byte** (untuk mendeteksi overrun) dan memvalidasi checksum header TAR standar. Skrip hanya mencetak informasi umum, **bukan path member TAR, transkrip, atau audio**. Tidak ada model/ADB/inferensi/CP4 promotion. 206 yang benar hanya membuktikan kelayakan awal byte-range; indeks offset 30 WAV **belum tersedia**.
+
+Perintah Windows:
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_range_probe.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR range probe tests FAILED" }
+& $py tools\t10_atika_tar_range_probe.py
+```
+
+Tes tambahan **12 kasus sintetis**, hasil Windows **PENDING**. Bila tes lulus tetapi HTTP probe bernilai `RANGE_NOT_HONORED_NO_BODY_READ`, stop dan **jangan** meneruskan ke unduhan besar. Bila server memberikan 206 valid, evaluasi indeks TAR/berapa banyak round-trip metadata yang dibutuhkan **sebelum** mengembangkan pengambilan hanya 30 WAV. Jangan berasumsi ratusan ribu request Range ekonomis, murah, atau benar. Jika server memberi 206 namun 512 header bukan TAR yang valid, stop untuk investigasi lebih lanjut.
+
+Dataset Atika tetap **evaluasi publik tambahan**, dengan teks bacaan yang berulang antar peserta dan hanya tiga label pembicara test/kategori; tidak boleh dimasukkan ke holdout privat rekaman baru atau dinyatakan mengatasi CP4.
