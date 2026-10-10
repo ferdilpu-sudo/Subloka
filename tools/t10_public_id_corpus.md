@@ -52,3 +52,27 @@ Perintah `select` membuat `$public\external_test_30_selection.json` **sekali saj
 - `google/fleurs`, Common Voice 17, YODAS2: tercantum dalam training Maleo; **jangan klaim independen**.
 
 Status tidak berubah: **T10 ACTIVE / CP4 BLOCKED / T11 TODO**.
+
+## Checkpoint Windows metadata berhasil — 2026-10-10
+
+Berikut log hasil sebenarnya yang dilaporkan pengguna di Windows, bukan hasil simulasi: **15/15 unit tests PASS** (0,384 s), CSV metadata publik **31.362.056 byte** dengan SHA-256 **`3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21`**, **15.598** rekaman manusia pada partisi `test` memenuhi filter, tersebar pada 11 kategori.
+
+Setiap kategori memiliki **3 label pembicara pada test**, jadi dataset eksternal satu kategori ini belum memenuhi sasaran penelitian holdout privat **≥5 pembicara**. Total ukuran WAV kategori test paling kecil: `Imperative` **120.431.478 B (1.350 baris)**, `Exclamatory` **142.078.684 B (1.425 baris)**, `Negation` **148.081.252 B (1.425 baris)**. **Ini bukan ukuran unduhan TAR kategori penuh**; jangan mengambil keputusan penggunaan bandwidth berdasarkan angka tersebut.
+
+### Pemeriksaan ukuran 11 TAR tanpa unduh audio
+
+Ditambahkan perintah `archive-sizes` yang membaca satu daftar JSON dari API repository Hugging Face untuk revisi yang telah dipin, setelah memvalidasi metadata CSV privat yang sudah tersedia. Balasan API dibatasi **1 MB**, hanya berisi nama/ukuran arsip yang dipublikasikan, bukan audio. Perintah tidak menulis file atau mengunduh TAR/WAV/model:
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_public_id_corpus.py" -v
+if ($LASTEXITCODE -ne 0) { throw "Archive preflight regressions failed" }
+& $py tools\t10_public_id_corpus.py archive-sizes --workspace $public
+```
+
+Jumlah tes kini **19**, karena ada **4 tes baru** untuk keamanan/keakuratan pemeriksaan metadata ukuran arsip. **Windows 19/19 PASS baru belum dilaporkan** (tes 15/15 sebelumnya sudah PASS). Perintah menampilkan kategori terurut menurut ukuran TAR yang dilaporkan server, `lfs_sha256_upstream_metadata_unverified` bila tersedia, dan `approved_for_download=false` untuk semua kategori. Belum ada checksum TAR lokal atau SHA audio yang diverifikasi.
+
+**Jangan ulangi `fetch-metadata`**: file CSV sudah ada dan perintah sengaja menolak overwrite. Tunggu hasil `archive-sizes` sebelum memilih satu kategori dengan `select` karena pemilihan JSON juga write-once. Bila sumber API gagal atau tidak sesuai 11 kategori CSV, **stop** dan jangan menebak besar arsip atau mengunduh TAR. Pengunduhan arsip tetap perlu persetujuan terpisah setelah pemeriksaan ukuran, ruang dan lisensi.
