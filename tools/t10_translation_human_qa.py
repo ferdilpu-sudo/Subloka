@@ -184,6 +184,64 @@ def validate_human_sheet(raw_rows: list[dict], sheet_path: Path, draft_file: Pat
     return output
 
 
+
+def check_review(raw: Path, outdir: Path, review_file: Path,
+                 fixture_path: Path = FIXTURES, draft_file: Path = DRAFT) -> dict:
+    """Read-only external 60-case sheet preflight; NOT an attestation or CP4 PASS.
+
+    Unlike finalize(), this checks the supplied external CSV without copying
+    it into the original session or writing any graded/signoff artifacts.
+    """
+    session = json.loads((outdir / "review-session.json").read_text(encoding="utf-8"))
+    if session.get("version") != SESSION_VERSION or session.get("sample_count") != 60:
+        raise ValueError("Unsupported human-QA session")
+    originals = load(raw)
+    check_fixture_identity(originals, fixture_path)
+    if session["raw_sha256"] != fingerprint(raw) or session["raw_content_digest"] != content_digest(originals):
+        raise ValueError("Original raw CSV changed since QA sheet preparation")
+    if session["fixture_sha256"] != fingerprint(fixture_path):
+        raise ValueError("Frozen original translation fixture changed")
+    if session["ai_draft_sha256"] != fingerprint(draft_file):
+        raise ValueError("Provisional AI draft changed since QA sheet preparation")
+
+    # Give reviewer all missing disagreement-note IDs at once, while keeping
+    # the original validator as authoritative for the remaining field checks.
+    with review_file.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        fields = reader.fieldnames
+        rated = list(reader)
+    if fields != list(HUMAN_COLUMNS) or len(rated) != 60:
+        raise ValueError("External reviewer CSV requires exact 60-row original schema/order")
+    missing = [
+        row.get("sample", "<missing>")
+        for row in rated
+        if row.get("human_status") in STATUS
+        and row.get("provisional_ai_status") not in ("NOT_APPLICABLE", row.get("human_status"))
+        and not (row.get("human_notes") or "").strip()
+    ]
+    if missing:
+        raise ValueError("Missing reviewer rationale for changed AI decisions: " + ", ".join(missing))
+    completed = validate_human_sheet(originals, review_file, draft_file)
+    en_accepted = sum(row["source_language"] == "en" and row["status"] == "ACCEPT"
+                      for row in completed)
+    id_accepted = sum(row["source_language"] == "id" and row["status"] == "ACCEPT"
+                      for row in completed)
+    result = {
+        "status": "EXTERNAL_SHEET_INTEGRITY_PASS_NOT_HUMAN_ATTESTED_NOT_CP4",
+        "sample_count": len(completed),
+        "en_to_id_accepted": en_accepted,
+        "id_to_en_accepted": id_accepted,
+        "review_sha256": fingerprint(review_file),
+        "raw_sha256": fingerprint(raw),
+        "human_review_independence_verified": False,
+        "cp4_status": "BLOCKED",
+    }
+    print("REVIEW INTEGRITY PASS: 60/60 labels, original evidence unchanged")
+    print(f"EN->ID {en_accepted}/30; ID->EN {id_accepted}/30")
+    print("NOT HUMAN-ATTESTED | CP4 BLOCKED | no files changed")
+    return result
+
+
 def finalize(raw: Path, outdir: Path, reviewer: str, attested: bool,
              fixture_path: Path = FIXTURES, draft_file: Path = DRAFT) -> dict:
     if not reviewer.strip() or not attested:
@@ -236,6 +294,10 @@ def main() -> int:
     prep = sub.add_parser("prepare", help="Make 60-row human QA sheet from original device raw CSV")
     prep.add_argument("raw", type=Path)
     prep.add_argument("session_dir", type=Path)
+    check = sub.add_parser("check", help="Read-only validate external completed sheet before human signoff")
+    check.add_argument("raw", type=Path)
+    check.add_argument("session_dir", type=Path)
+    check.add_argument("--review", type=Path, required=True)
     finish = sub.add_parser("finalize", help="Check complete independent review and export signed report")
     finish.add_argument("raw", type=Path)
     finish.add_argument("session_dir", type=Path)
@@ -245,6 +307,8 @@ def main() -> int:
     try:
         if args.cmd == "prepare":
             prepare(args.raw, args.session_dir)
+        elif args.cmd == "check":
+            check_review(args.raw, args.session_dir, args.review)
         else:
             finalize(args.raw, args.session_dir, args.reviewer, args.attest_independent_bilingual_review)
         return 0
