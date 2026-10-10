@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_SIX_HEADER_SYNTHETIC_14_14_WINDOWS_PASS_AND_OFFSET_FEASIBILITY_REVIEW",
+  "evidence_source": "User-pasted Windows PowerShell exact unit-test output; prior live remote header-walk output",
+  "unit_tests": {
+    "name": "tools/test_t10_atika_tar_header_walk.py",
+    "total": 14,
+    "elapsed_seconds": 0.074,
+    "result": "OK",
+    "subsequent_powershell_error_guard_threw": false,
+    "terminal_confirmation": "T10 HEADER WALK 14 TESTS PASS",
+    "fixed_assertion": "3 * 513 = 1539 maximum network body bytes",
+    "formerly_failed_test_run_superseded": true,
+    "ci_run_pass_independently_verified": false
+  },
+  "previous_real_network": {
+    "category": "Imperative",
+    "six_valid_headers_scanned": 6,
+    "six_valid_file_headers": 6,
+    "next_header_offset_bytes": 490496,
+    "network_requests_max": 6,
+    "response_bytes_hard_max": 3078,
+    "selected_wav_tar_member_names_matched": 0,
+    "selected_30_audio_paths_in_private_metadata": true,
+    "no_audio_payload_saved": true,
+    "remote_total_archive_size_bytes": 907765760
+  },
+  "archive_index_research": {
+    "dataset": "Atika88/Indonesian-ASR-11-Class-Dataset",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "published_inventory": "data/audio_shards/audio_shards_manifest.csv",
+    "documented_manifest_granularity": "One entry per category-level TAR archive with file count, size, checksum; not evidenced to contain individual WAV byte offsets",
+    "paper_source": "https://www.sciencedirect.com/science/article/pii/S2352340926008085",
+    "no_proven_public_individual_wav_byte_offset_index": true,
+    "no_verified_economical_random_access_to_all_30": true,
+    "no_authorization_to_download_full_tar": true
+  },
+  "next": "No further repeated tests, `init`, `select`, `fetch-metadata` or HTTP first-six-header pilot. Research archive member offset indexing/offline list at low bandwidth; if unavailable, avoid thousands of sequential requests and obtain explicit size/storage approval before full 865.7 MiB TAR or use a separately sourced small licensed individual-WAV corpus. Keep public external evaluation distinct from fresh consented private holdout.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "privacy": "No raw WAV, transcript, identifiable voice information or private selection JSON committed"
+}
