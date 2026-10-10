@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ID_INDEPENDENT_HOLDOUT_19_SYNTHETIC_WINDOWS_PASS",
+  "source": "User-supplied PowerShell unittest terminal output",
+  "reported_test_command": "python -m unittest discover -s tools -p test_t10_id_independent_holdout.py -v",
+  "report": {
+    "total": 19,
+    "seconds": 7.496,
+    "result": "OK",
+    "test_failures": 0,
+    "test_errors": 0
+  },
+  "previous_failure_correction": {
+    "prior_report": "19 tests in 9.382 s, FAILED (failures=1)",
+    "cause": "test expected later permission check but validator first rejected empty pseudonym IDs",
+    "fix": "aa6690bd273b777dd847e7747df037a5f8c34f28",
+    "code_human_gate_relaxed": false
+  },
+  "status_explained": {
+    "windows_synthetic_tests": "PASS",
+    "actual_independent_human_audio_collected": false,
+    "private_30_slot_holdout_workspace_initialized_reported": false,
+    "human_consent_authenticated": false,
+    "heldout_transcripts_reviewed": false,
+    "manifest_audit_or_lock_pass_reported": false,
+    "maleo_local_model_bytes_verified": false,
+    "model_download_or_inference_performed": false,
+    "ci_result_checked": false
+  },
+  "next": "Initialize local gitignored .t10-benchmark/t10-id-holdout-new with 30 empty slots; do not mark consent or review true unless actually performed; real audit must remain blocked until all genuine recordings are ready.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
