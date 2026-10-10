@@ -360,6 +360,41 @@ class T10ArgosIDToENTests(unittest.TestCase):
                 )
         self.assertIsNone(direct.sentencizer.stanza_pipeline)
 
+
+    def test_stanza_keyerror_reports_only_bounded_offline_resource_metadata(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        def invalid_local_pipeline(**kwargs):
+            self.assertIsNone(kwargs["download_method"])
+            raise KeyError("packages")
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "missing_key='packages'") as cm:
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=invalid_local_pipeline
+                )
+        message = str(cm.exception)
+        self.assertIn("resources_languages=['id']", message)
+        self.assertIn("local_tokenize_models=[]", message)
+        self.assertIn("origin=", message)
+        self.assertNotIn(str(self.dir), message)
+        self.assertIsNone(direct.sentencizer.stanza_pipeline)
+
+    def test_stanza_malformed_local_resource_diagnostic_fails_closed(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        (direct.pkg.packaged_sbd_path / "resources.json").write_text(
+            "{this is invalid json", encoding="utf-8"
+        )
+        def invalid_local_pipeline(**kwargs):
+            raise KeyError("id")
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "resources_read_error=JSONDecodeError") as cm:
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=invalid_local_pipeline
+                )
+        self.assertIn("missing_key='id'", str(cm.exception))
+        self.assertIsNone(direct.sentencizer.stanza_pipeline)
+
     def test_stanza_without_packaged_resources_fails_closed(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
         (direct.pkg.packaged_sbd_path / "resources.json").unlink()
