@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-provided Windows PowerShell console and upstream Argos Translate 1.11.0 source; no access to user's host",
+  "before_patch": {
+    "synthetic_regression_tests": "31/31 PASS in 0.546s (user-reported)",
+    "command": "pilot --review $HOME/Downloads/translation-strategy-ab-review.csv",
+    "error": "Argos direct translation lacks a local model/SBD package",
+    "pilot_outputs": 0,
+    "valid_pilot_csv": false
+  },
+  "confirmed_upstream_structure": "Language.get_translation() returns CachedTranslation(PackageTranslation) for locally installed translation packages in Argos Translate v1.11.0. The CachedTranslation wrapper has underlying but no pkg or sentencizer; those are held by its inner PackageTranslation.",
+  "fix": {
+    "helper": "tools/t10_translation_argos_offline_sbd.py: unwrap_local_cached_translation",
+    "runner": "tools/t10_translation_argos_candidate.py",
+    "tests": "tools/test_t10_translation_argos_candidate.py",
+    "behavior": "Strictly unwrap only CachedTranslation(PackageTranslation), validate id->en at wrapper/backend/package, ensure same isolated package path, initialize offline SBD on backend, translate via original cached wrapper.",
+    "protections": "No network access for initialization or inference; reject pivot/remote/identity, path mismatch, missing packaged SBD; do not change model, fixed samples, baseline labels or scoring.",
+    "new_mock_regressions": 5,
+    "expected_total_tests": 36
+  },
+  "current_verification": "Repository patch pushed. New 36-test suite and real Windows pilot awaiting user execution; do not claim new CI PASS or quality verdict.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO",
+    "Argos_quality": "NOT_MEASURED"
+  },
+  "next_action": "User git pull --ff-only origin main; run 36 synthetic tests; rerun single-line offline pilot with frozen review CSV; share only fresh valid pilot.csv if complete or exact error if aborted."
+}
