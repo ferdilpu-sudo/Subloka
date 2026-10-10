@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ID_PUBLIC_HUMAN_SPEECH_SOURCE_FOUND_EXTERNAL_DIAGNOSTIC_METADATA_ONLY",
+  "user_request": "Assistant should source public Indonesian audio instead of asking user to personally record 30 clips.",
+  "selected_public_source": {
+    "dataset": "Atika88/Indonesian-ASR-11-Class-Dataset",
+    "url": "https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset",
+    "DOI": "10.57967/hf/10345",
+    "immutable_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "license_claim": "CC BY 4.0 for publisher-owned dataset materials, attribution required; independent rights/consent compliance not certified",
+    "published_release_date": "2026-06-18",
+    "published_human_recordings": 104368,
+    "published_synthetic_repair_recordings": 132,
+    "published_audio_total_bytes_approx": 15623106560,
+    "published_audio_shards": 11,
+    "audio_format_claim": "16 kHz 16bit mono WAV",
+    "reference_data": "Per-WAV transcriptions in public metadata/dataset_metadata_public.csv",
+    "split": "speaker-label-disjoint train/val/test, choose only test",
+    "audio_speaker_labels": "pseudonyms, voice remains personally identifying",
+    "speech_type": "prompted scripted/read speech, prompts may recur across speakers"
+  },
+  "compared_with_model_training_metadata": {
+    "model": "maleo-ai/whisper-base-id",
+    "declared_training_sources": [
+      "Common Voice 17 Indonesian",
+      "FLEURS Indonesian",
+      "YODAS2 Indonesian"
+    ],
+    "atika_explicitly_listed_in_training_sources": false,
+    "actual_train_data_intersection_independently_verified_empty": false,
+    "chronic_publication_proves_disjointness": false
+  },
+  "restrictions": {
+    "no_fresh_consent_claim": true,
+    "existing_private_holdout_left_intact": true,
+    "do_not_label_public_scripted_samples_clean_or_challenging_by_category": true,
+    "exclude_all_synthetic_unknown_type_samples": true,
+    "original_fleurs_105_over_367_wer_unchanged": true,
+    "no_model_download": true,
+    "no_large_dataset_archive_download": true,
+    "no_asr_inference": true,
+    "no_actual_audio_bytes_verified_yet": true,
+    "publisher_references_not_human_rechecked": true,
+    "cp4_promotion": false
+  },
+  "implementation": {
+    "script": "tools/t10_public_id_corpus.py",
+    "tests": "tools/test_t10_public_id_corpus.py",
+    "documentation": "tools/t10_public_id_corpus.md",
+    "ci": ".github/workflows/t10-engine-eval.yml",
+    "expected_new_synthetic_tests": 15,
+    "new_windows_or_ci_pass_reported": false,
+    "source_cli": "python tools/t10_public_id_corpus.py source",
+    "metadata_download_cli": "python tools/t10_public_id_corpus.py fetch-metadata --workspace .t10-benchmark/t10-public-atika",
+    "inspection_cli": "python tools/t10_public_id_corpus.py inspect --workspace .t10-benchmark/t10-public-atika",
+    "sample_selection_cli": "python tools/t10_public_id_corpus.py select --workspace .t10-benchmark/t10-public-atika --category Declarative",
+    "metadata_download_hard_cap_mib": 100,
+    "audio_archive_auto_download": false,
+    "selection_is_public_external_read_speech_not_consented_fresh_holdout": true,
+    "selection_records_distinct_wav_paths_and_repeated_prompts_separately": true,
+    "selected_audio_wav_downloaded": false,
+    "reason_no_assistant_host_audio_download": "Network DNS unavailable on execution container, and publisher ships ~15.6 GB audio in category archives; do not silently fetch high-bandwidth archives.",
+    "extra_sources_considered": [
+      {
+        "source": "SEACrowd/asr_sindodusc",
+        "limitation": "CC BY-NC-ND 4.0; depends on external gated/source loading"
+      },
+      {
+        "source": "BabelSpeech/40hours_Indonesian_Colloquial_ASR_Speech_Dataset",
+        "limitation": "Access gated and asks for contact details"
+      }
+    ]
+  },
+  "next": "Pull main and run 15 offline synthetic tests; fetch <=100 MiB pinned public metadata only from Windows, inspect test/human/category counts, freeze 30 distinct WAV paths with prompt-repeat limitations; separately size-check and seek explicit opt-in for required large category TAR before downloading WAVs. Human-check transcripts and original SHA before WER.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
