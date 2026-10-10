@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_NEXT_OFFLINE_INDONESIAN_ASR_CANDIDATE_FEASIBILITY_PREPARATION",
+  "status": "MODEL_TRIAGE_AND_READ_ONLY_SONY_PREFLIGHT_PREPARED_NOT_BENCHMARKED",
+  "context": {
+    "ASR_ID_clean_base": "105/367 errors=28.61% WER, target <=20%, need 32 fewer edits",
+    "beam1": "110/367 errors; poorer than control",
+    "small_quant": "Two Small q5_1 RTF >2.0; preregistered p95 for 20 mathematically impossible",
+    "original_MLKit_human_QA": "Integrity PASS, EN->ID 27/30 ID->EN 24/30, independent human attestation NOT VERIFIED",
+    "CP4": "BLOCKED"
+  },
+  "public_research": {
+    "asr_models": [
+      {
+        "id": "sherpa_qwen3_asr_0_6b_int8",
+        "language": "Indonesian explicitly listed",
+        "upstream_documentation": "https://k2-fsa.github.io/sherpa/onnx/qwen3-asr/pretrained.html",
+        "android_examples": "Listed on sherpa-onnx ecosystem, not tested on Sony",
+        "published_parts": "conv_frontend 42M, decoder 721M, encoder 174M, extra tokenizer",
+        "weight_mib_estimate": 937,
+        "artifact_archive_sha256_known": false,
+        "converted_model_distribution_license_confirmed": false,
+        "device_WER_RTF_RSS_verified": false
+      },
+      {
+        "id": "wav2vec2_xlsr_large_indonesian",
+        "language": "Indonesian-only",
+        "model_page": "https://huggingface.co/indonesian-nlp/wav2vec2-large-xlsr-indonesian/tree/main",
+        "file_size": "pytorch_model.bin 1.26 GB (HF web listing)",
+        "model_card_license": "Apache-2.0",
+        "model_card_self_reported_common_voice_id_WER_percent": 14.29,
+        "comparability_to_T10_FLEURS": "NOT_COMPARABLE_DIFFERENT_DATASET",
+        "android_onnx_conversion_verified": false,
+        "pinned_weights_sha256_known": false,
+        "device_WER_RTF_RSS_verified": false
+      }
+    ],
+    "excluded_not_language_verified": [
+      {
+        "name": "Vosk",
+        "catalog": "https://alphacephei.com/vosk/models",
+        "finding": "No Indonesian model entry found in official catalogue, do not invent/download one"
+      }
+    ]
+  },
+  "implementation": {
+    "script": "tools/t10_asr_next_feasibility.py",
+    "tests": "tools/test_t10_asr_next_feasibility.py",
+    "expected_synthetic_test_count": 12,
+    "workflow": ".github/workflows/t10-engine-eval.yml",
+    "snapshot_only": true,
+    "adb_reads": [
+      "devices -l",
+      "getprop ro.product.model",
+      "getprop ro.product.cpu.abi",
+      "cat /proc/meminfo",
+      "df -k /data",
+      "dumpsys battery",
+      "settings get global airplane_mode_on",
+      "settings get global wifi_on"
+    ],
+    "external_internet_calls": false,
+    "install_or_phone_inference": false,
+    "candidates_download_allowed": false,
+    "model_unselected": true,
+    "output_write_once": true,
+    "script_unit_tests_run_on_user_windows": false,
+    "ci_result_checked": false,
+    "phone_device_snapshot_run": false
+  },
+  "gate_to_next_step": [
+    "Run stdlib suite and report errors if present",
+    "If tests pass use read-only adb snapshot on Sony (no model transfers)",
+    "Evaluate free storage and RAM with disclosed uncertainty; do not treat approximate published weight as memory peak",
+    "Pin exact model artifact revision/checksums and verify license before any opt-in GB download",
+    "Register evaluation and genuinely independent holdout dataset before benchmark; no changes to original 20 samples"
+  ],
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
