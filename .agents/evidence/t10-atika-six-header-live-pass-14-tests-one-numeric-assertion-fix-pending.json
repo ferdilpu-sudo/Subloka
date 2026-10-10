@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_SIX_HEADER_REMOTE_RANGE_WALK_PASS_14_TESTS_ONE_FAIL_EXACT_CAP_FIX_PENDING",
+  "source": "User-pasted Windows PowerShell unit-test summary and successful six-header remote TAR header-walk JSON; assistant GitHub source inspection",
+  "windows_tests": {
+    "suite": "tools/test_t10_atika_tar_header_walk.py",
+    "count": 14,
+    "elapsed_seconds": 0.097,
+    "result": "FAILED (failures=1)",
+    "failing_case_name_from_log": null,
+    "traceback_from_log": null,
+    "guard": "PowerShell threw T10 TAR header walk tests FAILED",
+    "new_tests_fixed_windows_pass_verified": false
+  },
+  "identified_test_code_defect": {
+    "method": "test_three_member_offsets_derived_from_real_tar_header_sizes",
+    "wrong_asserted_http_body_bytes_max": 1545,
+    "actual_implementation_formula": "max_headers * MAX_READ_BYTES",
+    "MAX_READ_BYTES": 513,
+    "correct_for_three_headers": 1539,
+    "corroborated_by_six_header_network_max_body_bytes": 3078,
+    "fix_commit": "d39735a38ec09241c8581d5bd64452f19200eb02",
+    "scope": "test-only correction; no production behavior relaxed",
+    "caveat": "This is an identified test defect likely corresponding to reported failure; exact failing test was not included in user excerpt, so actual 14/14 success requires Windows rerun"
+  },
+  "real_remote_success": {
+    "archive": "Imperative.tar",
+    "pinned_archive_bytes": 907765760,
+    "result": "BOUNDED_REMOTE_TAR_HEADER_WALK_ONLY",
+    "headers_scanned": 6,
+    "file_headers_seen": 6,
+    "pax_or_longname_headers_seen": 0,
+    "network_requests_max": 6,
+    "http_body_bytes_max": 3078,
+    "next_header_offset_bytes": 490496,
+    "tar_end_marker_seen": false,
+    "selected_exact_name_matches_in_scanned_headers": 0,
+    "selected_total": 30,
+    "all_30_clip_offsets_found": false,
+    "full_tar_or_wav_downloaded": false,
+    "WAV_integrity_verified": false,
+    "model_downloaded_or_inference_performed": false,
+    "shell_confirmation": "T10 BOUNDED HEADER WALK PASS",
+    "body_bytes_max_is_upper_bound_not_instrumented_measurement": true
+  },
+  "research_limits": {
+    "original_private_consented_holdout_untouched": true,
+    "public_dataset_human_speaker_labels": 3,
+    "source_public_scripted_speech_not_fresh_consented_private_holdout": true,
+    "all_30_selected_wav_offsets_found": false,
+    "local_archive_checksum_verified": false,
+    "asr_wer_new_reported": false,
+    "CP4": "BLOCKED"
+  },
+  "next": "Pull latest commit and rerun only 14 synthetic header-walk tests; do not repeat successful 6-header HTTP walk nor redownload public CSV, reselect metadata or acquire 865.7MiB archive.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
