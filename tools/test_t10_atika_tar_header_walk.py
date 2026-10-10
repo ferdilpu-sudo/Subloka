@@ -175,7 +175,9 @@ class BoundedTARHeaderWalkTests(unittest.TestCase):
         self.assertEqual(observed, [0, 1536, 2560])
         self.assertEqual(report["headers_scanned"], 3)
         self.assertEqual(report["file_headers_seen"], 3)
-        self.assertEqual(report["http_body_bytes_max"], 1545)
+        # Per header: 512 TAR bytes + at most 1 byte overrun guard = 513.
+        # Three headers must be capped at 3 * 513 = 1539 (not 1545).
+        self.assertEqual(report["http_body_bytes_max"], 3 * 513)
         self.assertEqual(report["selected_exact_name_matches_in_scanned_headers"], 0)
         self.assertFalse(report["all_30_clip_offsets_found"])
         self.assertFalse(report["full_tar_or_wav_downloaded"])
