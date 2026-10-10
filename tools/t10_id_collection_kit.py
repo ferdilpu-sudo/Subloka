@@ -100,7 +100,7 @@ def plan_payload() -> dict:
         "type": "PRIVATE_ID_HOLDOUT_TOPIC_PLAN_NOT_HUMAN_REFERENCE_OR_CONSENT",
         "sample_count": 30,
         "speaker_plan": "5 consenting speakers; each: 4 clean + 2 challenging",
-        "recommended_utterance": "Kata-kata spontan sendiri, sekitar 12-20 kata per klip; 1-30 detik.",
+        "recommended_utterance": "Kata-kata spontan sendiri, sekitar 15-20 kata per klip; 1-30 detik.",
         "prompt_is_not_reference": True,
         "require_actual_permission_before_recording": True,
         "minor_participant_extra_permission_if_required": True,
@@ -117,7 +117,8 @@ def plan_payload() -> dict:
 def create_plan(workspace: Path) -> Path:
     require_private_workspace(workspace)
     check_template(workspace)
-    if (workspace / "manifest.lock.json").exists():
+    lock = workspace / "manifest.lock.json"
+    if lock.exists() or lock.is_symlink():
         raise ValueError("Holdout already sealed; collection planning may no longer change")
     output = workspace / PLAN_FILENAME
     if output.exists() or output.is_symlink():
