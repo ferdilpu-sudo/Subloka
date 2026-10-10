@@ -261,6 +261,48 @@ class FeasibilityTests(unittest.TestCase):
             self.assertFalse(x["host_accuracy_verified"])
             self.assertFalse(x["sony_performance_verified"])
 
+    def test_sony_storage_screen_blocks_both_large_model_candidates(self):
+        # Rounded real Sony snapshot displayed 1732 MiB available.
+        sony = {
+            "device_model": "SO-03L",
+            "abi": "arm64-v8a",
+            "mem_total_kib": 5487 * 1024,
+            "free_data_kib": 1732 * 1024,
+            "battery_c": 38.0,
+        }
+        report = assess(PINS, sony)
+        self.assertEqual(report["CP4"], "BLOCKED")
+        self.assertEqual(len(report["candidates"]), 2)
+        for candidate in report["candidates"]:
+            self.assertFalse(candidate["rough_two_copies_of_weights_fit_data"])
+            self.assertEqual(
+                candidate["storage_screen_approx_only"],
+                "CONSTRAINED_LESS_THAN_TWO_COPIES_OF_PUBLISHED_WEIGHTS"
+            )
+            self.assertFalse(candidate["ready_for_model_download"])
+        by_id = {x["id"]: x for x in report["candidates"]}
+        self.assertEqual(
+            by_id["sherpa_qwen3_asr_0_6b_int8"]["estimated_mib_after_one_weight_only"],
+            795.0,
+        )
+        self.assertEqual(
+            by_id["wav2vec2_xlsr_large_indonesian"]["estimated_mib_after_one_weight_only"],
+            530.0,
+        )
+
+    def test_abundant_free_data_does_not_authorize_download_or_promotion(self):
+        device = {"mem_total_kib": 8 * 1024 * 1024, "free_data_kib": 10000 * 1024}
+        report = assess(PINS, device)
+        for candidate in report["candidates"]:
+            self.assertTrue(candidate["rough_two_copies_of_weights_fit_data"])
+            self.assertEqual(
+                candidate["storage_screen_approx_only"],
+                "TWO_WEIGHTS_MAY_FIT_OTHER_SPACE_REQUIREMENTS_UNKNOWN",
+            )
+            self.assertFalse(candidate["ready_for_model_download"])
+            self.assertFalse(candidate["ready_for_sony_inference"])
+            self.assertFalse(candidate["ready_for_cp4_promotion"])
+
     def test_broken_pin_fails_closed(self):
         for k in PINS:
             changed = dict(PINS)
