@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "evidence_type": "PREREGISTERED_OPTIONAL_HOST_CANDIDATE_NOT_RUN_NOT_CP4",
+  "why_now": "Original ML Kit ID->EN 24/30=80% accepted (below >=27/30), and the later whole-vs-linewise 60 two-sentence paragraph comparison had no quality benefit. ASR Whisper Small-q5_1 on Sony was mathematically early-rejected because 2 of 2 samples exceeded fixed RTF 2.0; further Small inference not requested.",
+  "candidate": {
+    "framework": "Argos Translate, offline neural translation built using OpenNMT/CTranslate2",
+    "direction": "Indonesian -> English only",
+    "package": "translate-id_en-1_9.argosmodel",
+    "model_source_repo": "TiberiuCristianLeon/Argostranslate mirror",
+    "pinned_git_revision": "a69e5d5f51945c24ad8653c3255b87320af21a48",
+    "source_url": "https://huggingface.co/TiberiuCristianLeon/Argostranslate/resolve/a69e5d5f51945c24ad8653c3255b87320af21a48/translate-id_en-1_9.argosmodel",
+    "expected_sha256": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4",
+    "published_mirror_size": "68.7 MB (archive only); Python Argos dependencies can significantly exceed this",
+    "official_index": "https://github.com/argosopentech/argospm-index/blob/main/index.json",
+    "official_index_id_to_en_link": "https://argos-net.com/v1/translate-id_en-1_9.argosmodel",
+    "model_relationship": "Different translator from on-device ML Kit and no shared neural model weights; still does not guarantee greater correctness.",
+    "python_library": "argostranslate==1.11.0 (opt-in installation, tested only by user later)",
+    "license_caution": "Argos Translate code MIT; check separate model-package licensing before distributing model in Android."
+  },
+  "old_review_control": {
+    "uploaded_csv_name": "translation-strategy-ab-review.csv",
+    "exact_sha256": "516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9",
+    "rows": 120,
+    "original_paragraphs": 60,
+    "whole_baseline_id_en_accept": "21/30",
+    "whole_baseline_en_id_accept": "22/30",
+    "selection": "First 10 existing ID->EN paragraph samples id-ab-01..id-ab-10 in original fixture order, no case cherry-picking; original 30 EN->ID samples not used",
+    "control": "Stored earlier human-reviewed ML Kit whole output and status, immutable in raw pilot CSV",
+    "source_fixture": "engine/translation/src/androidTest/assets/t10_translation_strategy_ab_fixtures.json",
+    "no_frozen_cp4_original_mutation": true
+  },
+  "program": {
+    "protocol": "tools/t10_translation_argos_protocol.py",
+    "host_runner": "tools/t10_translation_argos_candidate.py",
+    "tests": "tools/test_t10_translation_argos_candidate.py",
+    "pilot_command": "python tools/t10_translation_argos_candidate.py pilot --review <path to ORIGINAL translation-strategy-ab-review.csv>",
+    "output": "new gitignored .t10-benchmark/argos-id-en-pilot-*/pilot.csv and session.json; 10 candidate statuses BLANK; model outputs/controls not committed",
+    "package_location": "only .t10-benchmark/argos-id-en-host/packages via ARGOS_PACKAGES_DIR; no deliberate use of global Argos model directory",
+    "inference_privacy": "Windows CPU, no cloud API or inference; network connections blocked in runner during candidate inference; prepare separately downloads pinned model artifact",
+    "hard_fails": [
+      "model archive SHA mismatch",
+      "unsafe archive ZIP",
+      "old reviewed ML Kit CSV SHA mismatch",
+      "missing 120 reviewer decisions",
+      "missing/modified source fixture",
+      "empty candidate translation",
+      "changed candidate/raw fields during review",
+      "unfilled candidate review status",
+      "new critical errors"
+    ],
+    "dependency_caveats": [
+      "Argos Python package install can download other dependencies and may need Python package compatibility tests on Windows 3.12",
+      "Third-party mirror pinned hash is published by mirror; full archive will be verified after optional download",
+      "Host latency cannot be transferred to Sony; no Android engine integration performed"
+    ]
+  },
+  "screening_criteria_preregistered_before_candidate_output": {
+    "initial_fixed_pilot_cases": 10,
+    "minimum_formerly_rejected_mlkit_cases_recovered_to_ACCEPT": 2,
+    "minimum_net_added_accepted": 2,
+    "zero_new_negation_errors": true,
+    "zero_new_number_or_name_errors": true,
+    "candidate_review": "Must be separately graded, no auto ACCEPT based on fluency, original control decisions are reused strictly by SHA",
+    "if_pilot_passes": "PROMISING for full 30 ID->EN comparison + new truly unseen independent samples + future offline Android implementation and resource tests",
+    "if_pilot_fails": "Do not promote Argos based on pilot",
+    "do_not_compare_host_latency_to_android_mlkit_latency": true,
+    "no_auto_cp4_promotion": true
+  },
+  "preregistered_limitation": "The reused 10-case portion of already-authored and already-reviewed 60-paragraph diagnostic is not an independent unseen holdout and differs from the original frozen single-sentence CP4 fixture. It cannot prove the official >=27/30 original gate, nor validate EN->ID.",
+  "result_status": "NOT_RUN_NOT_DOWNLOADED",
+  "status": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

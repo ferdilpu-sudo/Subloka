@@ -425,3 +425,29 @@ User reports Windows `--prepare-small` now succeeded: **190,085,487-byte Small-q
 Sony SO-03L completed **two paired clean-Indonesian ASR samples (four inference runs)** in `.t10-benchmark/small-model-ab-20261010T030853Z-94c149`. Base: **12/35 word edits (34.29% provisional WER)**, Small-q5_1 **13/35 (37.14% provisional WER)**. Both Small runs exceeded the **pre-registered p95 RTF <=2.0 criterion**: RTF 2.5069 and 2.1602, versus Base 1.05211 and 1.18251. Peak observed Small VmRSS from sampling **609,308 KiB**, versus Base **376,968 KiB**; battery 37.0°C to 38.5°C. Pilot transcriptions and original `summary.json` not uploaded, so conclusions derive from user's console and are not independently source-file verified.
 
 **Do not continue this particular Small-q5_1 A/B screening or run `--resume` to process 18 more pairs.** For 20 total Small runs, the nearest-rank p95 is the 19th ordered RTF; only one RTF >2.0 is allowable. Two already measured above 2.0 make even the **best conceivable final p95 at least 2.1602**, so passing the original performance requirement is impossible regardless of the remaining samples. This is a justified **early performance reject**, NOT a complete 20-sample WER decision. No changes to production Base, ASR references, benchmark thresholds, user review or translation model. The updated analyzer/runner makes this infeasibility explicit and guards against costly accidental resumption. Evidence `.agents/evidence/t10-asr-small-model-two-pair-pilot-early-reject.json`; original 20-item gate and CP4 remain BLOCKED. Translation ID→EN 24/30 and real subtitle E2E remain separate blockers.
+
+### T10 — Optional offline Argos ID→EN candidate screening on Windows (NOT Android/CP4)
+
+After the Sony Small-q5_1 ASR pilot failed the frozen performance target, the ID→EN translation issue remains: original ML Kit **24/30 ACCEPT**, while the separate 60 two-sentence paragraph diagnostic produced **21/30 ACCEPT for ML Kit whole ID→EN**, identical to linewise. Rather than changing existing ML Kit outputs, the next screening evaluates **a genuinely different offline model**, Argos Translate Indonesian→English, on **Windows CPU first**. The official Argos index lists the package and a pinned public mirror exposes `translate-id_en-1_9.argosmodel` SHA256 `b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4` (model archive about 68.7MB). The Python library and its dependencies are extra downloads and may be substantially larger. This optional host experiment has **not** run on Sony and must not substitute for Android performance.
+
+In a separate Python environment, if you elect to try it, install the offline library (`argostranslate==1.11.0`) from PyPI. Then run model preparation online in repository root:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install "argostranslate==1.11.0"
+python tools/t10_translation_argos_candidate.py prepare
+```
+
+The script pins model ZIP SHA, rejects ZIP traversal/symlinks, installs the language model under gitignored `.t10-benchmark/argos-id-en-host/packages` and does not overwrite the frozen ML Kit pipeline. **Pilot requires the precise unmodified 120-row original reviewed CSV**, SHA256 `516ca5d8967aefa7046db65e53fb1788ef7267bb48f7f34ada48eb72d20018a9`, typically in Downloads. After model prepare, run offline (computer internet can also be disabled to validate locality):
+
+```powershell
+python tools/t10_translation_argos_candidate.py pilot --review "$HOME\Downloads\translation-strategy-ab-review.csv"
+```
+
+This tests first ten ID→EN source paragraphs (`id-ab-01..10`) in original fixture order; saves `.t10-benchmark/argos-id-en-pilot-<session>/pilot.csv` with the unchanged previous ML Kit whole translations + labels and all ten NEW Argos outputs. No model output is auto-graded. Upload the generated `pilot.csv` for an AI-assisted semantic review, or separately review **all 10** and fill `candidate_review_status`/`candidate_notes` in a **copy**, then run:
+
+```powershell
+python tools/t10_translation_argos_candidate.py report --session ".t10-benchmark\argos-id-en-pilot-<session>" --review "path\to\completed-review.csv"
+```
+
+The preregistered pilot screen requires at least 2 recovered ML Kit failures, net +2 accepted without newly introduced critical number/name/negation errors; a pass is only **PROMISING** for full 30 plus new independently unseen data and **actual Android device integration/testing**. Windows timing is not comparable directly to Sony ML Kit timing. The old single-sentence official CP4 translation score 24/30, ASR Indonesian 105/367=28.61%, and CP4 BLOCKED remain untouched. Protocol/evidence: `.agents/evidence/t10-translation-argos-id-en-host-preregistered.json`.
