@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+from types import SimpleNamespace
 import socket
 import stat
 import tempfile
@@ -21,6 +22,7 @@ from t10_translation_argos_protocol import (
     strict_review, pilot_rows, validate_argos_archive, write_csv, sha256, grade,
 )
 from t10_translation_strategy_ab_review import fixture_data, REVIEW_COLUMNS
+from t10_translation_argos_offline_sbd import ensure_offline_sbd
 from t10_translation_argos_candidate import (
     no_network, _generate_pilot, local_paths, isolated_argos_env,
     report,
@@ -208,6 +210,116 @@ class T10ArgosIDToENTests(unittest.TestCase):
         # Restore the real methods after the guard exits.
         self.assertTrue(callable(socket.socket.connect))
 
+
+    def _fake_sbd(self, flavor: str):
+        class FakeStanza:
+            stanza_lang_code = "id"
+            stanza_pipeline = None
+
+        class FakeMini:
+            lang = ""
+
+        packages = self.dir / "packages"
+        package_path = packages / "translate-id_en-1_9"
+        package_path.mkdir(parents=True, exist_ok=True)
+        if flavor == "stanza":
+            resource = package_path / "stanza"
+            resource.mkdir()
+            (resource / "resources.json").write_text('{"id":{}}', encoding="utf-8")
+            sentencizer = FakeStanza()
+        elif flavor == "minisbd":
+            resource = package_path / "minisbd"
+            resource.mkdir()
+            model = resource / "id.onnx"
+            model.write_bytes(b"test fixture only")
+            sentencizer = FakeMini()
+            sentencizer.lang = str(model)
+        else:
+            resource = None
+            sentencizer = SimpleNamespace()
+        pkg = SimpleNamespace(
+            package_path=package_path,
+            packaged_sbd_path=resource,
+        )
+        return (SimpleNamespace(pkg=pkg, sentencizer=sentencizer),
+                packages, FakeStanza, FakeMini)
+
+    def test_bundled_stanza_initialization_forces_no_download(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        captured = {}
+        sentinel = object()
+        def fake_pipeline(**kwargs):
+            captured.update(kwargs)
+            return sentinel
+        with no_network():
+            mode = ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=fake_pipeline
+            )
+        self.assertEqual(mode, "PACKAGED_STANZA_RESOURCES_NO_DOWNLOAD")
+        self.assertIsNone(captured["download_method"])
+        self.assertEqual(captured["lang"], "id")
+        self.assertEqual(captured["processors"], "tokenize")
+        self.assertFalse(captured["use_gpu"])
+        self.assertEqual(direct.sentencizer.stanza_pipeline, sentinel)
+
+    def test_stanza_unexpected_network_is_still_blocked(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        def fake_bad_pipeline(**kwargs):
+            with socket.socket() as sock:
+                sock.connect(("example.com", 443))
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "could not be initialized offline"):
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=fake_bad_pipeline
+                )
+        self.assertIsNone(direct.sentencizer.stanza_pipeline)
+
+    def test_stanza_without_packaged_resources_fails_closed(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        (direct.pkg.packaged_sbd_path / "resources.json").unlink()
+        called = []
+        def no_call(**kwargs):
+            called.append(kwargs)
+        with self.assertRaisesRegex(RuntimeError, "missing bundled Stanza"):
+            ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=no_call
+            )
+        self.assertEqual(called, [])
+
+    def test_sbd_rejects_outside_model_package_directory(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        with self.assertRaisesRegex(RuntimeError, "outside isolated benchmark directory"):
+            ensure_offline_sbd(
+                direct, self.dir / "another-package-root",
+                stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=lambda **kwargs: None,
+            )
+
+    def test_bundled_minisbd_onnx_is_offline_accepted(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("minisbd")
+        mode = ensure_offline_sbd(
+            direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls
+        )
+        self.assertEqual(mode, "PACKAGED_MINISBD_ONNX_NO_DOWNLOAD")
+
+    def test_minisbd_without_bundled_onnx_is_rejected(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("minisbd")
+        list((direct.pkg.package_path / "minisbd").glob("*.onnx"))[0].unlink()
+        with self.assertRaisesRegex(RuntimeError, "lacks exactly one bundled ONNX"):
+            ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls
+            )
+
+    def test_unknown_sentence_boundary_type_is_rejected(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("unknown")
+        with self.assertRaisesRegex(RuntimeError, "Unknown Argos sentence-boundary"):
+            ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls
+            )
+
     def test_argos_packages_are_isolated_in_benchmark_workspace(self):
         model, packages = local_paths(self.dir)
         self.assertTrue(str(model).startswith(str(self.dir)))
@@ -321,6 +433,8 @@ class T10ArgosIDToENTests(unittest.TestCase):
         self.assertEqual(len(observed), 10)
         self.assertTrue(all(row["candidate_review_status"] == "" for row in rows))
         self.assertEqual(json.loads((session / "session.json").read_text())["cp4"], "BLOCKED")
+        self.assertEqual(json.loads((session / "session.json").read_text())["offline_sbd_mode"],
+                         "SYNTHETIC_TEST_ONLY")
         self.assertEqual(json.loads((session / "session.json").read_text())["status"],
                          "HOST_PILOT_COMPLETE_REVIEW_PENDING_NOT_CP4")
 

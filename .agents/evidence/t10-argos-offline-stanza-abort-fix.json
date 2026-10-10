@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "evidence_type": "T10_ARGOS_HOST_PILOT_NETWORK_GUARD_ABORT_AND_LOCAL_STANZA_INITIALIZATION_FIX",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "source": "User-pasted Windows PowerShell console, not independently accessed personal computer",
+  "user_reported_prepare": {
+    "status": "PASS",
+    "message": "Verified Argos ID->EN archive: ...\\translate-id_en-1_9.argosmodel bytes: 68650073; PREPARE COMPLETE (local Windows host, NOT Android): Indonesian → English",
+    "model_archive_size_bytes": 68650073,
+    "model_sha256_expected_verified_by_runner": "b494f6109dd7ceae32cb44cc721a14039abce938dc773a70087e73301ef4fed4",
+    "installation": "local .t10-benchmark/argos-id-en-host/packages, not Android"
+  },
+  "user_reported_pilot": {
+    "command": "python tools/t10_translation_argos_candidate.py pilot --review <actual existing exact 120-row reviewed CSV>",
+    "first_session": ".t10-benchmark/argos-id-en-pilot-20261010T035318Z-9776740",
+    "second_session": ".t10-benchmark/argos-id-en-pilot-20261010T035434Z-4db5ed4",
+    "status": "HOST_PILOT_ABORTED_NO_QUALITY_VERDICT",
+    "runtime_error": "Outgoing network is forbidden in offline T10 candidate inference",
+    "scored_candidate_rows_created": 0,
+    "quality_scores": "NONE",
+    "last_attempt": "PowerShell literal pasted >> prompts caused argparse --review missing; command line formatting error distinct from offline network guard, not data validation failure"
+  },
+  "root_cause_assessment": {
+    "confidence": "strong code-based hypothesis, not yet confirmed by successful user rerun",
+    "upstream_argos_1_11_0": "Argos PackageTranslation stores a bundled StanzaSentencizer when package has stanza data. StanzaSentencizer lazily calls stanza.Pipeline without a download_method argument. Stanza Pipeline defaults to DOWNLOAD_RESOURCES, which can access network for resources.json when translation starts.",
+    "upstream_sources": [
+      "https://raw.githubusercontent.com/argosopentech/argos-translate/v1.11.0/argostranslate/translate.py",
+      "https://raw.githubusercontent.com/argosopentech/argos-translate/v1.11.0/argostranslate/sbd.py",
+      "https://stanfordnlp.github.io/stanza/download_models.html"
+    ],
+    "model_archive_bundled_sbd_type": "NOT YET OBSERVED IN USER OUTPUT; new runner diagnoses and requires bundled local Stanza or MiniSBD resources",
+    "invariant": "The offline socket guard must remain active. No HTTP fallback, no cloud inference, no automatic tokenizer model download."
+  },
+  "fix": {
+    "new_helper": "tools/t10_translation_argos_offline_sbd.py",
+    "modified_runner": "tools/t10_translation_argos_candidate.py",
+    "behavior": "For Argos' same bundled Stanza sentence boundary model, create stanza.Pipeline with download_method=None inside the existing offline socket guard before first translation; load exact same package path and language. For already-bundled MiniSBD ONNX use same engine; reject missing/unbundled sentence models. All resources must lie under the isolated model package.",
+    "new_session_metadata": "offline_sbd_mode",
+    "tests": "seven added offline regression cases for Stanza local-only initialization/keyword, blocked network, missing resources, package confinement, MiniSBD bundled ONNX, absent model, unsupported sentencizer (existing synthetic tests retained)",
+    "model_weights_changed": false,
+    "sample_order_changed": false,
+    "scoring_changed": false,
+    "source_review_sha_changed": false,
+    "preregistered_criteria_changed": false,
+    "local_argos_package_reinstall_required": false,
+    "old_aborted_sessions": "Untouched, remain aborted; re-run produces a fresh distinct session"
+  },
+  "next_safe_action": {
+    "command_one_line": ".\\.t10-benchmark\\argos-venv\\Scripts\\python.exe tools\\t10_translation_argos_candidate.py pilot --review \"$HOME\\Downloads\\translation-strategy-ab-review.csv\"",
+    "when": "Only after corrected code is pushed and CI tests pass",
+    "user_should_share": "new session's pilot.csv if 10/10 outputs completed; otherwise error text and session.json, without private model file",
+    "note": "The pip update notice is unrelated and pip upgrade is not required"
+  },
+  "unchanged_gates": {
+    "cp4": "BLOCKED",
+    "T10": "ACTIVE",
+    "T11": "TODO",
+    "ASR_indonesian_base_clean_WER": "105/367=28.61%",
+    "translation_ID_EN_original": "24/30",
+    "argos_quality_result": "NOT MEASURED"
+  }
+}

@@ -451,3 +451,18 @@ python tools/t10_translation_argos_candidate.py report --session ".t10-benchmark
 ```
 
 The preregistered pilot screen requires at least 2 recovered ML Kit failures, net +2 accepted without newly introduced critical number/name/negation errors; a pass is only **PROMISING** for full 30 plus new independently unseen data and **actual Android device integration/testing**. Windows timing is not comparable directly to Sony ML Kit timing. The old single-sentence official CP4 translation score 24/30, ASR Indonesian 105/367=28.61%, and CP4 BLOCKED remain untouched. Protocol/evidence: `.agents/evidence/t10-translation-argos-id-en-host-preregistered.json`.
+
+### T10 Argos pilot offline initializer correction (2026-10-10)
+
+The user successfully prepared Argos ID→EN `translate-id_en-1_9.argosmodel` (**68,650,073 bytes verified and installed in gitignored benchmark dir**) but **both pilot attempts failed before any scored output** because the socket-level offline guard blocked an attempted network connection. The ML Kit reviewed CSV path was not the cause: the third error about `--review` came from copying PowerShell's literal continuation prompt `>>` into a command.
+
+A source-level investigation of Argos Translate 1.11.0 and Stanza identifies a strong hypothesis: a packaged Stanza sentence splitter loads lazily and upstream `stanza.Pipeline()` defaults to fetching resource metadata even when a local translation model is installed. We **did not** disable the offline guard or authorize remote/cloud inference. The new `tools/t10_translation_argos_offline_sbd.py` initializes the **identical package-bound Stanza SBD** with `download_method=None`, using only packaged `resources.json`/model files; bundled MiniSBD ONNX is also supported without downloads. If the package lacks these resources the pilot stops with a specific offline error. The runner records `offline_sbd_mode`, and **31 offline regression tests** guard network, path scope, missing model data and reviewer integrity. The prior aborted folders are retained. Experiment samples, model checksum, frozen reviewed ML Kit outputs and acceptance thresholds are unchanged.
+
+After pulling a CI-verified fix, rerun the pilot on **one PowerShell line**, avoiding prompt characters (`>>`):
+
+```powershell
+git pull --ff-only origin main
+.\.t10-benchmark\argos-venv\Scripts\python.exe tools\t10_translation_argos_candidate.py pilot --review "$HOME\Downloads\translation-strategy-ab-review.csv"
+```
+
+No new pip download, model preparation or Android run is needed. If pilot succeeds, share the new 10-row `pilot.csv`; if offline SBD resources are missing, share only the printed error and local `session.json`. The previous two aborted runs are not evidence of translation quality; Argos accuracy and host latency are still **UNKNOWN**, CP4 BLOCKED.

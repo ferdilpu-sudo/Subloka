@@ -31,6 +31,7 @@ on:
       - "tools/test_t10_translation_strategy_ab_review.py"
       - "tools/t10_translation_argos_protocol.py"
       - "tools/t10_translation_argos_candidate.py"
+      - "tools/t10_translation_argos_offline_sbd.py"
       - "tools/test_t10_translation_argos_candidate.py"
       - "tools/t10_video10_media_device.ps1"
       - "tools/t10_video10_media_review.py"
