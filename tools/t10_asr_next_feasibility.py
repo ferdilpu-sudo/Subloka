@@ -128,7 +128,7 @@ def parse_data_free_kib(text: str) -> int:
     lines = [x.strip() for x in text.splitlines() if x.strip()]
     if len(lines) != 2:
         raise ValueError("Unexpected Android df -k output: expected header and one /data row")
-    header = re.split(r"\\s+", lines[0])
+    header = re.split(r"\s+", lines[0])
     if [part.lower() for part in header[-2:]] == ["mounted", "on"]:
         header = header[:-2] + ["Mounted_on"]
     elif header and header[-1].lower() in ("mounted_on", "mounted", "mountpoint"):
@@ -144,7 +144,7 @@ def parse_data_free_kib(text: str) -> int:
             or names[4] != "use%" or names[5] != "mounted_on"):
         raise ValueError("Unexpected Android df -k header")
 
-    values = re.split(r"\\s+", lines[1])
+    values = re.split(r"\s+", lines[1])
     if len(values) != len(header) or values[-1] != "/data":
         raise ValueError("Unexpected Android df -k row")
     if not all(re.fullmatch(r"[0-9]+", values[index]) for index in (1, 2, 3)):
