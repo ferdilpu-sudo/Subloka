@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_PUBLIC_IMPERATIVE_30_FROZEN_METADATA_WINDOWS_20_PASS_TAR_512_RANGE_PROTOCOL_IMPLEMENTED",
+  "source": "Actual user Windows PowerShell outputs for 20-test suite and public metadata selection, plus GitHub committed protocol source",
+  "observed_windows": {
+    "suite": "tools/test_t10_public_id_corpus.py",
+    "tests": 20,
+    "time_seconds": 0.342,
+    "result": "OK",
+    "powershell_error_guard_threw": false,
+    "selection_cli": "python tools/t10_public_id_corpus.py select --workspace .t10-benchmark/t10-public-atika --category Imperative",
+    "selection_created": ".t10-benchmark/t10-public-atika/external_test_30_selection.json",
+    "sample_count": 30,
+    "speaker_labels": 3,
+    "split": "test",
+    "WAV_or_TAR_downloaded": false,
+    "original_data_bytes_uploaded": false,
+    "CP4": "BLOCKED"
+  },
+  "new_safe_research": {
+    "source_file": "tools/t10_atika_tar_range_probe.py",
+    "test_file": "tools/test_t10_atika_tar_range_probe.py",
+    "ci": ".github/workflows/t10-engine-eval.yml",
+    "test_methods_expected": 12,
+    "windows_test_result": "PENDING",
+    "github_actions_status": "UNVERIFIED",
+    "source_archive": "Atika88/Indonesian-ASR-11-Class-Dataset Imperative.tar",
+    "pin_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "expected_archive_bytes_from_upstream_metadata": 907765760,
+    "upstream_lfs_sha256_not_local_verified": "54725d7ecd573c6fbe88cc6d43337be3910599842dc1711b8e7f5fbae88dc938",
+    "requests": "One HTTPS GET Range bytes=0-511; Accept-Encoding identity",
+    "on_status_200": "Refuse full TAR; close response without reading any body",
+    "on_status_206": "Verify Content-Range exactly matches 512 bytes and expected total, require bounded body <=513 bytes and parse 512-byte checksum-valid TAR first header",
+    "never_write_files": true,
+    "never_display_tar_member_names": true,
+    "audio_files_recovered": 0,
+    "server_range_capability_verified_by_real_network": false,
+    "real_tar_file_byte_checksum_verified": false,
+    "cost_of_30_wav_range_extraction_established": false
+  },
+  "ethics": {
+    "existing_gitignored_fresh_consent_holdout_untouched": true,
+    "only_three_public_test_speaker_labels": true,
+    "read_speech_and_repeated_prompts": true,
+    "human_reference_audit_completed": false,
+    "training_disjointness_independently_verified": false,
+    "no_model_or_adb_inference": true,
+    "no_cp4_promotion": true
+  },
+  "next": "Windows pull, run 12 new synthetic tests; only if PASS run one-byte-range TAR first-header probe. If 200, stop without any TAR download. If 206 valid, design an offset/index feasibility plan without full 865.7MiB TAR or silent mass requests.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
