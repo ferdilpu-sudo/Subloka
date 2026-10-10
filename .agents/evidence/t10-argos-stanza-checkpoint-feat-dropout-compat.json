@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment_id": "T10-TRANSLATION-ARGOS-IDEN-HOST-SCREEN-001",
+  "user_reported": {
+    "previous_synthetic_regressions": "43/43 PASS in 0.471s",
+    "real_host_pilot": "ABORT, zero translations",
+    "error": "Local bundled Stanza tokenizer could not be initialized offline (KeyError): missing_key='feat_dropout'",
+    "origin": "tokenize_processor.py:_set_up_model:44 > trainer.py:__init__:20 > trainer.py:load:93",
+    "candidate_pilot_csv": "NONE"
+  },
+  "source_analysis": {
+    "legacy": "Upstream Stanza v1.2.3 tokenization Trainer.load reads config, model, vocab but does not read config.feat_dropout nor checkpoint.lexicon.",
+    "current": "Upstream Stanza v1.10.1 tokenization Trainer.load reads config.feat_dropout and checkpoint.lexicon; argostranslate 1.11.0 pins stanza 1.10.1.",
+    "limitations": "Model actual checkpoint keys/weights have not been inspected locally by assistant. Legacy compatibility inference based on error and prior resources keys, not full compatibility certification."
+  },
+  "patch": {
+    "files": [
+      "tools/t10_translation_argos_stanza_checkpoint.py",
+      "tools/t10_translation_argos_offline_sbd.py",
+      "tools/test_t10_translation_argos_candidate.py",
+      ".github/workflows/t10-engine-eval.yml"
+    ],
+    "behavior": "Scoped temporary host-only checkpoint copy to add only missing feat_dropout=0.0 and lexicon=None metadata in memory, retaining original model/vocab state tensors; pass tempfile via tokenize_model_path to Stanza and remove on constructor exit.",
+    "safety": "Always torch.load(weights_only=True, map_location='cpu'); no unsafe deserialization fallback. No changes to pinned model files, ML Kit control, baseline labels, model weights, disabled networks, selection or scoring. Unrecognized checkpoints fail closed.",
+    "tests": "5 new synthetic regressions; 48 total pending Windows run",
+    "cp4": "BLOCKED"
+  },
+  "next_safe_action": "Pull main, run full 48-test suite. If PASS, rerun offline host pilot with same SHA-pinned ML Kit reviewed CSV. If real model still errors, report error text; if 10/10, share immutable pilot.csv for review."
+}
