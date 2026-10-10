@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "checkpoint": "T10_COMPACT_INDONESIAN_GGML_PROTOCOL_WINDOWS_12_PASS",
+  "provenance": "User-provided actual Windows PowerShell outputs; CI not checked. Catalog is pinned metadata only; no local model artifact.",
+  "observed": {
+    "tests": {
+      "command": "python -m unittest discover -s tools -p test_t10_asr_id_compact_protocol.py -v",
+      "count": 12,
+      "seconds": 0.243,
+      "outcome": "OK"
+    },
+    "catalog": {
+      "command": "python tools/t10_asr_id_compact_protocol.py list",
+      "models": [
+        {
+          "id": "maleo_base_id_q8_0",
+          "size_mb_decimal": 81.8,
+          "published_file_sha256": "2ac0dc902f477389be18d8b6f6fbe97695197c12ab1392b2f4bea23732c2cfe8",
+          "license_metadata": "apache-2.0"
+        },
+        {
+          "id": "maleo_tiny_id_q8_0",
+          "size_mb_decimal": 43.5,
+          "published_file_sha256": "423455afe438ff3b0d1f23613a223d052f34a2482a8dd8ef6433f75ccbf33a17",
+          "license_metadata": "apache-2.0"
+        }
+      ],
+      "output_footer": [
+        "NO DOWNLOAD | NO ADB | NO INFERENCE | FLEURS HOLDOUT INDEPENDENCE UNVERIFIED",
+        "T10 ACTIVE | CP4 BLOCKED | T11 TODO"
+      ]
+    }
+  },
+  "scope": {
+    "host_regression_suite_pass": true,
+    "offline_catalog_print_pass": true,
+    "actual_local_model_artifact_sha256_checked": false,
+    "model_downloaded_or_pushed_to_phone": false,
+    "host_or_device_asr_inference_run": false,
+    "new_asr_wer_computed": false,
+    "publisher_fleurs_wer_reproduced": false,
+    "training_evaluation_leakage_ruled_out": false,
+    "independent_holdout_prepared": false,
+    "github_ci_pass_observed": false,
+    "independent_translation_review_signed": false
+  },
+  "prior_controls": {
+    "id_clean_asr": "105/367 edits=28.61%, target<=20%",
+    "sony_readonly_device": "SO-03L arm64-v8a total_RAM_5487MiB free_data_1732MiB battery38C",
+    "human_translation_review": "Integrity PASS; independent human signoff pending",
+    "cp4": "BLOCKED"
+  },
+  "recommended_next": "Prepare independent, consented, human-checked Indonesian holdout manifest and preregistered baseline comparison. Request explicit opt-in before obtaining compact Base ~81.8MB local artifact and verify SHA256; do not download or benchmark Sony until evidence ready.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
