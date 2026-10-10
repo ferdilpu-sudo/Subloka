@@ -260,6 +260,17 @@ def main() -> int:
         device = None
         if args.probe_device:
             adb = args.adb or shutil.which("adb")
+            if not adb and sys.platform == "win32":
+                import os
+                sdk = os.environ.get("ANDROID_SDK_ROOT") or os.environ.get("ANDROID_HOME")
+                candidates = [
+                    Path(sdk) / "platform-tools" / "adb.exe"
+                ] if sdk else []
+                candidates.append(
+                    Path.home() / "AppData" / "Local" / "Android" / "Sdk"
+                    / "platform-tools" / "adb.exe"
+                )
+                adb = next((str(p) for p in candidates if p.is_file()), None)
             if not adb:
                 raise ValueError("ADB unavailable; add Android SDK platform-tools to PATH")
             device = probe_device(adb)
