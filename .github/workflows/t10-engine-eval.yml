@@ -33,6 +33,8 @@ on:
       - "tools/test_t10_public_id_corpus.py"
       - "tools/t10_atika_tar_range_probe.py"
       - "tools/test_t10_atika_tar_range_probe.py"
+      - "tools/t10_atika_tar_header_walk.py"
+      - "tools/test_t10_atika_tar_header_walk.py"
       - "tools/t10_public_id_corpus.md"
       - "tools/t10_id_independent_holdout.md"
       - ".agents/evidence/t10-cp4-readiness-audit-windows-13-pass.json"
@@ -319,6 +321,11 @@ jobs:
         shell: bash
         run: |
           python -m unittest discover -s tools -p test_t10_atika_tar_range_probe.py -v
+
+      - name: Verify sparse remote TAR header-chain feasibility protocol (14 synthetic no-network tests)
+        shell: bash
+        run: |
+          python -m unittest discover -s tools -p test_t10_atika_tar_header_walk.py -v
 
       - name: Test translation quality review evaluator
         shell: bash
