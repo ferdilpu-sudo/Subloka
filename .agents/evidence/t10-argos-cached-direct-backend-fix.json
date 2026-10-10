@@ -20,12 +20,21 @@
     "new_mock_regressions": 5,
     "expected_total_tests": 36
   },
-  "current_verification": "Repository patch pushed. New 36-test suite and real Windows pilot awaiting user execution; do not claim new CI PASS or quality verdict.",
+  "current_verification": "31 historical tests PASS; first 36-run FAILED due mock fixture metadata (fixed in repository but not yet rerun). Windows actual pilot still pending.",
   "gates": {
     "T10": "ACTIVE",
     "CP4": "BLOCKED",
     "T11": "TODO",
     "Argos_quality": "NOT_MEASURED"
   },
-  "next_action": "User git pull --ff-only origin main; run 36 synthetic tests; rerun single-line offline pilot with frozen review CSV; share only fresh valid pilot.csv if complete or exact error if aborted."
+  "next_action": "User git pull --ff-only origin main; run 36 synthetic tests; rerun single-line offline pilot with frozen review CSV; share only fresh valid pilot.csv if complete or exact error if aborted.",
+  "followup_2026_10_10": {
+    "result_before_fixture_fix": "36 regression tests run by user in 0.448s; 1 ERROR and 1 FAIL, both due to missing language-code metadata in fake SimpleNamespace package. No real Argos pilot attempted after 36-test failure.",
+    "root_cause": "Synthetic _fake_sbd package specified package_path and packaged_sbd_path, but omitted the required production attributes from_code and to_code, so strict validator raised before exercising intended positive/path-mismatch cases.",
+    "fix_commit": "29958470fd4ab7c939682871168a86c959d0a3c7",
+    "fix_scope": "Only fake package fixture adds from_code='id', to_code='en'. Runtime safety, direct-only check, network block, pilot dataset and scoring unchanged.",
+    "suite": "36 regression tests to rerun on user's Windows host; not yet verified PASS",
+    "next_action": "git pull --ff-only origin main, rerun all 36 unit tests, then pilot only after PASS",
+    "quality": "NO ARGOS PILOT RESULTS"
+  }
 }
