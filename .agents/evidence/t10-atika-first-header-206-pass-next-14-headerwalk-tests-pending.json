@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "checkpoint": "T10_ATIKA_HTTP206_SINGLE_HEADER_WINDOWS_PASS_NEXT_BOUNDED_SIX_HEADER_WALK_IMPLEMENTED",
+  "source": "User-provided Windows Python unittest + live HTTP 206 JSON; GitHub code review of added read-only header pilot",
+  "verified": {
+    "single_header_probe_synthetic_tests": {
+      "count": 12,
+      "seconds": 0.006,
+      "result": "OK",
+      "windows": true
+    },
+    "remote_request": "Range bytes=0-511",
+    "remote_status": 206,
+    "range_valid": true,
+    "first_member_header_valid": true,
+    "first_member_data_bytes": 91364,
+    "category": "Imperative",
+    "remote_archive_byte_total_from_published_metadata": 907765760,
+    "audio_files_downloaded": 0,
+    "original_private_holdout_changed": false,
+    "private_public_test_selection_count": 30
+  },
+  "nonfailure_powershell_error": {
+    "observed": "elseif : The term 'elseif' is not recognized",
+    "cause": "User entered elseif as a separate PowerShell command after completed if; parser cannot attach separate elseif to prior statement",
+    "http_probe_failure": false,
+    "resolution": "Run if/elseif/else as a single block, capture previous $LASTEXITCODE before additional commands"
+  },
+  "new_code": {
+    "path": "tools/t10_atika_tar_header_walk.py",
+    "tests": "tools/test_t10_atika_tar_header_walk.py",
+    "synthetic_tests_expected": 14,
+    "ci": ".github/workflows/t10-engine-eval.yml",
+    "new_tests_windows_pass": false,
+    "network_probe_multiheader_pass": false,
+    "max_headers": 8,
+    "default_headers": 6,
+    "max_http_body_bytes_for_8_headers": 4104,
+    "max_http_body_bytes_for_default_6": 3078,
+    "no_audio_or_tar_data_saved": true,
+    "no_member_names_or_transcripts_logged": true,
+    "requires_existing_pinned_private_Imperative_30_selection": true,
+    "HTTP_200_response_body_bytes_read": 0,
+    "metadata_only_no_model_ADB_or_inference": true
+  },
+  "limitations": {
+    "remote_206_first_header_only": true,
+    "no_complete_TAR_index": true,
+    "no_SHA_verified_archives_or_WAVs": true,
+    "no_independent_consent_or_Maleo_training_disjointness_authentication": true,
+    "no_CP4_promotion": true
+  },
+  "next": "Pull main, run 14 new offline tests; on PASS run <=6 header-chain probe and inspect aggregate results before considering sparse WAV acquisition.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
