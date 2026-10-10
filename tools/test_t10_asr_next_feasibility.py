@@ -94,6 +94,43 @@ class FeasibilityTests(unittest.TestCase):
                     "/dev/block/dm-5\t55000000\t52900000\t2100000\t97%\t/data\n"
                 ), 2100000)
 
+
+    def test_df_observed_sony_android_11_data_user0_mount(self):
+        # Captured by the user from real SO-03L via read-only --diagnose-df.
+        observed = (
+            "Filesystem       1K-blocks     Used Available Use% Mounted on\\n"
+            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\\n"
+        )
+        self.assertEqual(parse_data_free_kib(observed), 1778600)
+
+    def test_df_reject_unobserved_nested_mount_aliases(self):
+        header = "Filesystem 1K-blocks Used Available Use% Mounted on\\n"
+        base = "/dev/block/dm-5 48023344 46097288 1778600 97% "
+        for bad in (
+            "/data/user", "/data/user/1", "/data/user/0/other",
+            "/data/local/tmp", "/data/media", "/data/", "/system",
+        ):
+            with self.subTest(mountpoint=bad):
+                with self.assertRaisesRegex(ValueError, "Unexpected Android df -k row"):
+                    parse_data_free_kib(header + base + bad + "\\n")
+
+    def test_sony_probe_records_true_reported_df_mountpoint(self):
+        observed = (
+            "Filesystem       1K-blocks     Used Available Use% Mounted on\\n"
+            "/dev/block/dm-5  48023344 46097288   1778600  97% /data/user/0\\n"
+        )
+        def fake_query(adb, args):
+            if args == ["devices", "-l"]:
+                return "List of devices attached\\nR58M902144 device\\n"
+            return observed if args[2:] == list(ALLOWED_QUERIES["df"]) else next(
+                DEVICE[k] for k, tail in ALLOWED_QUERIES.items()
+                if args[2:] == list(tail)
+            )
+        result = probe_device("adb", fake_query)
+        self.assertEqual(result["free_data_kib"], 1778600)
+        self.assertEqual(result["df_reported_mountpoint"], "/data/user/0")
+        self.assertEqual(result["device_model"], "SO-03L")
+
     def test_df_fail_closed_on_wrong_mount_or_extra_rows(self):
         header = "Filesystem 1K-blocks Used Available Use% Mounted on\n"
         row = "/dev/block/dm-5 55000000 52900000 2100000 97% /data\n"
