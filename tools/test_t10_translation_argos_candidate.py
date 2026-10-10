@@ -242,6 +242,8 @@ class T10ArgosIDToENTests(unittest.TestCase):
         pkg = SimpleNamespace(
             package_path=package_path,
             packaged_sbd_path=resource,
+            from_code="id",
+            to_code="en",
         )
         return (SimpleNamespace(pkg=pkg, sentencizer=sentencizer),
                 packages, FakeStanza, FakeMini)
