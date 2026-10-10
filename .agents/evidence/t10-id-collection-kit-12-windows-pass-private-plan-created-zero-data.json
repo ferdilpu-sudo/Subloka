@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ID_PRIVATE_COLLECTION_TOPIC_KIT_WINDOWS_PASS_PLAN_CREATED_ZERO_REAL_DATA",
+  "provenance": "User-pasted Windows PowerShell unit-test, collection-plan create, and counts-only status stdout",
+  "tests": {
+    "suite": "tools/test_t10_id_collection_kit.py",
+    "reported_total": 12,
+    "reported_elapsed_seconds": 0.247,
+    "reported_result": "OK",
+    "windows_host_pass": true,
+    "github_actions_ci_unverified": true
+  },
+  "local_collection_plan": {
+    "command": "tools/t10_id_collection_kit.py create --workspace .t10-benchmark/t10-id-holdout-new",
+    "creation_succeeded": true,
+    "output_relative_path": ".t10-benchmark/t10-id-holdout-new/collection_plan.json",
+    "user_private_bytes_uploaded": false,
+    "report": "PRIVATE 30-TOPIC COLLECTION PLAN CREATED: .t10-benchmark\\t10-id-holdout-new\\collection_plan.json",
+    "plan_is_write_once": true,
+    "real_recordings_generated": false,
+    "real_consent_or_human_transcripts_generated": false
+  },
+  "local_status": {
+    "command": "tools/t10_id_collection_kit.py status --workspace .t10-benchmark/t10-id-holdout-new",
+    "total_slots": 30,
+    "clean_slots": 20,
+    "challenging_slots": 10,
+    "wav_present_not_verified": 0,
+    "reference_filled_not_verified": 0,
+    "audio_hash_entered_not_verified": 0,
+    "permission_declared_not_authenticated": 0,
+    "review_declared_not_authenticated": 0,
+    "rows_with_all_declarations_not_audited": 0,
+    "not_a_human_consent_verification": true,
+    "not_an_audio_integrity_audit": true,
+    "not_a_model_benchmark": true
+  },
+  "controls": {
+    "privacy": "All actual audio and references stay in Git-ignored private workspace; no private manifest/files accessed via connector",
+    "no_download": true,
+    "no_adb": true,
+    "no_inference": true,
+    "model_artifact_locally_verified": false,
+    "independent_holdout_sealed": false,
+    "new_asr_word_error_rate_measured": false,
+    "original_frozen_wer": "105/367 errors = 28.61% unchanged",
+    "cp4_promoted": false,
+    "human_review_authenticated": false
+  },
+  "next": "Do not rerun init/create. Use collection_plan.json privately to organize voluntarily consented new speech; at least five pseudonymous participants, reference transcription from actual audio, original WAV checksums, and independent review before a future audit and one-time seal.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
