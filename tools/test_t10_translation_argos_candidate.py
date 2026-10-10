@@ -227,7 +227,13 @@ class T10ArgosIDToENTests(unittest.TestCase):
         if flavor == "stanza":
             resource = package_path / "stanza"
             resource.mkdir()
-            (resource / "resources.json").write_text('{"id":{}}', encoding="utf-8")
+            (resource / "resources.json").write_text(
+                '{"id":{"packages":{"default":{"tokenize":"gsd"}},'
+                '"tokenize":{"gsd":{}}}}', encoding="utf-8"
+            )
+            model_dir = resource / "id" / "tokenize"
+            model_dir.mkdir(parents=True)
+            (model_dir / "gsd.pt").write_bytes(b"synthetic, never loaded")
             sentencizer = FakeStanza()
         elif flavor == "minisbd":
             resource = package_path / "minisbd"
@@ -328,6 +334,92 @@ class T10ArgosIDToENTests(unittest.TestCase):
                 cached, installed, cached_cls=cached_cls, packaged_cls=packaged_cls,
             )
 
+
+    def test_legacy_stanza_metadata_overlay_preserves_original_and_model(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        resources = direct.pkg.packaged_sbd_path / "resources.json"
+        legacy = '{"id":{"default_processors":{"tokenize":"gsd"},"tokenize":{"gsd":{}}}}'
+        resources.write_text(legacy, encoding="utf-8")
+        original_model = (direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").read_bytes()
+        observed = {}
+        def fake_pipeline(**kwargs):
+            self.assertIsNone(kwargs["download_method"])
+            overlay = Path(kwargs["resources_filepath"])
+            observed["path"] = overlay
+            observed["resource"] = json.loads(overlay.read_text(encoding="utf-8"))
+            self.assertTrue(overlay.is_file())
+            return object()
+        with no_network():
+            mode = ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=fake_pipeline
+            )
+        self.assertEqual(mode, "PACKAGED_STANZA_LEGACY_METADATA_OVERLAY_NO_DOWNLOAD")
+        self.assertEqual(observed["resource"]["id"]["packages"],
+                         {"default": {"tokenize": "gsd"}})
+        self.assertEqual(resources.read_text(encoding="utf-8"), legacy)
+        self.assertEqual((direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").read_bytes(),
+                         original_model)
+        self.assertFalse(observed["path"].exists())
+        self.assertIsNotNone(direct.sentencizer.stanza_pipeline)
+
+    def test_current_stanza_resources_do_not_need_metadata_overlay(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        called = {}
+        def fake_pipeline(**kwargs):
+            called.update(kwargs)
+            return object()
+        with no_network():
+            mode = ensure_offline_sbd(
+                direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                pipeline_factory=fake_pipeline
+            )
+        self.assertEqual(mode, "PACKAGED_STANZA_RESOURCES_NO_DOWNLOAD")
+        self.assertNotIn("resources_filepath", called)
+
+    def test_legacy_stanza_selected_local_model_must_exist(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        resources = direct.pkg.packaged_sbd_path / "resources.json"
+        resources.write_text(
+            '{"id":{"default_processors":{"tokenize":"gsd"},"tokenize":{"gsd":{}}}}',
+            encoding="utf-8"
+        )
+        (direct.pkg.packaged_sbd_path / "id" / "tokenize" / "gsd.pt").unlink()
+        called = []
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "Legacy Stanza default tokenizer model"):
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=lambda **kwargs: called.append(kwargs)
+                )
+        self.assertEqual(called, [])
+
+    def test_legacy_stanza_default_model_must_match_resource_listing(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        (direct.pkg.packaged_sbd_path / "resources.json").write_text(
+            '{"id":{"default_processors":{"tokenize":"other"},"tokenize":{"gsd":{}}}}',
+            encoding="utf-8"
+        )
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "absent from resource metadata"):
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=lambda **kwargs: None
+                )
+
+    def test_legacy_stanza_default_tokenizer_rejects_path_like_name(self):
+        direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
+        (direct.pkg.packaged_sbd_path / "resources.json").write_text(
+            '{"id":{"default_processors":{"tokenize":"../gsd"},"tokenize":{"gsd":{}}}}',
+            encoding="utf-8"
+        )
+        with no_network():
+            with self.assertRaisesRegex(RuntimeError, "no safe default tokenizer"):
+                ensure_offline_sbd(
+                    direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
+                    pipeline_factory=lambda **kwargs: None
+                )
+
     def test_bundled_stanza_initialization_forces_no_download(self):
         direct, packages, stanza_cls, mini_cls = self._fake_sbd("stanza")
         captured = {}
@@ -374,7 +466,7 @@ class T10ArgosIDToENTests(unittest.TestCase):
                 )
         message = str(cm.exception)
         self.assertIn("resources_languages=['id']", message)
-        self.assertIn("local_tokenize_models=[]", message)
+        self.assertIn("local_tokenize_models=['gsd.pt']", message)
         self.assertIn("origin=", message)
         self.assertNotIn(str(self.dir), message)
         self.assertIsNone(direct.sentencizer.stanza_pipeline)
@@ -384,15 +476,17 @@ class T10ArgosIDToENTests(unittest.TestCase):
         (direct.pkg.packaged_sbd_path / "resources.json").write_text(
             "{this is invalid json", encoding="utf-8"
         )
+        calls = []
         def invalid_local_pipeline(**kwargs):
+            calls.append(kwargs)
             raise KeyError("id")
         with no_network():
-            with self.assertRaisesRegex(RuntimeError, "resources_read_error=JSONDecodeError") as cm:
+            with self.assertRaisesRegex(RuntimeError, "resources_read_error=JSONDecodeError"):
                 ensure_offline_sbd(
                     direct, packages, stanza_cls=stanza_cls, mini_cls=mini_cls,
                     pipeline_factory=invalid_local_pipeline
                 )
-        self.assertIn("missing_key='id'", str(cm.exception))
+        self.assertEqual(calls, [])
         self.assertIsNone(direct.sentencizer.stanza_pipeline)
 
     def test_stanza_without_packaged_resources_fails_closed(self):
