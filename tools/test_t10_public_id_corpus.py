@@ -94,6 +94,25 @@ class PublicIDCorpusResearchTests(unittest.TestCase):
         self.assertEqual(report["CP4"], "BLOCKED")
         self.assertFalse((self.root / "audio").exists())
 
+    def test_authentic_style_repeated_public_prompts_are_disclosed_not_hidden(self):
+        # Publisher notes ~19 sentence slots per category, many speaker takes.
+        # Thirty different WAV paths do NOT imply thirty distinct reference texts.
+        for idx, row in enumerate(self.rows):
+            row["transcript"] = (
+                "Kalimat bahasa Indonesia untuk percobaan suara dari rekaman orang "
+                + str(idx % 5)
+            )
+        self.write_metadata()
+        selected = choose_samples(self.root, "Declarative")
+        self.assertEqual(selected["sample_count"], 30)
+        self.assertEqual(selected["distinct_audio_paths"], 30)
+        self.assertEqual(selected["distinct_reference_prompts"], 5)
+        self.assertEqual(selected["repeated_reference_prompts"], 25)
+        self.assertTrue(selected["reference_texts_may_repeat_across_speakers"])
+        self.assertTrue(selected["not_unseen_prompt_or_open_vocabulary_benchmark"])
+        self.assertFalse(selected["evaluation_pass"])
+        self.assertEqual(selected["CP4"], "BLOCKED")
+
     def test_selection_deterministic_and_never_overwrite(self):
         first = choose_samples(self.root, "Declarative")
         second = choose_samples(self.root, "Declarative")
