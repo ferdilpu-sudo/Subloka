@@ -76,3 +76,31 @@ if ($LASTEXITCODE -ne 0) { throw "Archive preflight regressions failed" }
 Jumlah tes kini **19**, karena ada **4 tes baru** untuk keamanan/keakuratan pemeriksaan metadata ukuran arsip. **Windows 19/19 PASS baru belum dilaporkan** (tes 15/15 sebelumnya sudah PASS). Perintah menampilkan kategori terurut menurut ukuran TAR yang dilaporkan server, `lfs_sha256_upstream_metadata_unverified` bila tersedia, dan `approved_for_download=false` untuk semua kategori. Belum ada checksum TAR lokal atau SHA audio yang diverifikasi.
 
 **Jangan ulangi `fetch-metadata`**: file CSV sudah ada dan perintah sengaja menolak overwrite. Tunggu hasil `archive-sizes` sebelum memilih satu kategori dengan `select` karena pemilihan JSON juga write-once. Bila sumber API gagal atau tidak sesuai 11 kategori CSV, **stop** dan jangan menebak besar arsip atau mengunduh TAR. Pengunduhan arsip tetap perlu persetujuan terpisah setelah pemeriksaan ukuran, ruang dan lisensi.
+
+## Hasil archive-sizes nyata dan perbaikan tes — 2026-10-10
+
+Windows berhasil memanggil API archive metadata pada revisi yang dipin, memperoleh **11 TAR dengan jumlah 15.542.917.120 byte**, tanpa mengunduh satu byte pun arsip. Empat arsip awal: Imperative 907.765.760 byte (865,7 MiB), Exclamatory 1.049.487.360 byte (1.000,9 MiB), Negation 1.094.379.520 byte (1.043,7 MiB), dan Rhetorical 1.207.500.800 byte (1.151,6 MiB). Semua SHA yang dicetak berasal dari metadata upstream dan **belum diverifikasi atas file lokal**. Total yang dipublikasikan benar-benar besar; jangan mengunduh kategori apa pun tanpa batasan ruang dan izin eksplisit.
+
+Suite 19 tes Windows terakhir memiliki **1 FAIL + 1 ERROR**, tetapi perintah archive-sizes terhadap CSV pengguna **PASS**. Dua tes tersebut menggunakan fixture lokal berisi **kategori Declarative saja**, berlawanan dengan 11 metadata arsip yang disimulasikan. Code produksi memang harus tetap menolak mismatched kategori. **Fixture tes diperbaiki** untuk menyediakan 11 kategori pada skenario positif, ditambah satu tes baru yang memastikan metadata kategori tidak lengkap tetap ditolak. Kini **20 tes**, hasil Windows masih PENDING.
+
+Jalankan *hanya* pengujian baru berikut setelah pull; CSV dan hasil ukuran sebelumnya tidak perlu diunduh lagi:
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_public_id_corpus.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 public corpus regression FAILED" }
+```
+
+Jika **20/20 PASS**, bekukan **30 metadata sampel**, **tanpa mengunduh WAV/TAR**, untuk arsip terkecil yang diketahui:
+
+```powershell
+& $py tools\t10_public_id_corpus.py select --workspace $public --category Imperative
+if ($LASTEXITCODE -ne 0) { throw "T10 public 30-case selection FAILED" }
+```
+
+Perintah select membuat satu file privat `external_test_30_selection.json` (write-once); source test dan human, 30 path WAV berbeda, tiga label pembicara test dan kemungkinan teks kalimat berulang akan dicatat. Tidak ada klaim bebas tumpang tindih model training, tidak ada Human QA atau CP4 PASS. Jika pernah memilih kategori dan file seleksi sudah ada, **jangan ulangi atau menimpa**.
+
+Untuk mendapatkan audio secara lebih hemat dari unduhan TAR minimal 865,7 MiB, Hugging Face mendokumentasikan dukungan **HTTP byte-range requests**. Namun belum ada verifikasi range pada objek TAR Atika di host pengguna; tidak boleh diasumsikan bahwa 30 WAV dapat diambil secara acak tanpa indeks offset TAR dan byte-integrity validation. Pemeriksaan desain range, jika dilakukan, harus dibatasi beberapa byte serta meminta respons 206/Content-Range yang benar. Unduhan penuh TAR atau model harus menunggu persetujuan eksplisit setelah ukuran dan kebutuhan dataset dipastikan.
