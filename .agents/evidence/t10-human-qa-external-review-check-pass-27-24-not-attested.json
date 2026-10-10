@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "experiment": "T10_ORIGINAL_MLKIT_60_HUMAN_QA_EXTERNAL_CHECK",
+  "provenance": "User-pasted Windows PowerShell stdout after locally correcting the review CSV; revised CSV bytes not uploaded.",
+  "tool": "tools/t10_translation_human_qa.py check",
+  "inputs": {
+    "raw": ".t10-benchmark/translation-results.csv",
+    "session": ".t10-benchmark/t10-human-qa-20261010T132119",
+    "reviewed": "$HOME/Downloads/human-review-reviewed.csv"
+  },
+  "observed_console": [
+    "REVIEW INTEGRITY PASS: 60/60 labels, original evidence unchanged",
+    "EN->ID 27/30; ID->EN 24/30",
+    "NOT HUMAN-ATTESTED | CP4 BLOCKED | no files changed"
+  ],
+  "verified_on_user_windows": {
+    "reviewed_sheet_integrity": "PASS",
+    "rows": 60,
+    "source_and_translations_unchanged": true,
+    "frozen_fixture_and_draft_metadata_checks_passed": true,
+    "notes_and_ai_disagreement_validation_passed": true,
+    "en_to_id_accepted": 27,
+    "id_to_en_accepted": 24,
+    "tool_side_effects": false
+  },
+  "verification_limits": {
+    "revised_review_uploaded": false,
+    "revised_review_sha256_independently_verified": false,
+    "actual_independent_reviewer_verified": false,
+    "independent_bilingual_attestation_provided": false,
+    "finalizer_run": false,
+    "signoff_created": false,
+    "claim_translator_accuracy_improved": false
+  },
+  "historical_comparison": {
+    "frozen_original_cp4_ai_assisted_en_id_accept": 27,
+    "frozen_original_cp4_ai_assisted_id_en_accept": 24,
+    "en_id_gate_min_accepted": 27,
+    "id_en_gate_min_accepted": 27,
+    "id_en_gate_gap": 3,
+    "id_clean_asr_wer": "105/367 edits = 28.61% vs <=20%",
+    "full_android_video_to_subtitle_export_e2e": "NOT_RUN"
+  },
+  "safety_and_next_steps": [
+    "A check PASS is file integrity, not reviewer independence or quality gate PASS.",
+    "Only a real independent bilingual reviewer may own decisions and honestly attest all 60 reviews.",
+    "Only after genuine human completion may existing finalize be run with truthful name/attestation; keep session source and prior review sheet backup.",
+    "Do not change historical ML Kit scores or promote CP4 from this result.",
+    "Continue separate T10 ASR improvement research without repeating disqualified beam1/smallq5 experiments."
+  ],
+  "statuses": {
+    "T10": "ACTIVE",
+    "human_qa": "REVIEW_SHEET_INTEGRITY_PASS_HUMAN_SIGNOFF_PENDING",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
