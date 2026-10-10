@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-10",
+  "provenance": "User-uploaded /mnt/data/human-review-reviewed.csv, independently inspected by assistant local Python; GitHub pinned draft compared by reproduced content digest. Original Windows raw file/session not uploaded.",
+  "experiment": "T10_ORIGINAL_MLKIT_HUMAN_QA_EXTERNAL_60_REVIEW_VALIDATION_PRE_FINALIZE",
+  "file_name": "human-review-reviewed.csv",
+  "file_sha256": "bbee253eb6aacc07f5451d1ac3008709d5bcd3e993867a627634aa2d369f7887",
+  "source_translation_content_digest": "2e7078978ccdcf81550f944185a263ad45479983b0e1f398b8e1446757d7d37c",
+  "pinned_draft_digest_matches": true,
+  "original_raw_sha_from_user_windows_prepare": "f135ec8bf749d0609197137e54691170047d3336b2d246a9f89dd0689cb5de6a",
+  "raw_file_bytes_available_here": false,
+  "sample_count": 60,
+  "all_labels_complete": true,
+  "status_by_direction": {
+    "en_to_id": {
+      "ACCEPT": 28,
+      "MAJOR_MEANING_ERROR": 2,
+      "NEGATION_ERROR": 0,
+      "NUMBER_OR_NAME_ERROR": 0
+    },
+    "id_to_en": {
+      "ACCEPT": 25,
+      "MAJOR_MEANING_ERROR": 4,
+      "NEGATION_ERROR": 0,
+      "NUMBER_OR_NAME_ERROR": 1
+    }
+  },
+  "rejection_rows_with_nonempty_notes": 7,
+  "changed_from_ai": [
+    {
+      "sample": "en-08",
+      "ai": "MAJOR_MEANING_ERROR",
+      "human": "ACCEPT",
+      "human_reason_present": false,
+      "issue": "Delivered vs dikirim; human reason needed"
+    },
+    {
+      "sample": "id-08",
+      "ai": "ACCEPT",
+      "human": "NUMBER_OR_NAME_ERROR",
+      "human_reason_present": true,
+      "issue": "October sixteens: reviewer should determine material number error versus grammar"
+    },
+    {
+      "sample": "id-30",
+      "ai": "MAJOR_MEANING_ERROR",
+      "human": "ACCEPT",
+      "human_reason_present": false,
+      "issue": "Tidak boleh dimulai -> should not be started; human reason needed"
+    }
+  ],
+  "fail_closed_decision": "DO_NOT_FINALIZE_MISSING_EN08_AND_ID30_RATIONALES_INDEPENDENT_REVIEW_UNATTESTED",
+  "uploaded_human_judgments_verified_as_independent": false,
+  "original_csv_raw_fields_fully_compared_with_local_windows_session": false,
+  "proposed_host_review_tool": {
+    "module": "tools/t10_translation_human_qa.py",
+    "new_cli": "check original_raw.csv existing_session_dir --review external_completed_review.csv",
+    "non_destructive": true,
+    "missing_note_ids_aggregated": true,
+    "original_raw_fixture_session_ai_hash_validated": true,
+    "regression_unit_tests_expected": 12,
+    "windows_run_verified": false,
+    "ci_verified": false
+  },
+  "linked_user_local_validation": "/mnt/data/t10-human-qa-validation.json (not committed; contains only structured metadata)",
+  "cp4": "BLOCKED",
+  "t10": "ACTIVE",
+  "t11": "TODO"
+}
