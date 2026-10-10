@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from t10_asr_next_feasibility import (
     ALLOWED_QUERIES, CANDIDATES, adb_devices, assess,
     parse_battery_c, parse_data_free_kib, parse_mem_total, probe_device,
-    radio_setting, read_frozen_pins, main,
+    diagnostic_df_lines, diagnose_device_df, radio_setting, read_frozen_pins, main,
 )
 
 PINS = {"asr": "a"*64, "small": "b"*64, "cp4": "c"*64}
@@ -155,6 +155,58 @@ class FeasibilityTests(unittest.TestCase):
         self.assertEqual(len(result["device_serial_sha256_prefix"]), 12)
         self.assertEqual(len(commands), len(ALLOWED_QUERIES) + 1)
         self.assertNotIn("R58M902144", json.dumps(result))
+
+
+    def test_diagnostic_df_masks_block_device_and_shows_actual_shape(self):
+        rows = diagnostic_df_lines(DEVICE["df"])
+        self.assertEqual(len(rows), 2)
+        self.assertIn("Mounted on", rows[0])
+        self.assertIn("token_count=7", rows[0])
+        self.assertIn("token_count=6", rows[1])
+        self.assertIn("<filesystem-redacted>", rows[1])
+        self.assertNotIn("/dev/block/", "\n".join(rows))
+        self.assertIn("2100000", rows[1])
+        with self.assertRaisesRegex(ValueError, "diagnostic length"):
+            diagnostic_df_lines("")
+
+    def test_diagnostic_queries_only_devices_and_df_no_mutation(self):
+        commands = []
+        def fake_query(adb, args):
+            self.assertEqual(adb, "adb")
+            commands.append(args)
+            if args == ["devices", "-l"]:
+                return "List of devices attached\nR58M902144 device\n"
+            self.assertEqual(args, ["-s", "R58M902144", *ALLOWED_QUERIES["df"]])
+            return DEVICE["df"]
+        lines = diagnose_device_df("adb", fake_query)
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(commands, [
+            ["devices", "-l"],
+            ["-s", "R58M902144", *ALLOWED_QUERIES["df"]],
+        ])
+        self.assertNotIn("R58M902144", "\n".join(lines))
+
+    def test_diagnostic_cli_only_isolated_no_json_write(self):
+        output = io.StringIO()
+        with patch.object(sys, "argv", ["t10_asr_next_feasibility.py", "--diagnose-df"]), \
+             patch("t10_asr_next_feasibility.shutil.which", return_value="adb"), \
+             patch("t10_asr_next_feasibility.diagnose_device_df",
+                   return_value=["line[0] token_count=7", "line[1] token_count=6"]), \
+             redirect_stdout(output):
+            self.assertEqual(main(), 0)
+        self.assertIn("DIAGNOSTIC ONLY", output.getvalue())
+        self.assertIn("NO DOWNLOAD | NO INFERENCE | CP4 BLOCKED", output.getvalue())
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "blocked.json"
+            for forbidden in (
+                ["--diagnose-df", "--json", str(path)],
+                ["--diagnose-df", "--probe-device"],
+            ):
+                with self.subTest(args=forbidden):
+                    with patch.object(sys, "argv", ["t10_asr_next_feasibility.py", *forbidden]), \
+                         redirect_stderr(io.StringIO()):
+                        self.assertEqual(main(), 1)
+                    self.assertFalse(path.exists())
 
     def test_published_weight_is_not_runtime_ram_claim(self):
         def fake_query(adb, args):
