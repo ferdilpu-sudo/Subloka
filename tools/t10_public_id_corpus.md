@@ -35,13 +35,13 @@ Jika tes baru PASS, ambil **hanya CSV metadata** via HTTPS dan revisi yang dipin
 
 Perintah `inspect` hanya menampilkan daftar kategori, jumlah rekaman manusia pada partisi test, dan jumlah label pembicara yang memenuhi syarat. **Output tidak menampilkan transkrip, nama, isi audio, atau materi pribadi.**
 
-Jika kategori `Declarative` memenuhi jumlah yang ditentukan, bekukan 30 metadata `test`/human/non-synthetic dengan pilihan yang deterministik:
+Jika kategori `Declarative` memenuhi jumlah yang ditentukan, bekukan 30 metadata `test`/human/non-synthetic dengan pilihan yang deterministik **berdasarkan path audio yang berbeda**. Karena tiap kategori memiliki sekitar 19 teks kalimat kanonis, beberapa rekaman dari pembicara berbeda mungkin membaca kalimat yang sama; pemilihan melaporkan `distinct_reference_prompts` dan `repeated_reference_prompts` secara terpisah, dan **tidak mengklaim 30 kalimat unik**:
 
 ```powershell
 & $py tools\t10_public_id_corpus.py select --workspace $public --category Declarative
 ```
 
-Perintah `select` membuat `$public\external_test_30_selection.json` **sekali saja** dan mencantumkan nama TAR + sumber archive URL untuk tahap pengambilan audio yang terpisah. File pilihan berisi transkrip sumber yang belum diperiksa ulang; tetap berada di folder gitignored. Jangan mengubah urutan pilihan setelah melihat hasil model. Jika kategori tidak memenuhi syarat, **jangan paksakan**; gunakan daftar `inspect` dan pilih kategori lain sebelum memilih.
+Perintah `select` membuat `$public\external_test_30_selection.json` **sekali saja** dan mencantumkan nama TAR + sumber archive URL untuk tahap pengambilan audio yang terpisah. File pilihan berisi transkrip sumber yang belum diperiksa ulang; tetap berada di folder gitignored. Jangan mengubah urutan pilihan setelah melihat hasil model. Jika kategori tidak memenuhi syarat, **jangan paksakan**; gunakan daftar `inspect` dan pilih kategori lain sebelum memilih. Pilihan dalam satu kategori meminimalkan jumlah arsip TAR besar, tetapi meningkatkan risiko keterbatasan variasi kosakata/kalimat; dataset ini hanyalah *speaker-varied scripted external diagnostic*, bukan tes unseen prompts.
 
 **File pilihan BUKAN WAV.** Sampai arsip yang relevan berhasil didownload dengan izin, checksum arsip dan setiap WAV terverifikasi, dan referensi didengar/dikoreksi manusia, keadaan tetap `NO AUDIO LOCALLY VERIFIED`, `NO ASR EVAL`. Tidak boleh memberi label `clean/challenging` hanya dari jenis kalimat pada metadata. WER baru, bila tersedia kelak, dilaporkan sebagai **Atika external test**, bukan melewati CP4 atau mengubah baseline asli 105/367 = 28.61%.
 
