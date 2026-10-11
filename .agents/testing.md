@@ -947,3 +947,8 @@ Dokumen/task yang diperbarui:
 ### T10 THREE-HEADER SYNTHETIC INITIAL CI FAILURE — 2026-10-11
 - Workflow <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101695871>, job `114358776680` on `b83f0b3025b80ccbd1773e0a73fa7568e8196419`: first layout 12/12 and order 10/10 `OK`; new synthetic three-header tests 13 total **9 PASS / 2 FAIL / 2 ERROR**. Cause: `t10_atika_tar_order_hypotheses.assess_prefix` default argument bound pinned observations (91364B/490496B) at import time, ignoring mock patch of those constants by new synthetic fixture. As a result the safe preflight refused to test artificial data, no bypass/network. Corrected default arguments to `None` resolving original pinned values at call time; production values unchanged.
 - New CI after fix not yet observed at time of this note; Windows new suite not yet reported. Preserve failure evidence and do not change CP4.
+
+
+### T10 THREE-HEADER REGRESSION CI PASS AFTER FIX — 2026-10-11
+- Source `1dec365a15d4f4d9ea6bf0a716ae8a885b772124`, GitHub Actions job `114358975061` / run `38101763518` **success**. Actual decoded log: `Ran 12 tests in 0.015s / OK`, `Ran 10 tests in 0.013s / OK`, `Ran 13 tests in 0.020s / OK`. Overall **35/35 synthetic PASS**. New 13 tests prove offline-default behavior, 3-request cap via mocks, fail-closed mismatch/Range ignored, SHA/selection guard and no sensitive output on synthetic fixtures. They do NOT verify actual TAR order.
+- Windows new suite and pinned private data dry-run **PENDING**. The `--execute-three-headers` option was not used in CI and no real remote headers were requested. Keep earlier CI failure and its root-cause documented for traceability. CP4 BLOCKED.

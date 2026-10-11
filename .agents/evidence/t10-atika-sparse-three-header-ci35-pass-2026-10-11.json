@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SPARSE_THREE_HEADER_CI_35_OF_35_PASS",
+  "tested_source_revision": "1dec365a15d4f4d9ea6bf0a716ae8a885b772124",
+  "github_run_id": 38101763518,
+  "github_job_id": 114358975061,
+  "github_run_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101763518",
+  "result": "success",
+  "suites": [
+    {
+      "name": "layout",
+      "tests": 12,
+      "passed": 12,
+      "seconds": 0.015
+    },
+    {
+      "name": "order_hypotheses",
+      "tests": 10,
+      "passed": 10,
+      "seconds": 0.013
+    },
+    {
+      "name": "sparse_three_header",
+      "tests": 13,
+      "passed": 13,
+      "seconds": 0.02
+    }
+  ],
+  "total_tests": 35,
+  "total_pass": 35,
+  "first_ci_failure_run": 38101695871,
+  "first_failure_preserved": true,
+  "corrected_failure": "Pinned header observation values bound as default parameters at definition time instead of resolved at invocation",
+  "source_wav_locally_verified": 0,
+  "network_requests_by_synthetic_ci": 0,
+  "tar_audio_downloaded": false,
+  "actual_three_header_remote_probe_executed": false,
+  "windows_13_new_suite_pending": true,
+  "windows_default_private_dry_run_pending": true,
+  "full_member_order_verified": false,
+  "selected_30_wav_offsets_verified": false,
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
