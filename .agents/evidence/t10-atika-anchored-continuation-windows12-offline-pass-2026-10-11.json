@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_CONTINUATION_WINDOWS12_OFFLINE_PASS",
+  "source": "User-pasted Windows PowerShell console after git fast-forward; not run by assistant",
+  "verified_checkout_from_pull": "28002f574d4b23ef1147b9c682acde49921a36de",
+  "windows_synthetic": {
+    "file": "tools/test_t10_atika_anchored_successor_continuation.py",
+    "tests_run": 12,
+    "tests_passed": 12,
+    "elapsed_seconds": 0.354,
+    "summary": "Ran 12 tests in 0.354s / OK",
+    "powershell_guard_passed": true
+  },
+  "pinned_offline_preflight": {
+    "checkpoint": "T10_ATIKA_ANCHORED_THREE_MATCHED_CONTINUATION",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "source_metadata_wav_count": 9500,
+    "frozen_selected_count": 30,
+    "prior_matched_first_selected_from_user_report": true,
+    "prior_matched_successors_from_user_report": 3,
+    "prior_report_cryptographically_reverified": false,
+    "prior_matches_rechecked_this_run": false,
+    "new_successor_ordinals_after_first_selected": [
+      4,
+      5,
+      6
+    ],
+    "hard_cap_new_requests": 3,
+    "per_request_body_read_cap_bytes": 513,
+    "network_requests_executed": 0,
+    "wav_payloads_recovered": 0,
+    "whole_tar_member_order_verified": false,
+    "actual_second_selected_offset_found": false,
+    "status": "OFFLINE_ONLY_NO_HTTP",
+    "powershell_guard_passed": true
+  },
+  "previous_remote_anchored": {
+    "first_three_successors_matched": 3,
+    "previously_reported_success": true,
+    "terminal_excerpt_repeats_prior_remote_results": true,
+    "not_counted_as_new_successors": true
+  },
+  "new_remote_continuation": {
+    "status": "NOT_RUN",
+    "new_successors_checked": 0,
+    "execute_flag": "--execute-new-successors",
+    "max_new_successors": 3
+  },
+  "older_direct_second_selected_check": {
+    "status": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "exit_code": 3,
+    "underlying_cause_confirmed": false
+  },
+  "linux_synthetic_CI": {
+    "run_id": 38111264883,
+    "pass_count": 146
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

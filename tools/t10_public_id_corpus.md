@@ -416,3 +416,8 @@ if ($LASTEXITCODE -ne 0) { throw "T10 CONTINUATION TESTS FAILED" }
 if ($LASTEXITCODE -ne 0) { throw "T10 CONTINUATION OFFLINE PREFLIGHT FAILED" }
 ```
 Above is strictly OFFLINE; no opt-in network flag. T10 ACTIVE, CP4 BLOCKED, T11 TODO.
+
+
+## T10 anchored continuation new successors #4–#6: Windows offline PASS — 2026-10-11
+- User pulled to `28002f5` and ran new synthetic suite: **12/12 PASS (0.354s)**. Pinned dataset `t10_atika_anchored_successor_continuation.py --workspace <private>` returned `OFFLINE_ONLY_NO_HTTP`, zero network/WAV, target successor ordinal list **[4,5,6]**, per-run hard cap **3**, 513-byte application body read limit per header. The earlier 3/3 remote successor pass was repeated in terminal for context, **not an additional run against #4–#6**. 9500 publisher WAV rows and frozen 30 unchanged.
+- Optional separate deliberate network follow-up `--execute-new-successors --max-new-successors 3` follows only three new immediate headers after 3 previously verified successors. No automatic network, no WAV or TAR payload, no member names or absolute offsets emitted. Stop on first mismatch. All 9500 member order unproven and prior second selected predicted location INVALID, CP4 BLOCKED.
