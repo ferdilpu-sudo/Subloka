@@ -1075,3 +1075,8 @@ Dokumen/task yang diperbarui:
 
 ### T10 next anchored 7–9 — CI 146/146 PASS, Windows pending — 2026-10-11
 - Source commit `2110eff6bd185b3b752538f0b0f1de25afe76905` changed the *existing* continuation tool checkpoint to `T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION` and adapted 12 synthetic tests for new successor ordinals [7,8,9] (prior six skipped). GitHub run <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38112265055> job `114390098745` **SUCCESS**; all eleven logged suites 12+10+13+12+15+16+12+15+13+16+12 = **146/146 PASS**. Synthetic mocked headers, not actual remote archive check. No separate Windows QA on revised 7–9 code yet. Prior 4–6 real PASS stays as witnessed; new 7–9 remote NOT_RUN; CP4 BLOCKED, WAV 0/30.
+
+
+### T10 7–9 NEXT SUCCESSOR WINDOWS 12 PASS / PINNED OFFLINE PASS — 2026-10-11
+- User Windows synthetic `Ran 12 tests in 0.284s / OK`, guard passed. Pinned offline `T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION`, `status=OFFLINE_ONLY_NO_HTTP`, source revision and CSV SHA unchanged, publisher metadata count 9500, frozen selected 30, `previous_remote_matched_successors_from_user_report=6` (not rechecked), `new_successor_ordinals_after_first_selected=[7,8,9]`, `new_header_request_hard_cap=3`, `per_request_body_read_cap_bytes=513`, `network_requests_executed=0`, `wav_payloads_recovered=0`, `full_archive_order_verified=false`, `actual_second_selected_offset_found=false`. Pinned CLI exit guard also passed.
+- Linux 146/146 synthetic suite previously successful. No remote successor #7–#9 yet (`NOT_RUN`). Earlier remote #1–#6 PASS from two separate three-header probes; earlier predicted second selected TAR header INVALID (FAIL) still unresolved. CP4 BLOCKED, T11 TODO.

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_NEXT_7_9_WINDOWS_SYNTHETIC_12_PASS_OFFLINE_PREFLIGHT_PASS",
+  "provenance": "User Windows terminal output; assistant did not execute private preflight",
+  "script": "tools/t10_atika_anchored_successor_continuation.py",
+  "suite": "tools/test_t10_atika_anchored_successor_continuation.py",
+  "synthetic_windows": {
+    "ran": 12,
+    "passed": 12,
+    "seconds": 0.284,
+    "result": "OK",
+    "powershell_exit_guard_passed": true
+  },
+  "actual_private_pinned_offline": {
+    "checkpoint": "T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "source_metadata_wav_count": 9500,
+    "frozen_selected_count": 30,
+    "previous_remote_matched_first_selected_from_user_report": true,
+    "previous_remote_matched_successors_from_user_report": 6,
+    "prior_report_not_cryptographically_reverified": true,
+    "previous_matched_headers_rechecked_this_run": false,
+    "new_successor_ordinals_after_first_selected": [
+      7,
+      8,
+      9
+    ],
+    "new_header_request_hard_cap": 3,
+    "per_request_body_read_cap_bytes": 513,
+    "network_requests_executed": 0,
+    "wav_payloads_recovered": 0,
+    "full_archive_order_verified": false,
+    "actual_second_selected_offset_found": false,
+    "status": "OFFLINE_ONLY_NO_HTTP",
+    "powershell_exit_guard_passed": true
+  },
+  "prior_remote_successors_1_to_6_reported_pass": true,
+  "new_remote_successors_7_to_9": {
+    "status": "NOT_RUN",
+    "requests_executed": 0,
+    "successful_matches": 0
+  },
+  "prior_second_selected_predicted_header_invalid": true,
+  "CI_baseline": {
+    "run_id": 38112265055,
+    "synthetic_pass": 146
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
