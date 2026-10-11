@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_EIGHTH_ANONYMOUS_DIAGNOSIS_LINUX_CI161_PASS",
+  "code_sha": "51f0c8d2e5eeecd52a32431195c497ba10348a19",
+  "ci": {
+    "workflow": "T10 Atika TAR Layout Arithmetic (Offline)",
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38116090676",
+    "run_id": 38116090676,
+    "job_id": 114401155212,
+    "conclusion": "success",
+    "synthetic_only": true,
+    "suites": [
+      12,
+      10,
+      13,
+      12,
+      15,
+      16,
+      12,
+      15,
+      13,
+      16,
+      12,
+      15
+    ],
+    "total": 161,
+    "passed": 161,
+    "new_anonymous_diagnostic_cases": 15,
+    "legacy_halt_suite_cases": 12
+  },
+  "actual_prior_Windows_remote": {
+    "successor_7": "PASS",
+    "successor_8": "MEMBER_NAME_ORDER_DIVERGED",
+    "successor_9": "NOT_RUN",
+    "requests": 2,
+    "matches": 1,
+    "exit_code": 3,
+    "root_cause_of_second_selected_invalid_proven": false
+  },
+  "runtime_safety": {
+    "old_live_continuation": "DISABLED_FAIL_CLOSED_NO_HTTP_EXIT_3",
+    "new_diagnostic": "OFFLINE_BY_DEFAULT",
+    "new_opt_in": "--inspect-eighth-header",
+    "max_live_requests_per_invoke": 1,
+    "one_header_read_bytes": 512,
+    "application_body_read_cap_bytes": 513,
+    "raw_member_name_printed": false,
+    "actual_offsets_printed": false,
+    "wav_payloads_downloaded": 0,
+    "prior_failure_overwritten_by_recheck": false
+  },
+  "windows_next": {
+    "legacy_halt_synthetic_tests": "PENDING",
+    "anonymous_diagnostic_synthetic_tests": "PENDING",
+    "pinned_offline_preflight": "PENDING",
+    "new_one_header_live_recheck": "NOT_RUN"
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
