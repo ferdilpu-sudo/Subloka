@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_SEVEN_TO_NINE_OFFLINE_LINUX_CI_146_PASS",
+  "code_sha": "2110eff6bd185b3b752538f0b0f1de25afe76905",
+  "ci": {
+    "workflow": "T10 Atika TAR Layout Arithmetic (Offline)",
+    "run_id": 38112265055,
+    "job_id": 114390098745,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38112265055",
+    "conclusion": "success",
+    "suites": [
+      12,
+      10,
+      13,
+      12,
+      15,
+      16,
+      12,
+      15,
+      13,
+      16,
+      12
+    ],
+    "passed": 146,
+    "synthetic_only": true
+  },
+  "previous_windows_remote_header_1_to_6": {
+    "matched_six_successors_across_two_batches": true,
+    "first_selected_anchor_matched_in_prior_run": true,
+    "all_seven_consecutive_header_positions_have_matching_evidence": true,
+    "entire_TAR_order_verified": false
+  },
+  "new_version": {
+    "script": "tools/t10_atika_anchored_successor_continuation.py",
+    "prior_six_skipped": true,
+    "requested_new_successor_ordinals": [
+      7,
+      8,
+      9
+    ],
+    "hard_max_new_requests": 3,
+    "default_offline": true,
+    "Windows_regression_tests": "PENDING",
+    "Windows_pinned_offline_preflight": "PENDING",
+    "actual_remote_7_to_9": "NOT_RUN",
+    "WAV_downloaded": 0
+  },
+  "prior_second_selected_predicted_header": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
