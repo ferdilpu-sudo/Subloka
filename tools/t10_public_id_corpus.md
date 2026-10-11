@@ -449,3 +449,8 @@ if ($LASTEXITCODE -ne 0) { throw "T10 EIGHTH DIAGNOSIS REGRESSIONS FAILED" }
 if ($LASTEXITCODE -ne 0) { throw "T10 EIGHTH ANONYMOUS OFFLINE PREFLIGHT FAILED" }
 ```
 No network in these commands; no WAV. `CP4=BLOCKED`.
+
+
+## Eighth-header anonymous diagnosis: Windows 15/15 and pinned offline PASS / 2026-10-11
+- User Windows **15/15 PASS (0.280s)** for `test_t10_atika_eighth_successor_anonymous_diagnostic.py`; pinned private `t10_atika_eighth_successor_anonymous_diagnostic.py --workspace <private>` **OFFLINE_ONLY_NO_HTTP PASS**. 9500 pinned metadata WAVs, 30 frozen selected, 7 prior successors matched by user reports, observed #8 name mismatch preserved. No network/WAV/audio, no member names/absolute offsets exposed. Linux CI 161/161 PASS. **Legacy continuation halt suite on Windows not evidenced by the submitted excerpt**. Existing old continuation live flag remains halted fail-closed.
+- Optional next distinct diagnostic `--inspect-eighth-header` is deliberately one re-read of known divergent #8 position, reporting catalogue identity/direction/distance only, and returns **exit code 3** to preserve real FAIL. #9 untested, actual second selected offset unknown, WAV 0/30, CP4 BLOCKED.

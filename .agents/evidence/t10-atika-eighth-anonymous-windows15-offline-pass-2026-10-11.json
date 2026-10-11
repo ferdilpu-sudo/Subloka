@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_EIGHTH_ANONYMOUS_WINDOWS15_OFFLINE_PASS",
+  "provenance": "User-supplied Windows PowerShell output, not assistant execution",
+  "source_repo_head_before_evidence_commit": "6c5d6ad3378cf9f30035e7957d4ac9e6b9bd49bc",
+  "Windows_synthetic": {
+    "suite": "tools/test_t10_atika_eighth_successor_anonymous_diagnostic.py",
+    "ran": 15,
+    "passed": 15,
+    "time_seconds": 0.28,
+    "guard_passed": true
+  },
+  "Windows_legacy_halt_suite": {
+    "suite": "tools/test_t10_atika_anchored_successor_continuation.py",
+    "status": "NOT_VERIFIED_IN_SUBMITTED_OUTPUT",
+    "note": "No 12-case Windows result supplied in this message; Linux CI earlier PASS"
+  },
+  "pinned_offline_preflight": {
+    "checkpoint": "T10_ATIKA_EIGHTH_SUCCESSOR_ANONYMOUS_ORDER_DIVERGENCE",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "catalogue_wav_members": 9500,
+    "frozen_selected_count": 30,
+    "previous_reported_matched_successors": 7,
+    "prior_eighth_successor_member_name_divergence_observed": true,
+    "previous_mismatch_reclassified_as_pass": false,
+    "one_header_max_network_requests": 1,
+    "per_request_body_read_cap_bytes": 513,
+    "network_requests_executed": 0,
+    "WAV_payloads_downloaded": 0,
+    "prints_names_offsets_or_header_bytes": false,
+    "actual_second_selected_position_verified": false,
+    "full_archive_order_verified": false,
+    "status": "OFFLINE_ONLY_NO_HTTP",
+    "guard_passed": true
+  },
+  "prior_live": {
+    "successor_7": "PASS",
+    "successor_8": "MEMBER_NAME_ORDER_DIVERGED",
+    "successor_9": "NOT_RUN",
+    "previous_selected_second_header_invalid_at_predicted_offset": true
+  },
+  "optional_one_header_recheck": {
+    "performed": false,
+    "opt_in": "--inspect-eighth-header",
+    "expected_classification_run_exit_code": 3,
+    "previous_real_fail_preserved": true
+  },
+  "linux_ci": {
+    "run_id": 38116090676,
+    "passed": 161
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
