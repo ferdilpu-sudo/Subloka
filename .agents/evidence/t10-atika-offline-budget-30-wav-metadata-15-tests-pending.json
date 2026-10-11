@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_OFFLINE_30_WAV_ACQUISITION_COST_BUDGET_IMPLEMENTED_15_SYNTHETIC_TESTS_PENDING",
+  "provenance": "User Windows 14/14 header-walk PASS and six-header HTTP 206 result in prior turn; public Hugging Face dataset card/repository evidence; source code committed to GitHub",
+  "prior_verified": {
+    "windows_header_walk_tests": {
+      "passed": 14,
+      "reported_duration_seconds": 0.074,
+      "result": "OK"
+    },
+    "live_header_walk": {
+      "headers_scanned": 6,
+      "network_requests_max": 6,
+      "next_header_offset_bytes": 490496,
+      "selected_WAV_matches_in_first_6": 0,
+      "WAV_payloads_downloaded": 0
+    },
+    "public_selection": {
+      "category": "Imperative",
+      "selected_test_human_rows": 30,
+      "public_test_speaker_labels": 3,
+      "private_write_once": true
+    },
+    "source_archive_size_published_bytes": 907765760,
+    "source_metadata_sha256_windows": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21"
+  },
+  "public_research": {
+    "dataset": "Atika88/Indonesian-ASR-11-Class-Dataset",
+    "pinned_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_url": "https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset",
+    "viewer_parquet_content": "metadata/transcripts, not embedded audio bytes according to publisher README",
+    "public_audio_location": "data/audio_shards/by_category/*.tar",
+    "published_archive_inventory": "data/audio_shards/audio_shards_manifest.csv",
+    "per_WAV_byte_offset_index_located": false,
+    "source_voice_consent_independently_verified": false,
+    "published_license": "CC BY 4.0 reported by dataset; not independent consent audit",
+    "possible_further_rights_questions": "Participant release/reuse documentation and provenance need independent review before downstream use"
+  },
+  "new_implementation": {
+    "path": "tools/t10_atika_acquisition_budget.py",
+    "tests_path": "tools/test_t10_atika_acquisition_budget.py",
+    "expected_synthetic_test_count": 15,
+    "new_windows_pass_reported": false,
+    "github_actions_ci_verified": false,
+    "workflow": ".github/workflows/t10-engine-eval.yml",
+    "docs": "tools/t10_public_id_corpus.md",
+    "local_command": "python tools/t10_atika_acquisition_budget.py --workspace .t10-benchmark/t10-public-atika",
+    "offline_only": true,
+    "writes_files": false,
+    "remote_network_requests": 0,
+    "downloads_audio_tar_or_model": false,
+    "shares_private_metadata_paths_transcripts_or_speakerIDs_in_output": false,
+    "verifies_fixed_CSV_SHA256": true,
+    "checks_frozen_selected_30_against_CSV": true,
+    "publisher_category_wav_size_upper_bound_bytes": 10000000,
+    "selected_human_test_size_upper_bound_bytes": 3000000,
+    "estimator": "One Range header per WAV row, plus possible TAR auxiliary headers, is a research heuristic not an actual index",
+    "policy_header_request_cap": 200,
+    "latency_scenarios_ms": [
+      200,
+      500,
+      1000
+    ],
+    "exact_total_header_requests_known": false,
+    "actual_30_WAV_offsets_known": false,
+    "no_cp4_promotion": true
+  },
+  "next": "User Windows pulls updated main, runs 15 new offline synthetic tests and offline budget against already-private files. If report warns against member-per-GET, do not scan thousands of TAR members or download 865.7MiB without explicit user approval and rights/storage review. Keep original private holdout unchanged.",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
