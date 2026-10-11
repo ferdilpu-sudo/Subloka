@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ORDER_HYPOTHESIS_CI_FAIL_SHA_PATCH_NARROW_FIX",
+  "failed_commit": "1fd494757ac9cb6edc579af73a7e5ce49520db4c",
+  "failed_ci_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101218559",
+  "failed_job_id": 114357360301,
+  "isolated_layout_suite_result": "PASS",
+  "new_order_suite": {
+    "total": 10,
+    "passed": 6,
+    "errors": 3,
+    "failures": 1,
+    "result": "FAIL"
+  },
+  "observed_error": "Metadata SHA changed during order audit",
+  "root_cause": "imported PINNED_METADATA_SHA by value before mock.patch of source module, causing inconsistent synthetic pin reading",
+  "fix": "read tar_walk.PINNED_METADATA_SHA dynamically in order hypothesis auditor",
+  "pin_integrity_check_removed": false,
+  "private_user_data_mutated": false,
+  "network_calls": 0,
+  "actual_wav_downloaded": 0,
+  "ci_rerun_verified": false,
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

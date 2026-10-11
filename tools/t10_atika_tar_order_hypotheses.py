@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 
 from t10_atika_acquisition_budget import CATEGORY, MAX_CATEGORY_ROWS
-from t10_atika_tar_header_walk import PINNED_METADATA_SHA
+import t10_atika_tar_header_walk as tar_walk
 from t10_atika_tar_layout_budget import layout_budget, ceil_to, TAR_BLOCK_BYTES
 from t10_id_independent_holdout import require_private_workspace
 from t10_public_id_corpus import (
@@ -77,7 +77,7 @@ def analyze_order_hypotheses(workspace: Path) -> dict:
                 ))
                 if len(csv_order) > MAX_CATEGORY_ROWS:
                     raise ValueError("Category exceeds hard row cap")
-    if sha256_file(csv_path) != PINNED_METADATA_SHA:
+    if sha256_file(csv_path) != tar_walk.PINNED_METADATA_SHA:
         raise ValueError("Metadata SHA changed during order audit")
     layout = base["tar_layout_arithmetic"]
     if (len(csv_order) != layout["category_wav_count"]
@@ -88,7 +88,7 @@ def analyze_order_hypotheses(workspace: Path) -> dict:
         "schema_version": 1,
         "checkpoint": "PUBLIC_IMPERATIVE_ORDER_HYPOTHESES_OFFLINE_NO_OFFSETS",
         "source_revision": base["source_revision"],
-        "source_metadata_sha256": PINNED_METADATA_SHA,
+        "source_metadata_sha256": tar_walk.PINNED_METADATA_SHA,
         "category_wav_count": len(csv_order),
         "previously_observed_first_member_size_bytes": OBSERVED_FIRST_MEMBER_SIZE,
         "previously_observed_six_header_next_offset_bytes": OBSERVED_SIX_HEADER_NEXT_OFFSET,
