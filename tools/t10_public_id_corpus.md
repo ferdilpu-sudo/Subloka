@@ -358,3 +358,19 @@ if ($LASTEXITCODE -ne 0) { throw "T10 USTAR PATH TESTS FAILED" }
 if ($LASTEXITCODE -ne 0) { throw "T10 USTAR PATH AUDIT FAILED" }
 ```
 Do not rerun the known-invalid remote header or expand selected WAV fetch. CP4 BLOCKED.
+
+
+## 9500/9500 source WAV paths fit USTAR encoding — Windows PASS / 2026-10-11
+- User Windows audit USTAR **15/15 PASS (0.122s)** plus pinned CLI PASS. 9500/9500 publisher paths >100 UTF-8 bytes and **9500/9500 fit into one USTAR header using prefix + name**. Subset between first selected matching and second invalid header: 40/40 USTAR-encodable. Therefore long source paths **alone** do not mandate PAX/GNU extension headers. This is only *encoding feasibility*, not observation of real publisher TAR; actual second selected predicted header is still INVALID, WAV 0/30, CP4 BLOCKED.
+- New optional offline-only **Python format counterfactual footprint** `tools/t10_atika_tar_format_footprint.py`: compute hypothetical Python TAR USTAR/PAX/GNU header cost and compare **full category** size with pinned TAR length, while the 40-record interval reports only local aggregate (no inappropriate comparison to full TAR). **13 synthetic tests CI/Windows PENDING**. Never fetches TAR, creates no file, does not show member names/offsets.
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_format_footprint.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR FORMAT MODEL TESTS FAILED" }
+& $py tools\t10_atika_tar_format_footprint.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR FORMAT MODEL OFFLINE AUDIT FAILED" }
+```
+Keep the prior actual header mismatch FAIL; no WAV payloads or new network authorized.

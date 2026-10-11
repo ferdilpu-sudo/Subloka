@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_USTAR_PATHS_WINDOWS_15_PASS_TAR_FORMAT_FOOTPRINT_PENDING",
+  "provenance": "User-supplied Windows console; not independently replayed on Windows",
+  "previous_source_commit": "d0e27ee51b3133f18055b31fe0a5cec5952839ad",
+  "actual_windows_checkout_SHA_not_printed": true,
+  "windows_synthetic": {
+    "suite": "test_t10_atika_tar_ustar_path_audit.py",
+    "ran": 15,
+    "passed": 15,
+    "seconds": 0.122,
+    "exit_guard_passed": true
+  },
+  "real_pinned_offline": {
+    "checkpoint": "T10_ATIKA_USTAR_PATH_FEASIBILITY_OFFLINE_ONLY",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "selected": 30,
+    "gap_paths": {
+      "total": 40,
+      "over_100_utf8_bytes": 40,
+      "USTAR_roundtrippable": 40,
+      "USTAR_unrepresentable": 0
+    },
+    "category_paths": {
+      "total": 9500,
+      "over_100_utf8_bytes": 9500,
+      "USTAR_roundtrippable": 9500,
+      "USTAR_unrepresentable": 0
+    },
+    "HTTP_requests": 0,
+    "wav_payloads_downloaded": 0,
+    "written_files": 0,
+    "actual_upstream_TAR_format_verified": false,
+    "actual_auxiliary_headers_verified": false,
+    "actual_selected_header_offsets_verified": false,
+    "root_cause_verified": false,
+    "exit_guard_passed": true
+  },
+  "new_model": {
+    "tool": "tools/t10_atika_tar_format_footprint.py",
+    "tests": "tools/test_t10_atika_tar_format_footprint.py",
+    "synthetic_test_count": 13,
+    "ci_status": "PENDING",
+    "windows_status": "PENDING",
+    "real_pinned_offline_status": "PENDING",
+    "compares_ustar_pax_gnu_simulated_tarfile_headers": true,
+    "full_archive_length_only_compared_for_full_category": true,
+    "network_enabled": false,
+    "downloads_audio": false,
+    "publishes_absolute_offsets": false
+  },
+  "prior_live_selected_second_header_invalid": true,
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

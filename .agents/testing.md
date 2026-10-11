@@ -1026,3 +1026,8 @@ Dokumen/task yang diperbarui:
 
 ### T10 USTAR PATH ENCODING OFFLINE SYNTHETIC CI — 105/105 PASS / 2026-10-11
 - GitHub Actions run <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38107977529>, job `114377427358` on SHA `5bd71c63262e6292e159806bf48815c81948fcd6`: **SUCCESS**, decoded log shows suites `12 OK`, `10 OK`, `13 OK`, `12 OK`, `15 OK`, `16 OK`, `12 OK`, `15 OK` = **105/105 PASS**. The new 15-case tests check USTAR roundtrip of path and prefix, long basename/too-long Unicode rejection, counts, filename disclosure prohibition, and local pinned-data synthetic fixture without HTTP. Real pinned dataset **Windows PENDING**; archive TAR layout NOT proven and earlier remote invalid header test remains a FAIL.
+
+
+### T10 USTAR 9500 PATH CAPACITY — WINDOWS 15/15 PASS / 2026-10-11
+- User Windows `Ran 15 tests in 0.122s / OK`, guard passed, pinned `T10_ATIKA_USTAR_PATH_FEASIBILITY_OFFLINE_ONLY` successful. `between_first_matching_and_second_invalid_candidates`: 40 names total, all 40 >100 bytes, 40 USTAR serializable, 0 not. `full_category_path_capacity`: 9500 names total, all 9500 >100 bytes, 9500 USTAR serializable, 0 not. `network_requests_executed=0`, `files_written=false`, `wav_payloads_recovered=0`; actual TAR serialization format, record count, second selected header offset and WAV SHA are NOT VERIFIED. Earlier real second-selected `INVALID_TAR_HEADER_AT_PREDICTED_OFFSET` exit 3 stands.
+- Added `t10_atika_tar_format_footprint.py` + `test_t10_atika_tar_format_footprint.py`, **13 synthetic cases PENDING CI/Windows**; offline-only simulated Python USTAR/PAX/GNU archive-size footprints (not source TAR proof). No HTTP/WAV. CI trigger includes these tools.
