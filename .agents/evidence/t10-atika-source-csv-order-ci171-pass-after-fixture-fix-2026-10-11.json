@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SOURCE_CSV_ORDER_HYPOTHESIS_CI171_PASS",
+  "first_ci": {
+    "source_commit": "edae4898a9f960c980a2f1796a5c679dce720bb3",
+    "run_id": 38118460417,
+    "job_id": 114408063236,
+    "result": "FAIL",
+    "new_suite_tests": 10,
+    "failures": 1,
+    "errors": 2,
+    "root_cause": "Synthetic CSV reorder accidentally changed frozen test selection; false-positive field-label transcript assertion",
+    "real_tar_requests": 0
+  },
+  "corrected_ci": {
+    "source_commit": "180edf0f78aeccf1bf8821201b74bc220c17e775",
+    "run_id": 38118538044,
+    "job_id": 114408291444,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38118538044",
+    "conclusion": "success",
+    "all_test_suite_counts": [
+      12,
+      10,
+      13,
+      12,
+      15,
+      16,
+      12,
+      15,
+      13,
+      16,
+      12,
+      15,
+      10
+    ],
+    "tests_pass": 171,
+    "existing_tests_pass": 161,
+    "new_csv_order_synthetic_pass": 10,
+    "real_tar_requests": 0,
+    "real_audio_files": 0
+  },
+  "windows_private_pinned_offline": {
+    "suite_status": "NOT_RUN",
+    "preflight_status": "NOT_RUN"
+  },
+  "inference_limits": {
+    "csv_row_order_is_authoritative_tar_order": false,
+    "real_second_selected_offset_found": false,
+    "prior_eighth_name_mismatch_stands": true,
+    "observed_eighth_category_lex_rank_later_by": 152,
+    "full_tar_order_verified": false
+  },
+  "next": "Run Windows 10-case synthetic regression and offline private metadata CSV order hypothesis, then decide source index unavailable versus further research",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
