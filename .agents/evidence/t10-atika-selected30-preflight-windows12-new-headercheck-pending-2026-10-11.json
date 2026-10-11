@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED30_PREFLIGHT_WINDOWS12_PASS_OPTIONAL_SELECTED_HEADERS_IMPLEMENTED_PENDING",
+  "provenance": "User-provided PowerShell logs; assistant did not re-execute on user's Windows host",
+  "user_windows": {
+    "previous_source_commit": "35d3fbc382fd639073692738c93be85aab7769a4",
+    "windows_head_not_explicitly_displayed": true,
+    "suite": "test_t10_atika_selected_header_preflight.py",
+    "tests": 12,
+    "passed": 12,
+    "time_s": 0.155,
+    "status": "OK",
+    "cli": "PUBLIC_IMPERATIVE_SELECTED_30_HEADER_CANDIDATES_OFFLINE",
+    "cli_exit_guard_passed": true,
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "category_wav_count": 9500,
+    "selected_30": 30,
+    "publisher_declared_selected_wav_sum_bytes": 2590936,
+    "hypothetical_candidate_count": 30,
+    "actual_checked_selected_headers": 0,
+    "actual_network_requests": 0,
+    "audio_downloaded": 0
+  },
+  "new_implementation": {
+    "source": "tools/t10_atika_selected_header_check.py",
+    "tests": "tools/test_t10_atika_selected_header_check.py",
+    "new_synthetic_test_count": 15,
+    "workflow": ".github/workflows/t10-atika-layout-offline.yml",
+    "ci_status": "PENDING",
+    "windows_status": "PENDING",
+    "default_mode": "OFFLINE_PREFLIGHT_ONLY_NO_HTTP",
+    "explicit_opt_in": "--execute-selected-headers",
+    "default_max_headers_per_run": 5,
+    "hard_cap_headers_per_run": 30,
+    "remote_response_read_512_plus_guard": true,
+    "files_written": false,
+    "source_wav_payload_downloaded": false,
+    "full_tar_order_verified": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

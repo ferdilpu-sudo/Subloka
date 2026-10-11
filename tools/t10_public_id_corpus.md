@@ -279,3 +279,21 @@ if ($LASTEXITCODE -ne 0) { throw "T10 selected 30 offline preflight FAILED" }
 ```
 
 This does not repeat the sparse live 3-header pilot and does not authorize the 865.7MiB full TAR or 2.59MiB WAV payload acquisition. New suite Windows/CI PENDING.
+
+
+## Selected-30 header preflight Windows PASS and opt-in header checker — 2026-10-11
+- Host synthetic QA **12/12 PASS (0.155s)** and pinned \`PUBLIC_IMPERATIVE_SELECTED_30_HEADER_CANDIDATES_OFFLINE\` CLI succeed. 9,500 Imperative WAV rows, immutable 30 human-test audio paths, hypothetical 30 offsets computed in memory and **never printed**, 2,590,936B publisher WAV sum. 0 network / actual header checks / WAV downloads; CP4 BLOCKED.
+- New \`tools/t10_atika_selected_header_check.py\` defaults to **OFFLINE**. The only real-HTTP option \`--execute-selected-headers\` uses default \`--limit 5\` (1..30 hard cap) to check the name/type/size of individual predicted TAR headers through 512-byte strict 206 Range requests, stopping at mismatch. It never requests WAV data or writes files. Header matching is not acoustic/WAV authenticity proof. New **15-case synthetic tests CI/Windows PENDING** at implementation.
+
+\`\`\`powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_selected_header_check.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 selected header check tests FAILED" }
+& $py tools\t10_atika_selected_header_check.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 selected header check offline preflight FAILED" }
+\`\`\`
+
+Do not pass opt-in network flag during routine preflight; 30 real header validations, large TAR or WAV transfers require separate operator consideration. Five-header test only after its offline results are reviewed. No CP4 promotion, T11 TODO.
