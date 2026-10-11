@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SPARSE_THREE_REMOTE_TAR_HEADER_MATCHES_WINDOWS_PASS",
+  "provenance": "User-supplied Windows PowerShell transcript, not independently replayed",
+  "source_code_commit": "205110bc6396a26f48d3ac2a71d0ae35c09cf901",
+  "git_pull_output": "a9355a6 -> 205110b; fast-forward, no conflicts",
+  "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+  "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+  "category_count": 9500,
+  "hypothesis": "LEXICOGRAPHIC_MEMBER_ORDER_NO_AUX_HEADERS",
+  "hypothetical_spot_positions_one_based": [
+    2376,
+    4751,
+    7126
+  ],
+  "reported_prior_offline": {
+    "tests": 13,
+    "passed": 13,
+    "seconds": 0.119,
+    "network_requests": 0,
+    "status": "OFFLINE_PREFLIGHT_ONLY_NO_HTTP"
+  },
+  "reported_explicit_remote": {
+    "flag": "--execute-three-headers",
+    "checkpoint": "PUBLIC_IMPERATIVE_THREE_HEADER_SPOT_CHECK_ONLY",
+    "powershell_exit_code": 0,
+    "powershell_result": "THREE HEADER CHECK PASS",
+    "network_requests_executed": 3,
+    "headers_attempted": 3,
+    "full_name_and_size_headers_matching_hypothesis": 3,
+    "all_three_sparse_headers_match": true,
+    "result": "THREE_HEADER_HYPOTHESIS_CONSISTENT_NOT_VERIFIED",
+    "uses_type_match": true,
+    "max_http_range_application_read_bytes_per_request": 513,
+    "archive_or_wav_downloaded": false,
+    "no_audio_payload_or_archive_downloaded": true
+  },
+  "limit_assertions": {
+    "confirmed_whole_tar_member_order": false,
+    "selected_30_wav_offsets_verified": false,
+    "source_audio_integrity_verified": false,
+    "fresh_consent_holdout_unaffected": true,
+    "full_archive_download_authorized": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
