@@ -36,7 +36,8 @@ def anchored_plan(workspace: Path, count: int) -> tuple[int, list[tuple[str, int
     selected, metadata = prepare(workspace)
     catalogue = category_catalogue(workspace, int(metadata["category_wav_metadata_rows"]))
     ordered = sorted(catalogue)
-    if len(selected) != 30 or len(ordered) != 9500:
+    if (len(selected) != 30 or
+            len(ordered) != int(metadata["category_wav_metadata_rows"])):
         raise ValueError("Frozen category or selected count differs")
     anchor_index, anchor_offset, anchor_name, anchor_size = selected[0]
     second_index, _, _, _ = selected[1]
