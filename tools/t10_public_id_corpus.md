@@ -233,3 +233,24 @@ if ($LASTEXITCODE -ne 0) { throw "T10 order hypothesis offline audit FAILED" }
 ```
 
 Do not repeat archive-size reports, select, first TAR header, six-header live pilot, or acquisition budget CLI, and do not download `Imperative.tar` or any WAV. Public speaker/consent and training disjointness remain unverified. CP4 BLOCKED / T11 TODO.
+
+
+## Lexical order Windows QA and bounded three-header validation pilot — 2026-10-11
+Windows **12/12 layout (0.070s)** + **10/10 order hypothesis (0.086s) PASS**. Verified offline pinned metadata reports lexical file-path ordering matches prior first-member size **91364B** and sixth-next-header offset **490496B**; original CSV row ordering matches neither. **This does not prove member order or any individual offsets.**
+
+Implemented `tools/t10_atika_tar_three_header_spotcheck.py`. **Default without opt-in flag = 100% OFFLINE**, computes three temporary hypothetical header positions at quartile member indices based on lexical order, with frozen metadata/selection and pinned digest validation. Outputs only aggregate positions (not paths/offsets) and confirms CP4 blocked. A separate, explicitly user-selected `--execute-three-headers` flag is the only remote mode: maximum three 512-byte HTTP Range header reads through the already-tested exact-206 reader. Stops on first name/size/type mismatch, HTTP Range ignored or invalid header; never downloads any WAV payload or TAR archive and never writes to workspace. Three positive matches increase confidence only at those locations; do not claim all 9500 members or 30 selected WAV offsets verified.
+
+First run **only offline QA and preflight** after pulling main:
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_three_header_spotcheck.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 three-header synthetic tests FAILED" }
+& $py tools\t10_atika_tar_three_header_spotcheck.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 three-header offline preflight FAILED" }
+```
+
+The flag `--execute-three-headers` is **not** used by these commands. It authorizes three bounded remote header requests and should only be chosen deliberately after observing offline results; no infinite scan, no 865.7MiB TAR or selected WAV download. The 30 private fresh-consent holdout remains untouched; public voice provenance/disjointness still unverified, `T10 ACTIVE / CP4 BLOCKED / T11 TODO`.

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_LEXICAL_HYPOTHESIS_WINDOWS_22_PASS_THREE_HEADER_PROTOCOL_IMPLEMENTED_PENDING",
+  "source_commit_of_windows_results": "c1c0e980bf3f0f598f0b6708a8103893441c2f9f",
+  "windows_qa": {
+    "layout_tests": {
+      "count": 12,
+      "pass": 12,
+      "elapsed_s": 0.07,
+      "result": "OK"
+    },
+    "order_tests": {
+      "count": 10,
+      "pass": 10,
+      "elapsed_s": 0.086,
+      "result": "OK"
+    },
+    "powershell_exit_guards_passed": true,
+    "source": "User-supplied console",
+    "cli_checkpoint": "PUBLIC_IMPERATIVE_ORDER_HYPOTHESES_OFFLINE_NO_OFFSETS",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "category_wav_count": 9500,
+    "first_member_size_observed_bytes": 91364,
+    "sixth_header_next_offset_observed_bytes": 490496,
+    "csv_row_order": {
+      "first_size_match": false,
+      "sixth_end_match": false,
+      "candidate_consistent": false
+    },
+    "lexicographic_path_order": {
+      "first_size_match": true,
+      "sixth_end_match": true,
+      "candidate_consistent": true
+    },
+    "member_order_verified": false,
+    "per_wav_offsets_verified": false,
+    "network_requests": 0,
+    "files_written": false,
+    "downloaded_audio": 0
+  },
+  "new_implementation": {
+    "path": "tools/t10_atika_tar_three_header_spotcheck.py",
+    "tests": "tools/test_t10_atika_tar_three_header_spotcheck.py",
+    "workflow": ".github/workflows/t10-atika-layout-offline.yml",
+    "new_synthetic_case_count": 13,
+    "windows_validation_pending": true,
+    "ci_validation_pending": true,
+    "default_cli_offline": true,
+    "network_requires_explicit_execute_three_headers_flag": true,
+    "maximum_network_requests": 3,
+    "one_header_bytes": 512,
+    "maximum_response_read_bytes_per_request": 513,
+    "downloads_audio_payload": false,
+    "matches_first_six_aggregate_before_remote": true,
+    "matching_all_three_spots_still_not_full_index": true
+  },
+  "limits": [
+    "The order is only a candidate; not a verified 9500-member index",
+    "Three random-access header matches will not prove entire order or audio integrity",
+    "No consent, speaker independence or ASR quality verified",
+    "Large archive download not approved"
+  ],
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
