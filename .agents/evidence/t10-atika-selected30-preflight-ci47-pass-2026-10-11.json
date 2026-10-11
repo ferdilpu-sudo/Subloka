@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED_30_HEADER_OFFLINE_SYNTHETIC_CI_47_PASS",
+  "tested_commit": "35d3fbc382fd639073692738c93be85aab7769a4",
+  "github_actions": {
+    "run_id": 38102528065,
+    "job_id": 114361242112,
+    "run_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38102528065",
+    "conclusion": "success",
+    "decoded_job_logs_read": true
+  },
+  "suites": [
+    {
+      "file": "test_t10_atika_tar_layout_budget.py",
+      "tests": 12,
+      "pass": 12,
+      "seconds": 0.02
+    },
+    {
+      "file": "test_t10_atika_tar_order_hypotheses.py",
+      "tests": 10,
+      "pass": 10,
+      "seconds": 0.01
+    },
+    {
+      "file": "test_t10_atika_tar_three_header_spotcheck.py",
+      "tests": 13,
+      "pass": 13,
+      "seconds": 0.016
+    },
+    {
+      "file": "test_t10_atika_selected_header_preflight.py",
+      "tests": 12,
+      "pass": 12,
+      "seconds": 0.011
+    }
+  ],
+  "total_tests": 47,
+  "total_pass": 47,
+  "source_three_remote_lexical_spot_headers_reported_previously": {
+    "attempted": 3,
+    "matching": 3,
+    "source": "User Windows terminal at 205110b"
+  },
+  "new_selected_candidate_tool": {
+    "actual_windows_synthetic_validation_pending": true,
+    "actual_windows_pinned_preflight_pending": true,
+    "network_calls": 0,
+    "actual_selected_member_headers_verified": 0,
+    "selected_audio_payloads_recovered": 0,
+    "prints_private_member_paths_or_candidate_offsets": false,
+    "default_only_mode": "offline"
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
