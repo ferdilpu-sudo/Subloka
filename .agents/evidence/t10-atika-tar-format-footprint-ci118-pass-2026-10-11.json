@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_TAR_FORMAT_FOOTPRINT_CI_118_PASS",
+  "tested_commit": "105df184494929d97d51d9173ee3081265b88977",
+  "ci": {
+    "run_id": 38108654240,
+    "job_id": 114379418664,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38108654240",
+    "conclusion": "success",
+    "suites": [
+      {
+        "name": "tar_layout",
+        "passed": 12
+      },
+      {
+        "name": "order",
+        "passed": 10
+      },
+      {
+        "name": "sparse",
+        "passed": 13
+      },
+      {
+        "name": "selected_preflight",
+        "passed": 12
+      },
+      {
+        "name": "selected_check",
+        "passed": 15
+      },
+      {
+        "name": "mismatch_diagnostic",
+        "passed": 16
+      },
+      {
+        "name": "gap",
+        "passed": 12
+      },
+      {
+        "name": "ustar_paths",
+        "passed": 15
+      },
+      {
+        "name": "format_footprint",
+        "passed": 13
+      }
+    ],
+    "total_tests": 118,
+    "total_passed": 118
+  },
+  "new_audit": {
+    "source": "tools/t10_atika_tar_format_footprint.py",
+    "test": "tools/test_t10_atika_tar_format_footprint.py",
+    "new_case_count": 13,
+    "host_windows_test_status": "PENDING",
+    "pinned_category_windows_report": "PENDING",
+    "only_python_tarfile_counterfactual_models": true,
+    "actual_TAR_serialization_verified": false,
+    "network_requests": 0,
+    "wav_payloads": 0
+  },
+  "previous_windows_USTAR": {
+    "15_tests_passed": true,
+    "all_9500_paths_ustar_serializable": true,
+    "all_40_interval_paths_ustar_serializable": true
+  },
+  "actual_second_predicted_header": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
