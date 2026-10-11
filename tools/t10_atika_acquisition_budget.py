@@ -28,7 +28,7 @@ from t10_public_id_corpus import (
 
 CATEGORY = "Imperative"
 MAX_SELECTED = 30
-MAX_INDIVIDUAL_WAV_BYTES = 3_000_000
+MAX_CATEGORY_SOURCE_WAV_BYTES = 10_000_000  # Full corpus includes >3MB train WAVs.
 MAX_CATEGORY_ROWS = 25_000
 # This is a policy decision, not a server cap. Avoid tens of thousands of
 # serial HTTP requests for small WAVs when index location is unknown.
@@ -70,7 +70,7 @@ def budget(workspace: Path) -> dict:
                 sz = int(row["file_size_bytes"].replace(",", ""))
             except (TypeError, ValueError, AttributeError):
                 raise ValueError("Non-numeric size in category metadata")
-            if not 44 <= sz <= MAX_INDIVIDUAL_WAV_BYTES:
+            if not 44 <= sz <= MAX_CATEGORY_SOURCE_WAV_BYTES:
                 raise ValueError("Out of bounds WAV size in publisher category metadata")
             category_audio_bytes_from_metadata += sz
             if valid_human_test(row):
