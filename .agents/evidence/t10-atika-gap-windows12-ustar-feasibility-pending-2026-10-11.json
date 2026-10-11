@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_GAP_WINDOWS12_PASS_USTAR_FEASIBILITY_CI_PENDING",
+  "provenance": "User supplied PowerShell terminal; not independently executed on Windows",
+  "previous_source_commit": "a1f20e2c0ffa7e50c37143012f5827a2e0613997",
+  "windows_checkout_SHA_not_explicitly_printed": true,
+  "windows_test": {
+    "suite": "test_t10_atika_selected_header_gap_audit.py",
+    "tests": 12,
+    "passed": 12,
+    "seconds": 0.072,
+    "summary": "Ran 12 tests in 0.072s / OK",
+    "exit_guard_passed": true
+  },
+  "offline_pinned_cli": {
+    "checkpoint": "T10_ATIKA_FIRST_MATCH_SECOND_INVALID_OFFLINE_METADATA_GAP_AUDIT",
+    "revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "source_wav_rows": 9500,
+    "selected_count": 30,
+    "metadata_member_slots_from_first_to_before_second": 40,
+    "strictly_between": 39,
+    "metadata_payload_sum_bytes": 3422944,
+    "hypothetical_tar_header_sum_bytes": 20480,
+    "hypothetical_padding_bytes": 11552,
+    "hypothetical_header_distance_bytes": 3454976,
+    "names_over_100_utf8_bytes": 40,
+    "name_length_proves_auxiliary_records": false,
+    "actual_header_chain_verified": false,
+    "root_cause_proven": false,
+    "network_requests_executed": 0,
+    "files_written": false,
+    "wav_downloaded": 0,
+    "exit_guard_passed": true
+  },
+  "new_feasibility": {
+    "tool": "tools/t10_atika_tar_ustar_path_audit.py",
+    "test": "tools/test_t10_atika_tar_ustar_path_audit.py",
+    "new_tests": 15,
+    "CI_status": "PENDING",
+    "Windows_status": "PENDING",
+    "pinned_cli_status": "PENDING",
+    "runs_offline_only": true,
+    "prints_member_names": false,
+    "proves_actual_TAR_format": false,
+    "may_disambiguate_USTAR_feasible_name_lengths": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

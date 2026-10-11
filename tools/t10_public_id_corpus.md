@@ -342,3 +342,19 @@ if ($LASTEXITCODE -ne 0) { throw "T10 offline gap audit CLI FAILED" }
 ```
 
 **No network or WAV data** in these instructions. T10 ACTIVE / CP4 BLOCKED / T11 TODO.
+
+
+## Windows first-to-second selected TAR metadata-gap audit PASS — 2026-10-11
+- 12/12 Windows synthetic tests PASS in 0.072 seconds. Private pinned CSV audit: 9500 rows, frozen 30, 40 metadata member slots between first matching and second invalid predicted header (39 intermediate), publisher payload 3,422,944B, header 20,480B, padding 11,552B, predicted relative gap 3,454,976B. **40/40 interval names exceed 100 UTF-8 bytes**, but this does not prove auxiliary GNU/PAX records, since USTAR can encode pathname prefix+basename. **Zero** HTTP, no WAVs, 0 file writes. Prior second selected remote header was actually INVALID (exit 3); header offsets/all order remain unverified.
+- New offline tool `tools/t10_atika_tar_ustar_path_audit.py` tests one-USTAR-header representability of all 9500 metadata names and those 40 interval names; summarizes totals only. Even USTAR-feasible long names do not establish how TAR publisher encoded them. 15 synthetic-only CI/Windows tests PENDING at implementation.
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_ustar_path_audit.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 USTAR PATH TESTS FAILED" }
+& $py tools\t10_atika_tar_ustar_path_audit.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 USTAR PATH AUDIT FAILED" }
+```
+Do not rerun the known-invalid remote header or expand selected WAV fetch. CP4 BLOCKED.
