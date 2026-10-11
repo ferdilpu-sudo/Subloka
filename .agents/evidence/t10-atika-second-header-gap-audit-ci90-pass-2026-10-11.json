@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_INVALID_SECOND_SELECTED_HEADER_GAP_AUDIT_CI_90_PASS",
+  "code_sha": "16ae28f9ec146956853d4db3d2fc91c303bc07ce",
+  "ci": {
+    "run_id": 38107443246,
+    "job_id": 114375830211,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38107443246",
+    "conclusion": "success",
+    "suites": [
+      {
+        "name": "layout",
+        "passed": 12,
+        "seconds": 0.019
+      },
+      {
+        "name": "order",
+        "passed": 10,
+        "seconds": 0.013
+      },
+      {
+        "name": "sparse_header",
+        "passed": 13,
+        "seconds": 0.02
+      },
+      {
+        "name": "selected_preflight",
+        "passed": 12,
+        "seconds": 0.016
+      },
+      {
+        "name": "selected_header_check",
+        "passed": 15,
+        "seconds": 0.029
+      },
+      {
+        "name": "second_header_classifier",
+        "passed": 16,
+        "seconds": 0.032
+      },
+      {
+        "name": "first_to_second_metadata_gap",
+        "passed": 12,
+        "seconds": 0.014
+      }
+    ],
+    "total_pass": 90
+  },
+  "new_offline_gap_tool": {
+    "path": "tools/t10_atika_selected_header_gap_audit.py",
+    "new_synthetic_tests": 12,
+    "windows_suite_pass": "PENDING",
+    "windows_private_metadata_cli": "PENDING",
+    "network_requests": 0,
+    "wav_payloads": 0,
+    "logs_absolute_predicted_offsets": false,
+    "measures_actual_archive": false
+  },
+  "prior_second_selected_remote_evidence": {
+    "three_attempts_total_related_to_second_header": true,
+    "total_requests": 5,
+    "first_selected_header_matched_in_two_bounded_probe_runs": true,
+    "second_selected_header_invalid_on_single_classifier": true,
+    "classification": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "cli_exit_code": 3,
+    "cause_not_known": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
