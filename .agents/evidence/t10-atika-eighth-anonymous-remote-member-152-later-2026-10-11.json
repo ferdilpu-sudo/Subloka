@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_EIGHTH_ANONYMOUS_HEADER_CLASSIFIED",
+  "provenance": "User-supplied Windows console",
+  "regression_windows": {
+    "tests": 12,
+    "passed": 12,
+    "seconds": 0.239
+  },
+  "diagnostic": {
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "requests": 1,
+    "classification": "OTHER_PINNED_MEMBER_AT_EIGHTH_POSITION_SIZE_MATCHES",
+    "relative_catalogue_direction": "LATER",
+    "relative_catalogue_distance": 152,
+    "status": "ONE_HEADER_CLASSIFIED_PREVIOUS_FAIL_STANDS",
+    "exit_code": 3,
+    "wave_payloads_downloaded": 0,
+    "full_archive_order_verified": false
+  },
+  "next": "Resolve TAR order/index offline before any further member-offset assumptions",
+  "CP4": "BLOCKED",
+  "T10": "ACTIVE",
+  "T11": "TODO"
+}
