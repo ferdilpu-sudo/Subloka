@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ANCHORED_SUCCESSORS_LIVE_3_OF_3_PASS_CONTINUATION_PREPARED",
+  "provenance": "User-pasted Windows PowerShell report; assistant did not directly execute on Windows",
+  "source_repo_commit": "9a7913a55ee5f18d98c3857bdb652ed025ace10c",
+  "pinned_source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+  "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+  "real_selected_anchor_successors": {
+    "command": "tools/t10_atika_anchored_successor_walk.py --workspace <private> --execute-anchored-successors --max-successors 3",
+    "exit_code": 0,
+    "network_requests_executed": 3,
+    "headers_attempted": 3,
+    "matched": 3,
+    "classification": "ALL_REQUESTED_SUCCESSOR_HEADERS_MATCH",
+    "status": "BOUNDED_ANCHORED_HEADERS_MATCH_NOT_FULL_TAR",
+    "all_requested_successors_match": true,
+    "prior_first_selected_header_match_separately_reported": true,
+    "contiguous_member_headers_matched_across_separate_runs": 4,
+    "full_archive_order_verified": false,
+    "selected_second_actual_offset_found": false,
+    "WAV_payloads_downloaded": 0
+  },
+  "prior_invalid_second_selected_candidate": {
+    "classification": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "exit_code": 3,
+    "still_invalid": true,
+    "underlying_cause_unverified": true
+  },
+  "new_continuation": {
+    "source": "tools/t10_atika_anchored_successor_continuation.py",
+    "test": "tools/test_t10_atika_anchored_successor_continuation.py",
+    "synthetic_test_count": 12,
+    "CI": "PENDING",
+    "Windows": "PENDING",
+    "private_offline_preflight": "PENDING",
+    "default_network_requests": 0,
+    "optional_max_NEW_header_requests": 3,
+    "request_body_read_cap_bytes": 513,
+    "prior_matched_headers_rechecked": false,
+    "prior_first_plus_three_match_based_on_user_observation": true,
+    "live_continuation_executed": false,
+    "writes_files": false,
+    "downloads_audio": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

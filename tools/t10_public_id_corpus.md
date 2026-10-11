@@ -400,3 +400,19 @@ T10 ACTIVE, WAV 0/30, CP4 BLOCKED, T11 TODO.
 ## Anchored first-selected successor: Windows synthetic 16/16 PASS, pinned offline PASS / 2026-10-11
 - Windows 16/16 PASS in 0.160s, private pinned metadata CLI `OFFLINE_ONLY_NO_HTTP` PASS. 9500 WAV metadata members; frozen 30; 39 strictly between selected first and second; next opt-in plans only three consecutive header successors after the first previously matched header, hard maximum four, 513 body read bytes per request. No HTTP in this Windows preflight, no member chain proof, no WAV. **Do not mistake for 3 actual successor matches**. Known-invalid second selected predicted location unchanged; CP4 BLOCKED.
 - Separately approved network follow-up, if operator chooses: `--execute-anchored-successors --max-successors 3` via `tools/t10_atika_anchored_successor_walk.py` is a new bounded up-to-three-header test, NOT the old failed random offset. It may exit 3 with a meaningful class: stop and preserve FAIL. Do not fetch audio or extrapolate the full archive.
+
+
+## Three anchored successor TAR headers actually match — 2026-10-11
+- Windows explicit `--execute-anchored-successors --max-successors 3` read **three 512-byte remote TAR headers**, verified 3/3 exact names/types/sizes, return 0. First frozen selected WAV header matched earlier separately; therefore four contiguous member header positions match across independent host reports. The earlier *different* second selected candidate near 40 member slots away failed to parse and is still INVALID; global member layout unverified, 0 WAV data, CP4 BLOCKED.
+- Implemented continuation-only `tools/t10_atika_anchored_successor_continuation.py`, 12 synthetic cases PENDING: locked to **already reported** first+3 matching headers; computes next candidate positions for successors #4–#6 under unchanged metadata SHA, but does not re-read prior 3. **Default OFFLINE** and uses strict 206-only 512-byte Range for 1–3 *new* successors only after separate `--execute-new-successors` opt-in, stopping on mismatch. The earlier report is evidence from user console, not a cryptographic replay. Never publishes filenames/absolute offset, writes or fetches WAV payloads.
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_anchored_successor_continuation.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 CONTINUATION TESTS FAILED" }
+& $py tools\t10_atika_anchored_successor_continuation.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 CONTINUATION OFFLINE PREFLIGHT FAILED" }
+```
+Above is strictly OFFLINE; no opt-in network flag. T10 ACTIVE, CP4 BLOCKED, T11 TODO.
