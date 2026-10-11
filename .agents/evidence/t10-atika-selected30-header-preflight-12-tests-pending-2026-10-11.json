@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED_30_HEADER_CANDIDATE_PREFLIGHT_IMPLEMENTED_CI_PENDING",
+  "base_source_commit": "9401b5fef1239916abab42013432f626787c5b2e",
+  "previous_remote_sparse_checks": {
+    "actual_headers_matching": 3,
+    "actual_http_requests": 3,
+    "positions_one_based": [
+      2376,
+      4751,
+      7126
+    ],
+    "inference": "Consistency at these sparse positions only"
+  },
+  "new_tool": {
+    "source": "tools/t10_atika_selected_header_preflight.py",
+    "tests": "tools/test_t10_atika_selected_header_preflight.py",
+    "new_synthetic_case_count": 12,
+    "workflow": ".github/workflows/t10-atika-layout-offline.yml",
+    "full_linux_ci_run_result": "PENDING",
+    "windows_tests": "PENDING",
+    "windows_actual_pinned_metadata_dry_run": "PENDING",
+    "network_access_enabled": false,
+    "prints_selected_paths_or_offsets": false,
+    "header_locations_are_only_hypothetical": true,
+    "actual_selected_headers_read": 0,
+    "actual_wav_downloaded": 0
+  },
+  "constraints": {
+    "selected_count": 30,
+    "maximum_future_header_requests_if_authorized": 30,
+    "archive_download_authorized": false,
+    "source_integrity_unverified": true,
+    "global_order_unverified": true,
+    "private_holdout_untouched": true
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

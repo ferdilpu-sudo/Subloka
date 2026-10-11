@@ -262,3 +262,20 @@ The flag `--execute-three-headers` is **not** used by these commands. It authori
 
 ## Pinned TAR lexical order — 3 sparse remote headers MATCH / 2026-10-11
 User Windows host explicitly ran opt-in three-header bounded probe at conceptual lexical members 2376 / 4751 / 7126. Report: **3 requests, 3 full TAR header name-and-size/type matches, exit 0**; the remote result is `THREE_HEADER_HYPOTHESIS_CONSISTENT_NOT_VERIFIED`. The earlier run without the flag had 0 requests. All 30 selected WAVs remain metadata-only, 0 audio obtained or hashed; neither the intervening TAR records nor global order are verified. We must separately verify exact predicted TAR headers for selected files before considering any small licensed audio transfers. The 865.7 MiB TAR download was not authorized, and CP4 stays BLOCKED. Evidence: `.agents/evidence/t10-atika-sparse3-remote-header-matches-windows-2026-10-11.json`.
+
+
+## Selected 30 hypothetical header positions — offline preflight implemented / 2026-10-11
+After separate remote quartile checks **3/3 matching actual TAR headers**, `tools/t10_atika_selected_header_preflight.py` builds ephemeral header candidate positions for the frozen 30 public human-test WAVs using lexicographically sorted category CSV sizes. Default and only mode is **offline**, printing solely aggregate counts and budgets; no byte offsets, participant labels, paths or transcripts leave the private workspace. The calculated positions are **NOT verified** until exact selected member headers are individually read and matched later (a separate expressly reviewed network operation). No WAV/TAR/model download, CP4 still BLOCKED.
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_selected_header_preflight.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 selected 30 header tests FAILED" }
+& $py tools\t10_atika_selected_header_preflight.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 selected 30 offline preflight FAILED" }
+```
+
+This does not repeat the sparse live 3-header pilot and does not authorize the 865.7MiB full TAR or 2.59MiB WAV payload acquisition. New suite Windows/CI PENDING.
