@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_FORMAT_FOOTPRINT_WINDOWS13_PASS_ANCHORED_SUCCESSOR_PILOT_PENDING",
+  "source": "User-supplied Windows PowerShell; assistant did not rerun user workspace",
+  "checkout_after_pull": "c46a6cb5ec11165c02d185da7989dec382267aa7",
+  "tests": {
+    "suite": "test_t10_atika_tar_format_footprint.py",
+    "ran": 13,
+    "passed": 13,
+    "time_seconds": 0.109,
+    "exit_guard_passed": true
+  },
+  "real_pinned_offline": {
+    "checkpoint": "T10_ATIKA_TAR_FORMAT_FOOTPRINT_MODELS_OFFLINE",
+    "pinned_source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "published_TAR_bytes": 907765760,
+    "source_members": 9500,
+    "padded_wav_payload_bytes": 902898176,
+    "format_models": {
+      "USTAR": {
+        "simulated_tar_bytes": 907765760,
+        "header_bytes": 4864000,
+        "extra_header_bytes": 0,
+        "delta": 0
+      },
+      "PAX": {
+        "simulated_tar_bytes": 917493760,
+        "header_bytes": 14592000,
+        "extra_header_bytes": 9728000,
+        "delta": 9728000
+      },
+      "GNU": {
+        "simulated_tar_bytes": 917493760,
+        "header_bytes": 14592000,
+        "extra_header_bytes": 9728000,
+        "delta": 9728000
+      }
+    },
+    "first_to_second_selected_interval": {
+      "publisher_metadata_members": 40,
+      "simulated_ustar_header_bytes": 20480,
+      "simulated_pax_header_bytes": 61440,
+      "simulated_gnu_header_bytes": 61440,
+      "complete_archive_length_comparison_applicable": false
+    },
+    "actual_upstream_writer_verified": false,
+    "selected_header_locations_verified": false,
+    "network_requests_executed": 0,
+    "WAV_payloads_downloaded": 0,
+    "files_written": false,
+    "exit_guard_passed": true
+  },
+  "prior_header_mismatch": {
+    "selected_header_ordinal": 2,
+    "actual_classification": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "exit_code": 3,
+    "unresolved": true
+  },
+  "new_tool": {
+    "source": "tools/t10_atika_anchored_successor_walk.py",
+    "test": "tools/test_t10_atika_anchored_successor_walk.py",
+    "synthetic_tests": 16,
+    "new_CI_status": "PENDING",
+    "Windows_status": "PENDING",
+    "real_pinned_offline_status": "PENDING",
+    "default_network_requests": 0,
+    "opt_in_flag": "--execute-anchored-successors",
+    "default_header_cap": 3,
+    "hard_cap": 4,
+    "no_WAV_payload_download": true,
+    "no_member_names_or_offsets_output": true,
+    "opt_in_network_executed": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

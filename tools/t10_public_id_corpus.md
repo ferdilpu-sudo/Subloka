@@ -374,3 +374,19 @@ if ($LASTEXITCODE -ne 0) { throw "T10 TAR FORMAT MODEL TESTS FAILED" }
 if ($LASTEXITCODE -ne 0) { throw "T10 TAR FORMAT MODEL OFFLINE AUDIT FAILED" }
 ```
 Keep the prior actual header mismatch FAIL; no WAV payloads or new network authorized.
+
+
+## T10 Python TAR format models Windows 13/13 PASS; anchor-based successor pilot prepared / 2026-10-11
+- User ran offline `test_t10_atika_tar_format_footprint.py`: **13/13 PASS (0.109s)**, and pinned CSV format footprint CLI succeeded. For 9500 names: Python USTAR model **907,765,760 B exact** published size, Python PAX/GNU **917,493,760 B**, +9,728,000 B. **This does not identify the actual archive format**. Second selected hypothetical offset remains a verified **invalid TAR header** from previous live Windows probe. No WAV or network used in this format comparison.
+- New `tools/t10_atika_anchored_successor_walk.py`, 16 synthetic tests PENDING CI/Windows. Offline by default; explicit `--execute-anchored-successors` would follow up to three (hard four) **consecutive** 512B TAR headers after the *previously witnessed first selected header* (not perform blind jumps to the second selected candidate). Reports only matched counts and divergence class, no names or offsets. It does not prove full archive order or WAV integrity; do not initiate network during routine offline QA.
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_anchored_successor_walk.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 ANCHORED SUCCESSOR TESTS FAILED" }
+& $py tools\t10_atika_anchored_successor_walk.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 ANCHORED SUCCESSOR OFFLINE PREFLIGHT FAILED" }
+```
+T10 ACTIVE, WAV 0/30, CP4 BLOCKED, T11 TODO.
