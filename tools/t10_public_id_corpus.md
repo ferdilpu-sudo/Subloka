@@ -431,3 +431,21 @@ Above is strictly OFFLINE; no opt-in network flag. T10 ACTIVE, CP4 BLOCKED, T11 
 ## Successors 7–9: Windows offline preflight PASS, no network — 2026-10-11
 - User `test_t10_atika_anchored_successor_continuation.py`: **12/12 PASS in 0.284s**. Pinned private metadata CLI checkpoint `T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION` **OFFLINE_ONLY_NO_HTTP**, planned new successor ordinal `[7,8,9]`; old 6 matches not fetched again, hard cap three future HTTP Range header reads, body read cap 513B each. No WAV, no network; source order still incomplete, second selected candidate old offset remains INVALID, CP4 BLOCKED.
 - Do not conflate offline planning with real #7–#9 matches; optional separate explicit mode `--execute-new-successors --max-new-successors 3` must be recorded as new evidence only after a user supplies its actual output.
+
+
+## T10 confirmed lexical order divergence after seven matched successor headers — 2026-10-11
+- Actual Windows network: successor #7 **PASS**; successor #8 valid regular TAR header but **name differs** from metadata's lexical prediction; #9 **NOT_RUN**. Exactly **2** new 512B header requests, 1 exact name/size/type match, exit **3** / `MEMBER_NAME_ORDER_DIVERGED`. First selected header + 7 successors = 8 consecutive header positions matched in separate runs. **Catalogue alphabetical ordering is NOT actual TAR order from #8 onward**; no safe all-30-offset inference. Prior second selected header at guessed location was INVALID; cause of that invalid header not yet proven. No audio/WAV ever downloaded.
+- For safety, former `t10_atika_anchored_successor_continuation.py --execute-new-successors` is now **HALTED** with exit 3 and **0 requests**. No repeated #7/#8 probes or unobserved leap #9. New `tools/t10_atika_eighth_successor_anonymous_diagnostic.py` (15 synthetic cases) is offline by default and optionally classifies **one** re-read of known divergent #8 header against SHA-pinned metadata, without exposing names/offsets. Proposed Windows offline checks after CI:
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_anchored_successor_continuation.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 HALT REGRESSIONS FAILED" }
+& $py -m unittest discover -s tools -p "test_t10_atika_eighth_successor_anonymous_diagnostic.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 EIGHTH DIAGNOSIS REGRESSIONS FAILED" }
+& $py tools\t10_atika_eighth_successor_anonymous_diagnostic.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 EIGHTH ANONYMOUS OFFLINE PREFLIGHT FAILED" }
+```
+No network in these commands; no WAV. `CP4=BLOCKED`.

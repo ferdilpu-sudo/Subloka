@@ -87,58 +87,40 @@ class FrozenSyntheticContinuation(unittest.TestCase):
         self.assertNotIn("fixture text",s)
         self.assertIn('"network_requests_executed": 0',s)
 
-    def test_explicit_remote_mode_new_three_only_no_repeated_headers(self):
-        offset, expected, _=self.plan()
-        answers={}
-        pos=offset
-        for n,s in expected:
-            answers[pos]=synthetic_header(n,s)
-            pos += 512+ceil_to(s,512)
-        seen=[]
-        def response(where):
-            seen.append(where)
-            return answers[where]
+    def test_old_remote_flag_now_fails_closed_without_network(self):
         output=io.StringIO()
         with patch.object(sys,"argv",["continue","--workspace",str(self.workspace),
                           "--execute-new-successors","--max-new-successors","3"]),\
              redirect_stdout(output),\
-             patch.object(walk,"fetch_header",side_effect=response):
-            self.assertEqual(continuation.main(),0)
-        self.assertEqual(len(seen),3)
-        self.assertEqual(seen[0],offset)
-        self.assertTrue(all(p>=offset for p in seen))
-        self.assertIn('"network_requests_executed": 3',output.getvalue())
-        self.assertIn("NEW_SUCCESSOR_HEADERS_MATCH_NOT_FULL_TAR",output.getvalue())
+             patch.object(walk,"fetch_header",side_effect=AssertionError("NETWORK")) as remote:
+            self.assertEqual(continuation.main(),3)
+        remote.assert_not_called()
+        self.assertIn("HALTED_AFTER_OBSERVED_SUCCESSOR_8_NAME_ORDER_DIVERGENCE",
+                      output.getvalue())
+        self.assertIn('"network_requests_executed": 0',output.getvalue())
 
-    def test_name_mismatch_stops_after_one_remote(self):
-        result=io.StringIO()
-        with patch.object(sys,"argv",["continue","--workspace",str(self.workspace),
-                           "--execute-new-successors"]),\
-             redirect_stdout(result),\
-             patch.object(walk,"fetch_header",
+    def test_synthetic_direct_walker_name_divergence_stops(self):
+        offset,expected,_=self.plan()
+        with patch.object(walk,"fetch_header",
                           return_value=synthetic_header("data/foreign/wrong.wav",99)) as remote:
-            self.assertEqual(continuation.main(),3)
+            out=continuation.inspect_successors(offset,expected)
         self.assertEqual(remote.call_count,1)
-        self.assertIn("MEMBER_NAME_ORDER_DIVERGED",result.getvalue())
-        self.assertNotIn("foreign/wrong",result.getvalue())
+        self.assertEqual(out["classification"],"MEMBER_NAME_ORDER_DIVERGED")
 
-    def test_size_mismatch_stops_after_one_remote(self):
-        _,expected,_=self.plan()
-        with patch.object(sys,"argv",["continue","--workspace",str(self.workspace),
-                           "--execute-new-successors"]),\
-             redirect_stdout(io.StringIO()),\
-             patch.object(walk,"fetch_header",
+    def test_synthetic_direct_walker_size_divergence_stops(self):
+        offset,expected,_=self.plan()
+        with patch.object(walk,"fetch_header",
                           return_value=synthetic_header(expected[0][0],expected[0][1]+1)) as remote:
-            self.assertEqual(continuation.main(),3)
+            out=continuation.inspect_successors(offset,expected)
         self.assertEqual(remote.call_count,1)
+        self.assertEqual(out["classification"],"MEMBER_SIZE_METADATA_DIVERGED")
 
-    def test_range_ignored_has_separate_exit_code(self):
-        with patch.object(sys,"argv",["continue","--workspace",str(self.workspace),
-                           "--execute-new-successors"]),\
-             redirect_stderr(io.StringIO()),\
-             patch.object(walk,"fetch_header",
+    def test_synthetic_direct_walker_range_ignored_stops(self):
+        offset,expected,_=self.plan()
+        with patch.object(walk,"fetch_header",
                           side_effect=walk.RangeNotHonored("200")) as remote:
-            self.assertEqual(continuation.main(),2)
+            with self.assertRaises(walk.RangeNotHonored):
+                continuation.inspect_successors(offset,expected)
         self.assertEqual(remote.call_count,1)
 
     def test_four_requests_refused_before_http(self):

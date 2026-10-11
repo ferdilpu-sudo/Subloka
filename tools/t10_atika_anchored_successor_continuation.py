@@ -4,8 +4,10 @@
 Two user-reported remote runs verified successors 1..3 and 4..6 after the
 first selected TAR member. This tool relies on that observation; it DOES NOT recheck
 those headers. It computes the next candidate from immutable pinned metadata
-and (only with explicit opt-in) checks up to 3 NEW adjacent successor headers
-with the existing strict 206-only 512-byte reader, stopping on first mismatch.
+and the earlier bounded live continuation observed successor 7 matching and
+successor 8 differing in name. Network continuation is now fail-closed even
+with the old opt-in flag: never replay stale positions. A separate one-header
+anonymous diagnosis may be undertaken deliberately after offline QA.
 Never reads WAV payload, writes files or exposes names, transcripts or offsets.
 """
 from __future__ import annotations
@@ -15,7 +17,7 @@ import json
 from pathlib import Path
 import sys
 
-from t10_atika_anchored_successor_walk import inspect_successors
+from t10_atika_anchored_successor_walk import inspect_successors  # synthetic regression only
 from t10_atika_selected_header_check import prepare
 from t10_atika_selected_header_mismatch_diagnostic import category_catalogue
 from t10_atika_tar_layout_budget import ceil_to
@@ -110,15 +112,16 @@ def main() -> int:
             args.workspace, args.max_new_successors
         )
         if args.execute_new_successors:
-            result = inspect_successors(position, expected)
-            report["network_requests_executed"] = result["headers_attempted"]
-            report["observed_new_successors"] = result
-            report["status"] = (
-                "NEW_SUCCESSOR_HEADERS_MATCH_NOT_FULL_TAR"
-                if result["all_requested_successors_match"] else
-                "NEW_SUCCESSOR_MISMATCH_STOP"
-            )
-            rc = 0 if result["all_requested_successors_match"] else 3
+            # Live Windows found successor 7 matching and successor 8
+            # containing a valid, different regular TAR member. Do not
+            # reprobe 7/8 or skip ahead to 9 using stale assumptions.
+            # A separate single-header anonymized classifier is available.
+            report["status"] = "HALTED_AFTER_OBSERVED_SUCCESSOR_8_NAME_ORDER_DIVERGENCE"
+            report["successor_7_previously_observed_match"] = True
+            report["successor_8_previously_observed_name_mismatch"] = True
+            report["new_remote_retries_blocked"] = True
+            report["network_requests_executed"] = 0
+            rc = 3
         else:
             report["status"] = "OFFLINE_ONLY_NO_HTTP"
             rc = 0

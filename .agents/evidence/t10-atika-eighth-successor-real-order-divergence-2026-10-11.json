@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_EIGHTH_REAL_TAR_ORDER_DIVERGENCE",
+  "provenance": "User PowerShell output of actual bounded HTTPS 206 TAR header probes, not assistant remote execution",
+  "source_checkout": "6d62b8b72cbe48423fa7d5e23114849ed77ade46",
+  "pinned_metadata": {
+    "revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "category_rows": 9500,
+    "frozen_selected": 30
+  },
+  "remote_result": {
+    "checkpoint": "T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION",
+    "successor_ordinals_requested": [
+      7,
+      8,
+      9
+    ],
+    "network_requests_executed": 2,
+    "headers_attempted": 2,
+    "exact_member_name_size_type_matches": 1,
+    "classification": "MEMBER_NAME_ORDER_DIVERGED",
+    "all_requested_successors_match": false,
+    "status": "NEW_SUCCESSOR_MISMATCH_STOP",
+    "exit_code": 3,
+    "successor_7": "PASS_REAL_HEADER",
+    "successor_8": "FAIL_VALID_REGULAR_TAR_HEADER_NAME_ORDER_DIFFERENT",
+    "successor_9": "NOT_RUN",
+    "wav_payloads_downloaded": 0
+  },
+  "aggregate_evidence": {
+    "first_selected_header_matched_prior": true,
+    "previous_six_successors_matched_prior": true,
+    "contiguous_matched_header_positions_across_host_reports": 8,
+    "first_order_divergence_at_successor": 8,
+    "lexical_metadata_order_globally_valid": false,
+    "actual_archive_order_verified": false,
+    "actual_second_selected_offset_found": false,
+    "prior_predicted_second_header_invalid": true,
+    "root_cause_of_second_header_invalid_proven": false
+  },
+  "next_work": {
+    "old_continuation_live_mode": "DISABLED_FAIL_CLOSED",
+    "old_continuation_live_attempts_now_permitted": 0,
+    "diagnostic_tool": "tools/t10_atika_eighth_successor_anonymous_diagnostic.py",
+    "test_file": "tools/test_t10_atika_eighth_successor_anonymous_diagnostic.py",
+    "new_synthetic_test_count": 15,
+    "linux_CI": "PENDING",
+    "windows_test": "PENDING",
+    "pinned_offline_preflight": "PENDING",
+    "recheck_network": "NOT_RUN",
+    "explicit_one_header_optin": "--inspect-eighth-header",
+    "maximum_http_requests": 1,
+    "wav_downloads": 0,
+    "publish_member_paths_or_offsets": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
