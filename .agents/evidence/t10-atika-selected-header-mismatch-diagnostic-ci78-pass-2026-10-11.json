@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED_HEADER_MISMATCH_DIAGNOSTIC_CI_78_PASS",
+  "tested_source_commit": "9d9e2d69aebddc95f2e69785b3d9ed63b2f74ec7",
+  "ci_run_id": 38104677324,
+  "ci_job_id": 114367531862,
+  "ci_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38104677324",
+  "result": "success",
+  "suites": [
+    {
+      "name": "layout",
+      "pass": 12,
+      "duration_seconds": 0.011
+    },
+    {
+      "name": "order_hypotheses",
+      "pass": 10,
+      "duration_seconds": 0.009
+    },
+    {
+      "name": "sparse_header",
+      "pass": 13,
+      "duration_seconds": 0.014
+    },
+    {
+      "name": "selected_30_preflight",
+      "pass": 12,
+      "duration_seconds": 0.01
+    },
+    {
+      "name": "selected_header_check",
+      "pass": 15,
+      "duration_seconds": 0.023
+    },
+    {
+      "name": "mismatch_diagnostic",
+      "pass": 16,
+      "duration_seconds": 0.024
+    }
+  ],
+  "total_tests": 78,
+  "passed": 78,
+  "previous_run": {
+    "id": 38104623214,
+    "status": "failure",
+    "mismatch_diagnostic_passed": 15,
+    "mismatch_diagnostic_failed": 1,
+    "root_cause": "expected enum string omitted 'ED' after PINN",
+    "corrected_test_only": true
+  },
+  "user_reported_two_live_mismatch_runs": {
+    "requested_limit_per_run": 5,
+    "actual_attempted_per_run": 2,
+    "matched_per_run": 1,
+    "selected_header_number_2_mismatch": true
+  },
+  "new_tool": {
+    "path": "tools/t10_atika_selected_header_mismatch_diagnostic.py",
+    "tests": "tools/test_t10_atika_selected_header_mismatch_diagnostic.py",
+    "default_network_requests": 0,
+    "optional_max_header_reads": 1,
+    "optional_single_header_live_check_executed": false,
+    "wav_bytes_acquired": 0,
+    "emits_member_name_or_offset": false,
+    "windows_tests_pending": true,
+    "private_preflight_windows_pending": true
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

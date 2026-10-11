@@ -997,3 +997,8 @@ Dokumen/task yang diperbarui:
 
 ### T10 SECOND-HEADER DIAGNOSTIC INITIAL CI FAIL — 2026-10-11
 - GitHub Actions <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38104623214>, job `114367369791`: 12/12 + 10/10 + 13/13 + 12/12 + 15/15 **PASS** from existing suites, new 16 diagnostic tests had **15 PASS, 1 FAIL**. Only failing assertion had typo `PINN` versus emitted enum `PINNED`, verified decoded CI log. Fixed exact test expectation, did not weaken classification code or remove the fail-closed network cap. Corrected CI/Windows status not yet known.
+
+
+### T10 MISMATCH DIAGNOSTIC CI 78/78 PASS, WINDOWS PENDING — 2026-10-11
+- GitHub Actions run <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38104677324> (job `114367531862`) on `9d9e2d69aebddc95f2e69785b3d9ed63b2f74ec7` **success**; decoded CI log `Ran 12 tests / OK`, `Ran 10 tests / OK`, `Ran 13 tests / OK`, `Ran 12 tests / OK`, `Ran 15 tests / OK`, `Ran 16 tests / OK`: 78/78. New 16-case fixture test isolated and fully green. Previous run `38104623214` had 1 genuine test assertion FAIL due enum spelling, fixed without altering classifier.
+- Windows mismatch diagnostic test suite **PENDING**, pinned offline diagnostic preflight **PENDING**, actual one-header live diagnostic **NOT RUN**. Existing user 2 identical selected-header mismatch outcomes remain actual FAIL and proof that blindly assuming all 30 lexical positions is not justified. WAV still 0/30, CP4 BLOCKED.
