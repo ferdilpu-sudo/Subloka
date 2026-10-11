@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_SUCCESSOR_CI134_PASS_WINDOWS_PENDING",
+  "prior_windows": {
+    "suite": "test_t10_atika_tar_format_footprint.py",
+    "pass": 13,
+    "seconds": 0.109,
+    "pinned_metadata_cli_pass": true,
+    "network_requests": 0
+  },
+  "published_tar_bytes": 907765760,
+  "full_corpus_python_format_models": {
+    "wav_rows": 9500,
+    "USTAR": {
+      "simulated_bytes": 907765760,
+      "delta_bytes": 0,
+      "extra_header_bytes": 0
+    },
+    "PAX": {
+      "simulated_bytes": 917493760,
+      "delta_bytes": 9728000,
+      "extra_header_bytes": 9728000
+    },
+    "GNU": {
+      "simulated_bytes": 917493760,
+      "delta_bytes": 9728000,
+      "extra_header_bytes": 9728000
+    },
+    "actual_TAR_format_verified": false
+  },
+  "first_ci": {
+    "sha": "21dbdf7dbd6f13465bd7c0533a916218af3885c9",
+    "run_id": 38109553613,
+    "job_id": 114382090891,
+    "conclusion": "failure",
+    "prior_tests_pass": 118,
+    "new_tests": 16,
+    "new_pass": 12,
+    "new_fail": 2,
+    "new_error": 2,
+    "cause": "hardcoded 9500 rejected valid 40-entry synthetic fixture",
+    "no_network_or_WAV": true
+  },
+  "fixed_ci": {
+    "sha": "2d01da88ff487d4a1d508703bc5f2e4762825421",
+    "run_id": 38109630886,
+    "job_id": 114382324359,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38109630886",
+    "conclusion": "success",
+    "suites": [
+      12,
+      10,
+      13,
+      12,
+      15,
+      16,
+      12,
+      15,
+      13,
+      16
+    ],
+    "total_pass": 134
+  },
+  "new_tool": {
+    "path": "tools/t10_atika_anchored_successor_walk.py",
+    "tests": "tools/test_t10_atika_anchored_successor_walk.py",
+    "new_suite_passed_in_linux": 16,
+    "new_suite_windows_pending": true,
+    "pinned_default_cli_windows_pending": true,
+    "network_default": "OFFLINE_ONLY_NO_HTTP",
+    "explicit_optin": "--execute-anchored-successors",
+    "default_successor_requests": 3,
+    "hard_cap_successor_requests": 4,
+    "read_cap_bytes": 513,
+    "remote_successor_walk_executed": false,
+    "prints_absolute_offsets": false,
+    "prints_member_names": false,
+    "wav_payloads_downloaded": 0
+  },
+  "prior_real_second_selected_header": {
+    "classification": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "exit_code": 3,
+    "root_cause_known": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

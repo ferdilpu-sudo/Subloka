@@ -390,3 +390,8 @@ if ($LASTEXITCODE -ne 0) { throw "T10 ANCHORED SUCCESSOR TESTS FAILED" }
 if ($LASTEXITCODE -ne 0) { throw "T10 ANCHORED SUCCESSOR OFFLINE PREFLIGHT FAILED" }
 ```
 T10 ACTIVE, WAV 0/30, CP4 BLOCKED, T11 TODO.
+
+
+## Anchored first-selected successor diagnostics: corrected CI 134/134 PASS / 2026-10-11
+- First synthetic workflow on `21dbdf7` failed 4/16 new tests due a fixture count hardcode; fixed with SHA-validated metadata count and CI `38109630886` on `2d01da8` **134/134 PASS**, including all 16 new tests. Windows suite and pinned offline anchored report remain PENDING. Both CI runs made no TAR/WAV requests.
+- Offline-default pilot `tools/t10_atika_anchored_successor_walk.py` follows only the *first previously matched selected WAV header* into up to three (hard four) immediate TAR successor headers using actual observed sizes, rather than jumping to the known-invalid second selected candidate. This has NOT been run remotely. No WAV retrieval, no name/offset output, and no CP4 clearance.
