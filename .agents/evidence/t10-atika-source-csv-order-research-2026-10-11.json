@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_CSV_ORDER_HYPOTHESIS_OFFLINE_RESEARCH",
+  "source_urls": [
+    "https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset",
+    "https://github.com/RatnaAtika/Indonesian-ASR-11-Class-Dataset"
+  ],
+  "source_findings": [
+    "Hugging Face dataset card documents data/audio_shards/audio_shards_manifest.csv as shard index and 11 by-category TAR archives",
+    "Source GitHub tree and examined upload docs did not verify intra-TAR member-order construction or per-WAV offsets",
+    "Neither shard-level metadata nor original CSV row ordering is authoritative TAR member index on its own"
+  ],
+  "last_real_header_diagnostic": {
+    "successor": 8,
+    "classification": "OTHER_PINNED_MEMBER_AT_EIGHTH_POSITION_SIZE_MATCHES",
+    "catalogue_relative_order_direction": "LATER",
+    "catalogue_relative_order_distance": 152,
+    "diagnostic_code": 3,
+    "previous_mismatch_preserved": true
+  },
+  "new_audit": {
+    "tool": "tools/t10_atika_source_csv_order_audit.py",
+    "test": "tools/test_t10_atika_source_csv_order_audit.py",
+    "synthetic_tests": 10,
+    "linux_CI": "PENDING",
+    "windows_private_offline": "PENDING",
+    "network_enabled": false,
+    "network_requests": 0,
+    "WAV_payloads": 0,
+    "writes_files": false,
+    "proves_authoritative_tar_order": false
+  },
+  "quality_blockers": {
+    "ASR_ID_WER_percent": 28.61,
+    "ID_ASR_target_max_percent": 20,
+    "ID_to_EN_cases_passed": 24,
+    "ID_to_EN_target_cases": 27,
+    "case_count": 30,
+    "fresh_consent_holdout_recordings": false,
+    "Android_2_language_E2E_unverified": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
