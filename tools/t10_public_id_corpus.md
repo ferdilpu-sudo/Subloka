@@ -324,3 +324,21 @@ if ($LASTEXITCODE -ne 0) { throw "T10 offline mismatch diagnostic preflight FAIL
 ## Windows pinned-data mismatch diagnostic — 16 synthetic PASS, offline preflight PASS / 2026-10-11
 - Windows **16/16 tests PASS (0.172s)** for `test_t10_atika_selected_header_mismatch_diagnostic.py`. Pinned `t10_atika_selected_header_mismatch_diagnostic.py` returned `OFFLINE_ONLY_NO_HTTP`, 9500 Imperative WAV metadata rows, frozen 30 test WAV candidates, specifically the second previously mismatched selected header, **0** HTTP requests / WAV data / writes, and `CP4=BLOCKED`. The category of observed mismatch remains **UNKNOWN**; the CLI did not inspect the live header yet.
 - Earlier remote five-header attempt, run twice, each ended `SELECTED_HEADER_MISMATCH_STOP` at second selected candidate (2 requests / 1 header match per run); **do not repeat**. Optional separately deliberate `--inspect-second-header` checks exactly that one previously failing 512-byte header with strict 206-only Range, emits an enum rather than a filename/path/offset; it cannot establish order, licensing, speaker independence, audio integrity, or CP4.
+
+
+## Second selected candidate classified as non-TAR header; offline gap audit available — 2026-10-11
+- Additional **one** deliberate Windows request `--inspect-second-header`, after two earlier repeatable bounded-header mismatches, returned `INVALID_TAR_HEADER_AT_PREDICTED_OFFSET` and CLI code **3**. One 512B Range header read, **zero** WAV payload; this was **not** a match. The block at speculative predicted second selected-member offset failed TAR checksum/header parsing. It is **not proof the archive itself is corrupt**: estimated offset may be inside body/padding, result may reflect different member ordering, content size, or extra TAR records. Global 9500 order and frozen 30 offsets remain unverified; don't retry the second-header request or expand to 30.
+- New `tools/t10_atika_selected_header_gap_audit.py` reads only unchanged pinned public CSV and frozen selected metadata, uses relative arithmetic between *first* selected matching header and *second* invalid predicted header. Reports aggregate member slots, publisher bytes, 512-byte padding and relative speculative header gap (not absolute offsets), plus over-100-byte name count (does not prove PAX). No network/write/audio mode exists. Synthetic 12-case tests CI/Windows **PENDING**.
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_selected_header_gap_audit.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 offline gap audit tests FAILED" }
+& $py tools\t10_atika_selected_header_gap_audit.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 offline gap audit CLI FAILED" }
+```
+
+**No network or WAV data** in these instructions. T10 ACTIVE / CP4 BLOCKED / T11 TODO.

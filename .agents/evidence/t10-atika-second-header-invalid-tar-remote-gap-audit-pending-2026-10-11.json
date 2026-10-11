@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SECOND_SELECTED_HEADER_INVALID_TAR_REMOTE_GAP_AUDIT_PREPARED_PENDING",
+  "evidence_origin": "User-reported Windows terminal, actual one-header 206 Range probe and PowerShell exit code; not re-executed by assistant",
+  "source_repository_commit": "760631c4bfaa323092e08a6692df4f8578b7aeb9",
+  "pinned_source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+  "pinned_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+  "actual_remote_second_header_classification": {
+    "tool": "tools/t10_atika_selected_header_mismatch_diagnostic.py",
+    "target_selected_header_ordinal": 2,
+    "explicit_flag": "--inspect-second-header",
+    "network_requests_executed": 1,
+    "result": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "header_at_predicted_offset_equals_expected": false,
+    "console_message": "HEADER MISMATCH CLASSIFIED",
+    "exit_code": 3,
+    "WAV_payloads_downloaded": 0,
+    "global_TAR_order_verified": false,
+    "selected_30_headers_verified": false,
+    "precise_failure_cause_known": false
+  },
+  "previous_selected_header_probes": {
+    "runs": 2,
+    "requests_each": 2,
+    "match_each": 1,
+    "mismatch_each": 1
+  },
+  "total_http_header_requests_related_to_selected_second_failure": 5,
+  "prior_three_sparse_quartile_matches": {
+    "request_count": 3,
+    "match_count": 3,
+    "not_proof_of_complete_order": true
+  },
+  "implemented_metadata_only_audit": {
+    "tool": "tools/t10_atika_selected_header_gap_audit.py",
+    "tests": "tools/test_t10_atika_selected_header_gap_audit.py",
+    "new_synthetic_test_count": 12,
+    "ci_status": "PENDING",
+    "windows_status": "PENDING",
+    "actual_windows_pinned_metadata_report": "PENDING",
+    "no_network_mode_only": true,
+    "no_payload_download": true,
+    "no_absolute_offsets_or_names_logged": true,
+    "reports_only_relative_gap_metadata": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
