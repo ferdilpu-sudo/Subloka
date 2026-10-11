@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_USTAR_PATH_CAPACITY_OFFLINE_CI_105_PASS",
+  "tested_commit": "5bd71c63262e6292e159806bf48815c81948fcd6",
+  "ci": {
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38107977529",
+    "run_id": 38107977529,
+    "job_id": 114377427358,
+    "conclusion": "success",
+    "suites": [
+      {
+        "name": "layout",
+        "pass": 12,
+        "seconds": 0.013
+      },
+      {
+        "name": "member_order",
+        "pass": 10,
+        "seconds": 0.011
+      },
+      {
+        "name": "three_sparse_headers",
+        "pass": 13,
+        "seconds": 0.017
+      },
+      {
+        "name": "selected30_preflight",
+        "pass": 12,
+        "seconds": 0.013
+      },
+      {
+        "name": "selected_headers",
+        "pass": 15,
+        "seconds": 0.023
+      },
+      {
+        "name": "mismatch_diagnostic",
+        "pass": 16,
+        "seconds": 0.025
+      },
+      {
+        "name": "first_second_metadata_gap",
+        "pass": 12,
+        "seconds": 0.011
+      },
+      {
+        "name": "ustar_path_feasibility",
+        "pass": 15,
+        "seconds": 0.015
+      }
+    ],
+    "tests_total": 105,
+    "tests_pass": 105
+  },
+  "previous_real_windows_gap": {
+    "tests_pass": 12,
+    "seconds": 0.072,
+    "source_members_between_first_and_second": 40,
+    "names_over_100_utf8_bytes": 40,
+    "declared_payload_bytes": 3422944,
+    "hypothetical_gap_bytes": 3454976,
+    "actual_http_requests": 0
+  },
+  "new_pinned_ustar_path_report": {
+    "windows_test_status": "PENDING",
+    "real_local_metadata_status": "PENDING",
+    "accesses_network": false,
+    "fetches_tar_header": false,
+    "saves_audio": false,
+    "prints_filenames": false,
+    "establishes_tar_writer_or_format": false
+  },
+  "prior_actual_second_selected_header_invalid": true,
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
