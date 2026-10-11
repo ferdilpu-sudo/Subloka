@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_CSV_MATCH_WINDOWS_CONFIRMED_ACQUISITION_BLOCKED",
+  "provenance": "User-submitted Windows PowerShell output; not replayed by agent",
+  "windows_code_revision": "NOT_REPORTED_IN_CONSOLE",
+  "regression": {
+    "tests": 10,
+    "passed": 10,
+    "seconds": 0.539,
+    "exit_guard_passed": true
+  },
+  "audit": {
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "catalogue_wav_members": 9500,
+    "frozen_selected_count": 30,
+    "previous_matching_header_positions": 8,
+    "source_csv_order_first_eight_match_prior_header_prefix": true,
+    "source_csv_next_row_matches_observed_eighth": true,
+    "source_csv_contiguous_prefix_and_eighth_consistent": true,
+    "observed_eighth_member_catalogue_rank_distance": 152,
+    "source_csv_order_is_authoritative_tar_order": false,
+    "publisher_packager_order_verified": false,
+    "actual_selected_second_offset_verified": false,
+    "full_tar_order_verified": false,
+    "network_requests_executed": 0,
+    "wav_payloads_downloaded": 0,
+    "files_written": false,
+    "status": "OFFLINE_ORDER_HYPOTHESIS_ONLY_NO_HTTP",
+    "exit_guard_passed": true
+  },
+  "research": {
+    "upstream_tree_revision": "c5e9ab51dfd18f412c6233851a75c070ae5b1d2c",
+    "upstream_tree_truncated": false,
+    "examined_paths": [
+      "Report_paper_9model/HUGGINGFACE_DATASET_UPLOAD_PLAN.md",
+      "tools_prepare_hf_small_upload_package.py",
+      "Report_paper_9model/hf_upload_small_files/LARGE_ASSETS_TO_UPLOAD_FROM_ORIGINAL_LOCATIONS.md",
+      "Colab_ASR_A100_Training/scripts/build_colab_data_archives.sh"
+    ],
+    "finding": "Upload/staging docs do not establish pinned category TAR order. Colab script creates different v7 dataset and split archives, not evidence for pinned HF category TAR. No authoritative member index verified in reviewed sources; not a claim of global absence.",
+    "hf_pinned_manifest_retrieval": "UNAVAILABLE_VIA_SEARCH_TOOL; contents not verified this turn"
+  },
+  "decision": {
+    "public_30_wav_acquisition": "BLOCKED_NO_VERIFIED_INDEX",
+    "new_header_loops": false,
+    "csv_offsets_authorized": false,
+    "full_archive_download_authorized": false,
+    "full_archive_bytes_from_prior_evidence": 907765760,
+    "reopen_if": "Authoritative index bound to pinned archive, or separately approved full archive acquisition with local checksum verification and safe selective extraction. Do not infer offsets from CSV match alone.",
+    "next_ready_work": "Existing fresh-consent independent holdout collection: 20 clean + 10 challenging, >=5 speakers, >=250 clean reference words, human-reviewed before inference; no repeated init/tests."
+  },
+  "gates": {
+    "T10": "BLOCKED (active phase)",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
