@@ -35,6 +35,8 @@ on:
       - "tools/test_t10_atika_tar_range_probe.py"
       - "tools/t10_atika_tar_header_walk.py"
       - "tools/test_t10_atika_tar_header_walk.py"
+      - "tools/t10_atika_acquisition_budget.py"
+      - "tools/test_t10_atika_acquisition_budget.py"
       - "tools/t10_public_id_corpus.md"
       - "tools/t10_id_independent_holdout.md"
       - ".agents/evidence/t10-cp4-readiness-audit-windows-13-pass.json"
@@ -326,6 +328,11 @@ jobs:
         shell: bash
         run: |
           python -m unittest discover -s tools -p test_t10_atika_tar_header_walk.py -v
+
+      - name: Estimate Atika acquisition/index cost entirely offline (synthetic data only)
+        shell: bash
+        run: |
+          python -m unittest discover -s tools -p test_t10_atika_acquisition_budget.py -v
 
       - name: Test translation quality review evaluator
         shell: bash
