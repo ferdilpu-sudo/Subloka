@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_CONTINUATION_LINUX_CI_146_PASS_WINDOWS_PENDING",
+  "code_commit": "eb1352cd04f2092c13a3401dbb81c1bffdc880af",
+  "ci": {
+    "workflow": "T10 Atika TAR Layout Arithmetic (Offline)",
+    "run_id": 38111264883,
+    "job_id": 114387148497,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38111264883",
+    "conclusion": "success",
+    "suite_counts": [
+      12,
+      10,
+      13,
+      12,
+      15,
+      16,
+      12,
+      15,
+      13,
+      16,
+      12
+    ],
+    "previous_suites_pass": 134,
+    "new_suite_pass": 12,
+    "all_tests_pass": 146
+  },
+  "previous_actual_windows": {
+    "new_remote_header_checks_run": 3,
+    "matched": 3,
+    "exit_code": 0,
+    "source_repo_commit": "9a7913a55ee5f18d98c3857bdb652ed025ace10c",
+    "WAV_downloaded": 0
+  },
+  "new_continuation": {
+    "script": "tools/t10_atika_anchored_successor_continuation.py",
+    "tests": "tools/test_t10_atika_anchored_successor_continuation.py",
+    "tests_pass_in_linux": 12,
+    "tests_pass_in_Windows": "PENDING",
+    "pinned_offline_preflight_Windows": "PENDING",
+    "newly_requested_successor_numbers": [
+      4,
+      5,
+      6
+    ],
+    "prior_three_real_matches_proven_only_by_user_report": true,
+    "per_run_new_remote_request_hard_cap": 3,
+    "prior_matched_headers_rechecked": false,
+    "execute_flag": "--execute-new-successors",
+    "default_network_requests": 0,
+    "remote_check_on_new_successors_executed": false,
+    "audio_payloads_downloaded": 0
+  },
+  "actual_second_selected_predicted_header_invalid": true,
+  "all_9500_member_order_verified": false,
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
