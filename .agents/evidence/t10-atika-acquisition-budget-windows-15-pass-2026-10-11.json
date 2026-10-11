@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_OFFLINE_ACQUISITION_BUDGET_WINDOWS_15_TESTS_PASS",
+  "source_revision_tested": "d95e949d6a6905bee6f8d449a9e8e4ce87bca59d",
+  "result_provenance": "User-shared Windows PowerShell stdout; not independently replayed on a Windows machine",
+  "test": {
+    "command": "python -m unittest discover -s tools -p test_t10_atika_acquisition_budget.py -v",
+    "suite": "tools/test_t10_atika_acquisition_budget.py",
+    "count": 15,
+    "passes": 15,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds": 0.398,
+    "reported_summary": "Ran 15 tests in 0.398s / OK",
+    "powershell_exit_guard_passed": true
+  },
+  "cli": {
+    "command": "python tools/t10_atika_acquisition_budget.py --workspace <gitignored-private-workspace>",
+    "script": "tools/t10_atika_acquisition_budget.py",
+    "exit_guard_passed": true,
+    "checkpoint": "PUBLIC_IMPERATIVE_INDEX_COST_DRY_RUN_NO_DOWNLOAD",
+    "category": "Imperative",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "category_rows_in_metadata": 9500,
+    "category_human_test_rows_eligible": 1350,
+    "source_archive_size_bytes_from_remote_metadata": 907765760,
+    "category_WAV_bytes_sum_from_publisher_metadata": 900344354,
+    "selected_test_human_audio_count": 30,
+    "selected_audio_bytes_sum_from_publisher_metadata": 2590936,
+    "selected_public_speaker_label_count": 3,
+    "selected_reference_texts_distinct_casefold_not_rechecked": 16,
+    "selected_audio_locally_verified": false,
+    "remote_tar_member_order_known": false,
+    "public_per_WAV_tar_offset_index_verified": false,
+    "estimated_one_request_per_WAV_header_scan": 9500,
+    "estimated_header_request_count_exceeds_safety_budget": true,
+    "safety_budget_header_requests": 200,
+    "network_delay_illustrations_not_predictions": [
+      {
+        "assumed_average_request_latency_ms": 200,
+        "minimum_sequential_header_walk_minutes_if_no_index": 31.7
+      },
+      {
+        "assumed_average_request_latency_ms": 500,
+        "minimum_sequential_header_walk_minutes_if_no_index": 79.2
+      },
+      {
+        "assumed_average_request_latency_ms": 1000,
+        "minimum_sequential_header_walk_minutes_if_no_index": 158.3
+      }
+    ],
+    "recommended_next_action": "DO_NOT_SCAN_TAR_ONE_MEMBER_PER_REQUEST; SEEK REAL PER_WAV_INDEX OR ALTERNATE_SMALL_LICENSED_SOURCE; LARGE_TAR_NEEDS_EXPLICIT_APPROVAL",
+    "no_network_or_files_written": true,
+    "no_audio_or_model_downloaded": true,
+    "no_ASR_inference": true,
+    "fresh_consent_private_holdout_unchanged": true
+  },
+  "remaining_unverified": [
+    "Real WAV recovery 0/30",
+    "Individual TAR offsets and member order",
+    "Audio quality / ASR WER and Android runtime",
+    "Independently verifiable participant rights and provenance",
+    "GitHub Actions CI result"
+  ],
+  "large_archive_download_authorized": false,
+  "independent_public_holdout_five_speakers_satisfied": false,
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
