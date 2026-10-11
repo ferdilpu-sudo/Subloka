@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SECOND_SELECTED_HEADER_MISMATCH_DIAGNOSTIC_WINDOWS16_OFFLINE_PASS",
+  "source": "User-pasted Windows PowerShell terminal; not independently run on user's Windows host",
+  "repository_code_latest_before_evidence": "2a6867f7108b509b60213fb02cbbbfcc99259065",
+  "windows_worktree_git_sha_not_explicitly_printed": true,
+  "tests": {
+    "suite": "test_t10_atika_selected_header_mismatch_diagnostic.py",
+    "count": 16,
+    "passed": 16,
+    "failed": 0,
+    "errored": 0,
+    "seconds": 0.172,
+    "powershell_exit_guard_passed": true
+  },
+  "offline_pinned_audit": {
+    "checkpoint": "T10_ATIKA_SELECTED_SECOND_HEADER_MISMATCH_DIAGNOSTIC",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "target_selected_header_ordinal": 2,
+    "previous_remote_reports": "TWO_RUNS_EACH_2_REQUESTS_1_MATCH_1_MISMATCH",
+    "category_rows": 9500,
+    "frozen_selected": 30,
+    "predicted_header_offset_printed": false,
+    "selected_member_name_printed": false,
+    "network_request_limit": 1,
+    "http_body_read_cap_bytes": 513,
+    "network_requests_executed": 0,
+    "wav_payloads_recovered": 0,
+    "full_tar_order_verified": false,
+    "status": "OFFLINE_ONLY_NO_HTTP",
+    "powershell_exit_guard_passed": true
+  },
+  "prior_remote_selected_check": {
+    "runs": 2,
+    "headers_attempted_per_run": 2,
+    "headers_matching_per_run": 1,
+    "failed_target_ordinal": 2,
+    "result_each": "SELECTED_HEADER_MISMATCH_STOP",
+    "exit_code_each": 3
+  },
+  "new_live_single_header_inspection_executed": false,
+  "diagnostic_classification_known": false,
+  "next_opt_in": "--inspect-second-header",
+  "prior_ci": {
+    "source_sha": "9d9e2d69aebddc95f2e69785b3d9ed63b2f74ec7",
+    "run_id": 38104677324,
+    "pass": 78
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

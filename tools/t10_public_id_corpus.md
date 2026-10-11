@@ -319,3 +319,8 @@ if ($LASTEXITCODE -ne 0) { throw "T10 offline mismatch diagnostic preflight FAIL
 ```
 
 **Above commands are offline only.** The optional remote flag is deliberately omitted until offline checks and their evidence are reviewed; it is not a rerun of five-header testing.
+
+
+## Windows pinned-data mismatch diagnostic — 16 synthetic PASS, offline preflight PASS / 2026-10-11
+- Windows **16/16 tests PASS (0.172s)** for `test_t10_atika_selected_header_mismatch_diagnostic.py`. Pinned `t10_atika_selected_header_mismatch_diagnostic.py` returned `OFFLINE_ONLY_NO_HTTP`, 9500 Imperative WAV metadata rows, frozen 30 test WAV candidates, specifically the second previously mismatched selected header, **0** HTTP requests / WAV data / writes, and `CP4=BLOCKED`. The category of observed mismatch remains **UNKNOWN**; the CLI did not inspect the live header yet.
+- Earlier remote five-header attempt, run twice, each ended `SELECTED_HEADER_MISMATCH_STOP` at second selected candidate (2 requests / 1 header match per run); **do not repeat**. Optional separately deliberate `--inspect-second-header` checks exactly that one previously failing 512-byte header with strict 206-only Range, emits an enum rather than a filename/path/offset; it cannot establish order, licensing, speaker independence, audio integrity, or CP4.
