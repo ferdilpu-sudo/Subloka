@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_FROZEN_SELECTED_30_HEADER_VALIDATOR_CI_62_PASS",
+  "source_commit": "e5000b6852eb1dec4173c54f3fc75fb5eb09d9d8",
+  "ci": {
+    "workflow": "T10 Atika TAR Layout Arithmetic (Offline)",
+    "run_id": 38103334252,
+    "job_id": 114363609834,
+    "url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38103334252",
+    "conclusion": "success",
+    "logged_suites": [
+      {
+        "name": "layout",
+        "passed": 12,
+        "seconds": 0.022
+      },
+      {
+        "name": "order",
+        "passed": 10,
+        "seconds": 0.013
+      },
+      {
+        "name": "sparse",
+        "passed": 13,
+        "seconds": 0.02
+      },
+      {
+        "name": "selected_preflight",
+        "passed": 12,
+        "seconds": 0.015
+      },
+      {
+        "name": "selected_header_check",
+        "passed": 15,
+        "seconds": 0.029
+      }
+    ],
+    "total_pass": 62
+  },
+  "previous_user_windows": {
+    "suite": "selected_header_preflight",
+    "passed": 12,
+    "seconds": 0.155,
+    "offline_network_requests": 0
+  },
+  "new_tool": {
+    "path": "tools/t10_atika_selected_header_check.py",
+    "test_path": "tools/test_t10_atika_selected_header_check.py",
+    "new_cases_ci_pass": 15,
+    "new_cases_windows_pending": true,
+    "real_pinned_workspace_offline_pending": true,
+    "network_default_enabled": false,
+    "explicit_flag": "--execute-selected-headers",
+    "default_limit": 5,
+    "hard_cap": 30,
+    "no_wav_payload_download": true,
+    "actual_selected_headers_matched_in_remote": 0,
+    "prior_3_sparse_headers_match": true,
+    "full_archive_order_verified": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
