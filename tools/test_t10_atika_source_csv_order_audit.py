@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 import hashlib
 import io
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -28,6 +29,15 @@ class OfflineCsvOrderTests(unittest.TestCase):
     def ordered(self):
         return sorted(self.rows,key=lambda r:r["audio_path"])
 
+    def write_reordered_csv_preserving_frozen_test_selection(self, reordered):
+        path=self.workspace/walk.SELECTION_NAME
+        original=json.loads(path.read_text(encoding="utf-8"))
+        self.rows=reordered
+        self.make_files()  # Re-sign the local synthetic CSV SHA fixture only.
+        updated=json.loads(path.read_text(encoding="utf-8"))
+        updated["items"]=original["items"]  # Frozen 30 still true human test.
+        path.write_text(json.dumps(updated),encoding="utf-8")
+
     def test_offline_report_has_no_network_or_names(self):
         with patch.object(walk,"fetch_header",side_effect=AssertionError("HTTP")) as req:
             result=audit.audit(self.workspace)
@@ -46,8 +56,7 @@ class OfflineCsvOrderTests(unittest.TestCase):
         self.assertFalse(result["full_tar_order_verified"])
 
     def test_sorted_source_has_matching_prefix_but_wrong_eighth(self):
-        self.rows=self.ordered()
-        self.make_files()
+        self.write_reordered_csv_preserving_frozen_test_selection(self.ordered())
         result=audit.audit(self.workspace)
         self.assertTrue(result["source_csv_order_first_eight_match_prior_header_prefix"])
         self.assertFalse(result["source_csv_next_row_matches_observed_eighth"])
@@ -57,8 +66,7 @@ class OfflineCsvOrderTests(unittest.TestCase):
         rows=self.ordered()
         actual=rows.pop(10)
         rows.insert(8,actual)
-        self.rows=rows
-        self.make_files()
+        self.write_reordered_csv_preserving_frozen_test_selection(rows)
         r=audit.audit(self.workspace)
         self.assertTrue(r["source_csv_order_first_eight_match_prior_header_prefix"])
         self.assertTrue(r["source_csv_next_row_matches_observed_eighth"])
@@ -110,7 +118,7 @@ class OfflineCsvOrderTests(unittest.TestCase):
         s=str(r)
         self.assertNotIn("data/fictional",s)
         self.assertNotIn(".wav",s)
-        self.assertNotIn("transcript",s)
+        self.assertNotIn("fixture text",s)
 
 
 if __name__=="__main__":
