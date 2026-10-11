@@ -27,10 +27,16 @@ OBSERVED_FILE_HEADERS = 6
 
 
 def assess_prefix(rows: list[tuple[str, int]],
-                  first_size: int = OBSERVED_FIRST_MEMBER_SIZE,
-                  sixth_end: int = OBSERVED_SIX_HEADER_NEXT_OFFSET,
-                  prefix_count: int = OBSERVED_FILE_HEADERS) -> dict:
-    """Pure arithmetic, names stay local; never returns paths/offset indexes."""
+                  first_size: int | None = None,
+                  sixth_end: int | None = None,
+                  prefix_count: int | None = None) -> dict:
+    """Read the pinned observations at call time; synthetic fixtures can patch them."""
+    if first_size is None:
+        first_size = OBSERVED_FIRST_MEMBER_SIZE
+    if sixth_end is None:
+        sixth_end = OBSERVED_SIX_HEADER_NEXT_OFFSET
+    if prefix_count is None:
+        prefix_count = OBSERVED_FILE_HEADERS
     if (type(prefix_count) is not int or prefix_count < 1
             or len(rows) < prefix_count):
         raise ValueError("Not enough well-formed candidate members")

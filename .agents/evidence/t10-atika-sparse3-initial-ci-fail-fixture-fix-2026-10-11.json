@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_SPARSE_THREE_HEADER_FIRST_CI_FIXTURE_FAILURE",
+  "source_commit": "b83f0b3025b80ccbd1773e0a73fa7568e8196419",
+  "failed_ci_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101695871",
+  "job_id": 114358776680,
+  "previous_layout": {
+    "total": 12,
+    "pass": 12
+  },
+  "previous_order": {
+    "total": 10,
+    "pass": 10
+  },
+  "new_sparse": {
+    "total": 13,
+    "pass": 9,
+    "fail": 2,
+    "error": 2
+  },
+  "root_cause": "Captured default argument evaluation on OBSERVED_FIRST_MEMBER_SIZE and OBSERVED_SIX_HEADER_NEXT_OFFSET prevents synthetic fixture patch",
+  "minimal_fix": "Use None defaults and resolve unchanged module constants at invocation",
+  "production_observation_values_preserved": true,
+  "network_executed": false,
+  "wav_downloaded": 0,
+  "cp4": "BLOCKED",
+  "new_ci_pending": true
+}
