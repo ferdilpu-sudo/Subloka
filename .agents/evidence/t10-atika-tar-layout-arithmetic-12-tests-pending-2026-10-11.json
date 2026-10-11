@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_TAR_LAYOUT_ARITHMETIC_IMPLEMENTED_WINDOWS_12_TESTS_PENDING",
+  "base_commit": "75d2dedbdb81e05343308a4e6a36371ae712fc91",
+  "prior_windows_qa": {
+    "acquisition_budget_tests": "15/15 PASS",
+    "tar_header_walk_tests": "14/14 PASS"
+  },
+  "public_source_audit": {
+    "supporting_repo": "https://github.com/RatnaAtika/Indonesian-ASR-11-Class-Dataset",
+    "located_colab_tar_script": "Colab_ASR_A100_Training/scripts/build_colab_data_archives.sh",
+    "colab_tar_script_output": "Colab_ASR_A100_Training/archives/dataset_balanced19_v7.tar",
+    "script_verified_as_exact_imperative_shard_builder": false,
+    "published_archive_level_manifest": "data/audio_shards/audio_shards_manifest.csv",
+    "verified_per_wav_offset_index": false,
+    "source_size_bytes": 907765760,
+    "selected_wav_count_from_pinned_metadata": 30,
+    "actual_wavs_downloaded": 0
+  },
+  "new_tool": {
+    "path": "tools/t10_atika_tar_layout_budget.py",
+    "tests": "tools/test_t10_atika_tar_layout_budget.py",
+    "workflow": ".github/workflows/t10-atika-layout-offline.yml",
+    "new_synthetic_test_count": 12,
+    "full_windows_qa_pass_reported": false,
+    "github_ci_result_verified": false,
+    "local_pure_function_smoke": true,
+    "uses_pinned_local_metadata": true,
+    "requests_to_network": 0,
+    "writes_files": false,
+    "downloads_wav_tar_model": false,
+    "creates_offset_index": false,
+    "change_cp4": false
+  },
+  "limits": [
+    "Total archive size agreement does not prove file order or header offsets",
+    "TAR directory/PAX/long-name headers and end-padding are unknown",
+    "No real audio, consent provenance, disjoint speakers or ASR inference checked",
+    "Large TAR download requires separate user approval"
+  ],
+  "next": "Run 12 synthetic offline tests and read-only layout budget in Windows workspace. Preserve 30 selected metadata, no WAV acquisition before verified offset approach and rights/storage approval.",
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

@@ -194,3 +194,22 @@ Jumlah tes baru **15**, Windows QA **belum dilaporkan**, CI baru dihubungkan dan
 - Offline actual aggregate: `Imperative` 9,500 rows; 1,350 eligible human/test; 30 pinned sample metadata, 3 public speaker labels and 16 distinct casefolded references; 2,590,936 publisher-declared bytes selected; 900,344,354 publisher-declared category WAV bytes; 907,765,760 published total TAR bytes.
 - Estimated `9,500` separate one-member-per-request TAR header reads **exceeds 200 policy threshold**. Illustration only: 31.7 / 79.2 / 158.3 minutes at 200 / 500 / 1,000ms assumed serial latency. **Reject naive serial header walking**; none of these estimates establish actual member positions. Look for a verified individual-WAV TAR offset index or a small appropriately licensed alternative. If none exists, the full **865.7 MiB** archive remains **approval-gated**, including storage and provenance/reuse considerations.
 - No new network, WAV, TAR, model, ADB, inference or private dataset edits; **actual WAV 0/30**; source-selection provenance and user private fresh-consent holdout unchanged. No source-audio quality or rights validation; GitHub CI not independently checked. `T10 ACTIVE / CP4 BLOCKED / T11 TODO`. Evidence: `.agents/evidence/t10-atika-acquisition-budget-windows-15-pass-2026-10-11.json`.
+
+
+## TAR arithmetic preflight (implemented, Windows validation pending) — 2026-10-11
+Public source audit found no verified published per-WAV offset index nor the exact construction command for `Imperative.tar`. One `Colab_ASR_A100_Training/scripts/build_colab_data_archives.sh` in the supporting repository makes **another** TAR (whole `Dataset_Balanced19` for Colab), not the category TAR; do not transfer its file order assumptions. Published `audio_shards_manifest.csv` is archive-level inventory. Metadata sizes can test the order-independent TAR byte-accounting floor, but cannot identify offsets or rule out PAX/directory/long names. Even a full TAR size match is not a valid random-access index.
+
+New read-only tool `tools/t10_atika_tar_layout_budget.py` uses unchanged metadata and frozen private 30-selection; computes 512-byte record arithmetic with illustrative 10,240-byte end alignment, prints only aggregates, no network, no writes, no WAV and no model. New **12 synthetic tests Windows PENDING**, separate small CI workflow PENDING. Once pulled, run:
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_layout_budget.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR layout tests FAILED" }
+& $py tools\t10_atika_tar_layout_budget.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 TAR layout budget FAILED" }
+```
+
+No more `select`, `fetch-metadata`, remote header walks, big downloads, models, or inference. Do not mark CP4 PASS. Source script: https://github.com/RatnaAtika/Indonesian-ASR-11-Class-Dataset/blob/main/Colab_ASR_A100_Training/scripts/build_colab_data_archives.sh .

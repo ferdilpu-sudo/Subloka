@@ -1,0 +1,26 @@
+name: T10 Atika TAR Layout Arithmetic (Offline)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/t10_atika_tar_layout_budget.py"
+      - "tools/test_t10_atika_tar_layout_budget.py"
+      - "tools/t10_atika_acquisition_budget.py"
+      - "tools/test_t10_atika_acquisition_budget.py"
+      - ".github/workflows/t10-atika-layout-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify syntax and offline synthetic tests (no public downloads)
+        run: |
+          python -m py_compile tools/t10_atika_tar_layout_budget.py tools/test_t10_atika_tar_layout_budget.py
+          python -m unittest discover -s tools -p "test_t10_atika_tar_layout_budget.py" -v
