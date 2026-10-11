@@ -190,6 +190,16 @@ class OfflineAtikaAcquisitionBudgetTests(unittest.TestCase):
         self.assertNotIn("fixture text", text)
         self.assertIn('"CP4": "BLOCKED"', text)
 
+    def test_long_train_wav_allowed_in_source_count_but_never_selected(self):
+        # Publisher metadata includes train WAVs larger than the 3MB test
+        # eligibility threshold. Category-wide budget must count them.
+        self.rows[32]["file_size_bytes"] = "6600000"
+        self.make_files()
+        out = budget(self.workspace)
+        self.assertEqual(out["selected_test_human_audio_count"], 30)
+        self.assertEqual(out["category_rows_in_metadata"], 35)
+        self.assertGreater(out["category_WAV_bytes_sum_from_publisher_metadata"], 6600000)
+
     def test_invalid_wav_metadata_rejected_with_digest_still_pinned(self):
         self.rows[32]["file_size_bytes"] = "invalid"
         self.make_files()
