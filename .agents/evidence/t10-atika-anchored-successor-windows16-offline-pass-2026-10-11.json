@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_SUCCESSOR_WINDOWS16_OFFLINE_PASS",
+  "provenance": "User-supplied Windows PowerShell output; assistant did not run tests on Windows",
+  "checkout_after_pull": "e0f88550b8f9ea9de18a775c4723adfe7f520b08",
+  "tests": {
+    "suite": "test_t10_atika_anchored_successor_walk.py",
+    "ran": 16,
+    "passed": 16,
+    "seconds": 0.16,
+    "result": "OK",
+    "powershell_exit_guard_passed": true
+  },
+  "pinned_offline_preflight": {
+    "checkpoint": "T10_ATIKA_FIRST_SELECTED_ANCHORED_TAR_SUCCESSOR_WALK",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "frozen_selected_count": 30,
+    "source_metadata_wav_count": 9500,
+    "metadata_members_strictly_between_selected": 39,
+    "planned_successor_headers": 3,
+    "hard_max_successors_per_invocation": 4,
+    "application_read_cap_per_request_bytes": 513,
+    "absolute_offsets_and_member_names_disclosed": false,
+    "network_requests_executed": 0,
+    "wav_payloads_recovered": 0,
+    "actual_archive_order_verified": false,
+    "selected_second_actual_offset_found": false,
+    "status": "OFFLINE_ONLY_NO_HTTP",
+    "powershell_exit_guard_passed": true
+  },
+  "preceding_ci": {
+    "run_id": 38109630886,
+    "job_id": 114382324359,
+    "source_commit": "2d01da88ff487d4a1d508703bc5f2e4762825421",
+    "passed": 134
+  },
+  "prior_remote_selected_header_second": {
+    "classification": "INVALID_TAR_HEADER_AT_PREDICTED_OFFSET",
+    "exit_code": 3,
+    "cause_verified": false
+  },
+  "anchored_remote_successor_walk": {
+    "executed": false,
+    "status": "NOT_RUN",
+    "optional_flag": "--execute-anchored-successors",
+    "default_successors": 3,
+    "hard_max_successors": 4,
+    "downloads_WAV": false
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
