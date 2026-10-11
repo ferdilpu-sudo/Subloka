@@ -157,7 +157,7 @@ class FrozenWorkspaceDiagnostic(unittest.TestCase):
                     return_value=head("data/case/unlisted.wav",44)) as remote:
             self.assertEqual(diag.main(),3)
         self.assertEqual(remote.call_count,1)
-        self.assertIn("REGULAR_TAR_MEMBER_NOT_IN_PINN_IMPERATIVE_CSV",result.getvalue())
+        self.assertIn("REGULAR_TAR_MEMBER_NOT_IN_PINNED_IMPERATIVE_CSV",result.getvalue())
         self.assertNotIn("unlisted.wav",result.getvalue())
 
     def test_http_range_ignored_exit_two(self):

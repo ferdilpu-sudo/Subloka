@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-11",
+  "checkpoint": "T10_SELECTED_HEADER_MISMATCH_DIAGNOSTIC_INITIAL_CI_FAILURE_FIX",
+  "failed_commit": "85d81b5a895fed8efd1bf61c96c25f2a4a1ce8ad",
+  "failed_run_id": 38104623214,
+  "failed_job_id": 114367369791,
+  "old_suite_pass": 62,
+  "new_suite_total": 16,
+  "new_suite_pass": 15,
+  "new_suite_fail": 1,
+  "cause": "Test expected PINN_IMPERATIVE but classification constant is PINNED_IMPERATIVE",
+  "patch": "Only test assertion string changed to exact returned enum",
+  "production_code_changed": false,
+  "CI_on_fix_pending": true,
+  "remote_wav_downloaded": 0,
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
