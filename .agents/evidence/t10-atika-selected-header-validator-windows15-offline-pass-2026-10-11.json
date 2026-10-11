@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED_HEADER_VALIDATOR_WINDOWS_15_PASS_OFFLINE_PREFLIGHT",
+  "provenance": "User-supplied Windows PowerShell transcript, not independently re-executed",
+  "code_before_evidence_commit": "c635a2ab59d8714030099c9ce6c5b3b2039c4438",
+  "windows_head_independently_observed": false,
+  "windows_suite": {
+    "path": "tools/test_t10_atika_selected_header_check.py",
+    "count": 15,
+    "pass": 15,
+    "seconds": 0.202,
+    "result": "OK",
+    "exit_code_guard_passed": true
+  },
+  "windows_private_metadata_preflight": {
+    "tool": "tools/t10_atika_selected_header_check.py",
+    "checkpoint": "PUBLIC_IMPERATIVE_FROZEN_SELECTED_30_HEADER_CHECK_ONLY",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "frozen_selected_human_test_count": 30,
+    "candidate_header_count": 30,
+    "hypothesis": "LEXICOGRAPHIC_MEMBER_ORDER_NO_AUX_HEADERS",
+    "request_limit": 5,
+    "maximum_allowed_header_requests": 30,
+    "per_request_http_body_read_cap_bytes": 513,
+    "hypothetical_offset_values_disclosed": false,
+    "network_requests_executed": 0,
+    "actual_selected_header_matches": 0,
+    "all_30_selected_header_offsets_checked": false,
+    "global_tar_member_order_verified": false,
+    "wav_payloads_downloaded": 0,
+    "files_written": false,
+    "source_audio_sha_verified": false,
+    "CP4": "BLOCKED",
+    "T10": "ACTIVE",
+    "T11": "TODO",
+    "status": "OFFLINE_PREFLIGHT_ONLY_NO_HTTP",
+    "exit_guard_passed": true
+  },
+  "prior_evidence": {
+    "linux_synthetic_ci_pass": 62,
+    "linux_ci_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38103334252",
+    "lexical_3_sparse_actual_remote_header_match": 3,
+    "selected_exact_headers_checked_prior": 0
+  },
+  "next_proposed": {
+    "flag": "--execute-selected-headers",
+    "limit": 5,
+    "max_network_requests": 5,
+    "expected_exact_header_bytes_per_request": 512,
+    "real_run_executed": false,
+    "model_wav_transfer_approved": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

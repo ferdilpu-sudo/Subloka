@@ -297,3 +297,7 @@ if ($LASTEXITCODE -ne 0) { throw "T10 selected header check offline preflight FA
 \`\`\`
 
 Do not pass opt-in network flag during routine preflight; 30 real header validations, large TAR or WAV transfers require separate operator consideration. Five-header test only after its offline results are reviewed. No CP4 promotion, T11 TODO.
+
+
+## Selected-header validator verified on Windows, offline only — 2026-10-11
+Windows host ran `test_t10_atika_selected_header_check.py` **15/15 PASS (0.202s)** and `t10_atika_selected_header_check.py` without opt-in. Output: `OFFLINE_PREFLIGHT_ONLY_NO_HTTP`, 30 hypothetical selected WAV header positions, `request_limit=5`, **0** requests / actual header matches / WAV payloads / writes. Next optional `--execute-selected-headers --limit 5` performs up to five real bounded header-only requests (not performed yet), rejects ignored Range and mismatched header name/type/size. Do not run 30 or download audio without a separate decision after the five-result review. CP4 BLOCKED. Evidence: `.agents/evidence/t10-atika-selected-header-validator-windows15-offline-pass-2026-10-11.json`.
