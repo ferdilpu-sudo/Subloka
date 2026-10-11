@@ -14,6 +14,8 @@ on:
       - "tools/test_t10_atika_selected_header_preflight.py"
       - "tools/t10_atika_selected_header_check.py"
       - "tools/test_t10_atika_selected_header_check.py"
+      - "tools/t10_atika_selected_header_mismatch_diagnostic.py"
+      - "tools/test_t10_atika_selected_header_mismatch_diagnostic.py"
       - "tools/t10_atika_acquisition_budget.py"
       - "tools/test_t10_atika_acquisition_budget.py"
       - ".github/workflows/t10-atika-layout-offline.yml"
@@ -30,9 +32,10 @@ jobs:
       - uses: actions/checkout@v5
       - name: Verify syntax and offline synthetic tests (no public downloads)
         run: |
-          python -m py_compile tools/t10_atika_tar_layout_budget.py tools/test_t10_atika_tar_layout_budget.py tools/t10_atika_tar_order_hypotheses.py tools/test_t10_atika_tar_order_hypotheses.py tools/t10_atika_tar_three_header_spotcheck.py tools/test_t10_atika_tar_three_header_spotcheck.py tools/t10_atika_selected_header_preflight.py tools/test_t10_atika_selected_header_preflight.py tools/t10_atika_selected_header_check.py tools/test_t10_atika_selected_header_check.py
+          python -m py_compile tools/t10_atika_tar_layout_budget.py tools/test_t10_atika_tar_layout_budget.py tools/t10_atika_tar_order_hypotheses.py tools/test_t10_atika_tar_order_hypotheses.py tools/t10_atika_tar_three_header_spotcheck.py tools/test_t10_atika_tar_three_header_spotcheck.py tools/t10_atika_selected_header_preflight.py tools/test_t10_atika_selected_header_preflight.py tools/t10_atika_selected_header_check.py tools/test_t10_atika_selected_header_check.py tools/t10_atika_selected_header_mismatch_diagnostic.py tools/test_t10_atika_selected_header_mismatch_diagnostic.py
           python -m unittest discover -s tools -p "test_t10_atika_tar_layout_budget.py" -v
           python -m unittest discover -s tools -p "test_t10_atika_tar_order_hypotheses.py" -v
           python -m unittest discover -s tools -p "test_t10_atika_tar_three_header_spotcheck.py" -v
           python -m unittest discover -s tools -p "test_t10_atika_selected_header_preflight.py" -v
           python -m unittest discover -s tools -p "test_t10_atika_selected_header_check.py" -v
+          python -m unittest discover -s tools -p "test_t10_atika_selected_header_mismatch_diagnostic.py" -v

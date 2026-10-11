@@ -301,3 +301,21 @@ Do not pass opt-in network flag during routine preflight; 30 real header validat
 
 ## Selected-header validator verified on Windows, offline only — 2026-10-11
 Windows host ran `test_t10_atika_selected_header_check.py` **15/15 PASS (0.202s)** and `t10_atika_selected_header_check.py` without opt-in. Output: `OFFLINE_PREFLIGHT_ONLY_NO_HTTP`, 30 hypothetical selected WAV header positions, `request_limit=5`, **0** requests / actual header matches / WAV payloads / writes. Next optional `--execute-selected-headers --limit 5` performs up to five real bounded header-only requests (not performed yet), rejects ignored Range and mismatched header name/type/size. Do not run 30 or download audio without a separate decision after the five-result review. CP4 BLOCKED. Evidence: `.agents/evidence/t10-atika-selected-header-validator-windows15-offline-pass-2026-10-11.json`.
+
+
+## Selected-30 exact header check — deterministic mismatch on second WAV / 2026-10-11
+- User host ran **two** explicit `--execute-selected-headers --limit 5` probes with pinned source and `main` commit `1d9c26b`. Both completed with `SELECTED_HEADER_MISMATCH_STOP` (PowerShell exit code 3): **2 headers attempted, 1 name/size/type match, second header mismatch**, and stopped. Total 4 requests (2 at each position); no WAV payload or TAR archive. This does NOT negate earlier 3/3 sparse quartile matches; it *does* disprove the assumption that the second selected header position, computed from uninterrupted lexical flat packaging, is correct. The exact reason is not yet known. **Do not retry the same 5 headers, expand to 30, or fetch audio.** CP4 BLOCKED.
+- New `tools/t10_atika_selected_header_mismatch_diagnostic.py`: no network by default; verifies frozen metadata and computes the **one previously failed second candidate**. Optional `--inspect-second-header` makes a *single* bounded, strict-206 512-byte Range TAR header fetch to classify observed header *without showing* name, transcript or candidate offset. Classifications distinguish known-other-member name/size, expected-name size drift, auxiliary/nonregular, unknown regular, zero/invalid. A different valid publisher member would support local ordering variance but still not prove full archive order. New **16 synthetic tests pending CI/Windows**.
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_selected_header_mismatch_diagnostic.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 mismatch diagnostic tests FAILED" }
+& $py tools\t10_atika_selected_header_mismatch_diagnostic.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 offline mismatch diagnostic preflight FAILED" }
+```
+
+**Above commands are offline only.** The optional remote flag is deliberately omitted until offline checks and their evidence are reviewed; it is not a rerun of five-header testing.

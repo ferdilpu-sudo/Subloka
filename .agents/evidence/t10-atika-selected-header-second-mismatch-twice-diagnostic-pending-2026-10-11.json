@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SELECTED_SECOND_HEADER_REMOTE_MISMATCH_TWICE_DIAGNOSTIC_IMPLEMENTED_PENDING",
+  "source_commit_tested": "1d9c26bf7d4fa097123d12338e3a057831de9deb",
+  "provenance": "User-supplied Windows PowerShell terminal, two explicit runs; not independently replayed",
+  "tested_source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+  "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+  "frozen_selected_count": 30,
+  "prior_host_synthetic": {
+    "test_count": 15,
+    "passed": 15,
+    "seconds": 0.202
+  },
+  "remote_fail_repetitions": 2,
+  "each_remote_attempt": {
+    "explicit_flag": "--execute-selected-headers",
+    "requested_limit": 5,
+    "http_headers_attempted": 2,
+    "successful_name_size_type_matches": 1,
+    "first_header_match": true,
+    "second_header_match": false,
+    "all_requested_selected_headers_match": false,
+    "result": "SELECTED_HEADER_MISMATCH_STOP",
+    "exit_code": 3,
+    "files_written": false,
+    "wav_payloads_downloaded": 0
+  },
+  "total_requests_across_attempts": 4,
+  "unique_candidate_offsets_requested": 2,
+  "global_lexical_layout_hypothesis_verified": false,
+  "root_cause_verified": false,
+  "possible_causes_unverified": [
+    "locally different member ordering",
+    "publisher WAV size differs from source TAR",
+    "auxiliary or non-WAV TAR record",
+    "not a valid TAR header at speculative location"
+  ],
+  "no_repeated_five_header_probe": true,
+  "diagnostic": {
+    "path": "tools/t10_atika_selected_header_mismatch_diagnostic.py",
+    "test_path": "tools/test_t10_atika_selected_header_mismatch_diagnostic.py",
+    "new_direct_unit_tests": 16,
+    "ci_status": "PENDING",
+    "windows_status": "PENDING",
+    "default_mode": "OFFLINE_ONLY_NO_HTTP",
+    "explicit_opt_in": "--inspect-second-header",
+    "max_header_gets_per_run": 1,
+    "read_cap_bytes": 513,
+    "prints_names_or_offsets": false,
+    "constructs_offset_index": false,
+    "downloads_wav": false,
+    "real_network_diagnostic_executed": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
