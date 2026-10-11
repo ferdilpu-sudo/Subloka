@@ -162,3 +162,28 @@ Jika pilot berhasil: lakukan analisis ongkos pemetaan TAR sebelum mengembangkan 
 - Actual Windows rerun: `Ran 14 tests in 0.074s`, `OK`, PowerShell guard passed, `T10 HEADER WALK 14 TESTS PASS`. This supersedes the previous 14-test FAILED run and verifies the corrected numeric assertion `3 × 513 = 1539` as a synthetic regression. Live six-header network probe had already PASS earlier (6 headers, next offset 490496, 0 of 30 selected matched, zero WAV payload); don't rerun it.
 - Research observation: the upstream `data/audio_shards/audio_shards_manifest.csv` is described as an **archive-level inventory** (one entry per category TAR; archive filename, file count, size and SHA). It is **not evidence of an individual WAV TAR byte-offset index**. Reference: original corpus publication at https://www.sciencedirect.com/science/article/pii/S2352340926008085 and dataset README at https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset. Avoid a naïve one-HTTP-request-per-member scan through thousands of TAR members; its network latency may be excessive and it would go beyond the current hard cap of eight.
 - Existing `Imperative.tar` published size is **907765760 B (865.7 MiB)** and only 30 metadata rows are frozen. No actual WAV or TAR has been downloaded. No further code execution is necessary for the successful 14/14 check. Before any WAV acquisition, investigate whether publisher offers a genuine per-member offset index or directly hosted audio files. If not, choose a separate modest-size licensed audio source, or require explicit user approval of an 865.7 MiB archive download and available host storage. Neither strategy affects the fresh-consent private holdout or CP4 BLOCKED status.
+
+## Pemeriksaan biaya indeks WAV offline — 2026-10-11
+
+Kelanjutan setelah **14/14 Windows unit tests PASS** (`0.074s`) dan enam header TAR remote berhasil dibaca. Sampai saat ini hanya metadata 30 WAV `Imperative` yang dipilih; **0 WAV disimpan**. Pemeriksaan sumber resmi menunjukkan Dataset Viewer menyediakan tiga proyeksi Parquet **metadata dan transkrip**, bukan audio individual. Repository dataset menyimpan WAV dalam 11 arsip TAR; `audio_shards_manifest.csv` adalah inventaris arsip, bukan indeks posisi WAV dalam TAR. **Belum terbukti ada layanan endpoint WAV individual** pada revisi yang dibekukan. Jangan salah menyimpulkan bahwa HTTP 206 awal berarti tersedia indeks file acak.
+
+Rujukan sumber penelitian: https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset dan https://huggingface.co/datasets/Atika88/Indonesian-ASR-11-Class-Dataset/blob/main/docs/RELEASE_EVIDENCE_AND_METHOD_BOUNDARIES.md . Lisensi yang dinyatakan adalah CC BY 4.0, tetapi **pencantuman lisensi dan label speaker pseudonim bukan autentikasi persetujuan rekaman**, hak redistribusi atau ketidakberirisan dari data latih. Dataset bersifat prompted read speech, dan publikasi menyatakan sejumlah detail metodologi/izin tidak dapat dibuktikan dari paket publik; hindari klaim legal atau penelitian yang melampaui bukti.
+
+Dibuat `tools/t10_atika_acquisition_budget.py`, alat **offline/read-only** yang hanya membaca `upstream_metadata.csv` dan `external_test_30_selection.json` dari workspace privat. Alat memverifikasi SHA-256 lokal CSV yang sebelumnya dilaporkan Windows, revisi Hugging Face, kategori dan 30 baris yang dipilih, status `test`/human/non-synthetic, kecocokan label dan transkrip publisher, serta ukuran WAV yang dinyatakan. Output hanya agregat dan estimasi: jumlah seluruh baris kategori, kandidat human-test, total ukuran sumber terpilih, jumlah label pembicara, dan **perkiraan jumlah request jika tiap TAR member dibaca lewat satu HTTP Range header**.
+
+**Estimasi bukan pengukuran aktual:** tanpa indeks offset, diperlukan pembacaan header sepanjang arsip. Perkiraan jumlah permintaan didasarkan pada **jumlah baris WAV kategori dalam CSV**, tidak mencakup entry direktori, PAX atau metadata lain. Tabel waktu hanya ilustrasi jika rata-rata latency 200/500/1000 ms; bukan prediksi bandwidth atau waktu yang dijamin. Pilihan terbanyak berada di posisi yang belum diketahui, jadi jangan menganggap file ke-30 bisa ditemukan dalam 8 request. Kebijakan riset ini menetapkan **maksimum 200 request header** untuk pengambilan jarak jauh; jika estimasi lebih besar, jangan melakukan scan header-per-WAV karena beban jaringan/latensi yang besar. Ini bukan batas teknis server.
+
+### Perintah Windows berikutnya
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_acquisition_budget.py" -v
+if ($LASTEXITCODE -ne 0) { throw "Atika offline budget tests FAILED" }
+& $py tools\t10_atika_acquisition_budget.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "Atika budget preflight FAILED" }
+```
+
+Jumlah tes baru **14**, Windows QA **belum dilaporkan**, CI baru dihubungkan dan hasilnya belum diverifikasi. Jalankan hanya dua perintah di atas, **jangan mengulangi** `init`, `fetch-metadata`, `select`, range probe dan six-header walk. Alat ini tidak memerlukan jaringan dan tidak menulis ke disk. Jika melaporkan `DO_NOT_SCAN_TAR_ONE_MEMBER_PER_REQUEST`, keputusan selanjutnya adalah mengutamakan sumber audio individu dengan izin penggunaan yang benar-benar sesuai atau mempertimbangkan unduh satu arsip 865,7 MiB **hanya setelah pengguna menyetujui ukuran/ruang/cakupan dan hak pemakaian**. Tidak ada download otomatis, model atau WER baru, CP4 tetap BLOCKED.
