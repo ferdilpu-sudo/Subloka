@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""T10: OFFLINE-default continuation after three USER-REPORTED matched successors.
+"""T10: OFFLINE-default continuation after six USER-REPORTED matched successors.
 
-A previous human-observed live run verified successors 1..3 after the first
-selected TAR member. This tool relies on that observation; it DOES NOT recheck
+Two user-reported remote runs verified successors 1..3 and 4..6 after the
+first selected TAR member. This tool relies on that observation; it DOES NOT recheck
 those headers. It computes the next candidate from immutable pinned metadata
 and (only with explicit opt-in) checks up to 3 NEW adjacent successor headers
 with the existing strict 206-only 512-byte reader, stopping on first mismatch.
@@ -22,7 +22,7 @@ from t10_atika_tar_layout_budget import ceil_to
 import t10_atika_tar_header_walk as walk
 from t10_id_independent_holdout import require_private_workspace
 
-PRIOR_VERIFIED_SUCCESSORS = 3
+PRIOR_VERIFIED_SUCCESSORS = 6
 DEFAULT_NEW_SUCCESSORS = 3
 HARD_CAP_NEW_SUCCESSORS = 3
 
@@ -46,9 +46,10 @@ def continuation_plan(workspace: Path, count: int):
             catalogue[first_name] != first_size or
             second_index <= first_index + PRIOR_VERIFIED_SUCCESSORS + count):
         raise ValueError("Frozen first-to-second selected interval too short")
-    # Only the prior first + three successors have been observed to match.
-    # For those four, the publisher declared size coincided with actual header
-    # sizes, which justifies computing the next *candidate* (not a TAR index).
+    # Only the first selected header plus six immediate successors have
+    # been observed in separate user-reported live probes. For those seven,
+    # publisher-declared size matched the remote TAR header size; recompute
+    # the next *candidate* without repeating any earlier header request.
     prior_names = ordered[first_index+1:first_index+1+PRIOR_VERIFIED_SUCCESSORS]
     if len(prior_names) != PRIOR_VERIFIED_SUCCESSORS:
         raise ValueError("Missing previously verified metadata successors")
@@ -68,7 +69,7 @@ def continuation_plan(workspace: Path, count: int):
     expected = [(name, catalogue[name]) for name in wanted]
     report = {
         "schema_version": 1,
-        "checkpoint": "T10_ATIKA_ANCHORED_THREE_MATCHED_CONTINUATION",
+        "checkpoint": "T10_ATIKA_ANCHORED_SIX_MATCHED_CONTINUATION",
         "source_revision": preflight["source_revision"],
         "source_metadata_sha256": preflight["source_metadata_sha256"],
         "frozen_selected_count": len(selected),
@@ -128,7 +129,7 @@ def main() -> int:
         print("RANGE_IGNORED_NO_BODY_READ | CP4 BLOCKED", file=sys.stderr)
         return 2
     except (OSError, ValueError, TypeError, KeyError, UnicodeError):
-        print("ERROR: T10 three-successor continuation refused", file=sys.stderr)
+        print("ERROR: T10 six-successor continuation refused", file=sys.stderr)
         return 1
 
 

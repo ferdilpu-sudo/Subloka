@@ -1,4 +1,4 @@
-"""Synthetic-only regression for T10 anchored successors 4..6 continuation."""
+"""Synthetic-only regression for T10 anchored successors 7..9 continuation."""
 from __future__ import annotations
 from contextlib import redirect_stdout, redirect_stderr
 import hashlib
@@ -54,20 +54,21 @@ class FrozenSyntheticContinuation(unittest.TestCase):
     def plan(self, count=3):
         return continuation.continuation_plan(self.workspace, count)
 
-    def test_offline_plan_skips_three_and_limits_to_before_selected_second(self):
+    def test_offline_plan_skips_six_and_limits_to_before_selected_second(self):
         with patch.object(walk,"fetch_header",side_effect=AssertionError("HTTP")):
             offset, expected, report = self.plan()
         self.assertEqual(len(expected), 3)
         ordered = sorted(self.rows, key=lambda r:r["audio_path"])
         self.assertEqual([x[0] for x in expected],
-                         [r["audio_path"] for r in ordered[4:7]])
+                         [r["audio_path"] for r in ordered[7:10]])
         self.assertEqual(report["new_successor_ordinals_after_first_selected"],
-                         [4,5,6])
+                         [7,8,9])
+        self.assertEqual(report["previous_remote_matched_successors_from_user_report"], 6)
         self.assertEqual(report["network_requests_executed"], 0)
         self.assertFalse(report["previous_matched_headers_rechecked_this_run"])
         self.assertFalse(report["full_archive_order_verified"])
         predicted = sum(512 + ceil_to(int(r["file_size_bytes"]),512)
-                        for r in ordered[:4])
+                        for r in ordered[:7])
         self.assertEqual(offset,predicted)
 
     def test_default_cli_no_http_or_private_paths(self):
@@ -152,7 +153,7 @@ class FrozenSyntheticContinuation(unittest.TestCase):
     def test_one_requested_successor_supported(self):
         _, expected, report=self.plan(1)
         self.assertEqual(len(expected),1)
-        self.assertEqual(report["new_successor_ordinals_after_first_selected"],[4])
+        self.assertEqual(report["new_successor_ordinals_after_first_selected"],[7])
 
     def test_selection_tamper_refused(self):
         path=self.workspace/walk.SELECTION_NAME

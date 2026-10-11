@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_ANCHORED_SUCCESSOR_SIX_RECORDED_NEXT_SEVEN_TO_NINE_PENDING",
+  "provenance": "User-pasted Windows PowerShell output; remote HTTP operations performed by user, not the assistant",
+  "prior_repo_commit": "51632a25d261df38f315756bb0130acb0981f09a",
+  "pinned_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+  "pinned_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+  "actual_remote_new_successors_4_to_6": {
+    "requested": [
+      4,
+      5,
+      6
+    ],
+    "network_requests_executed": 3,
+    "headers_attempted": 3,
+    "exact_member_name_size_type_matches": 3,
+    "all_requested_successors_match": true,
+    "classification": "ALL_REQUESTED_SUCCESSOR_HEADERS_MATCH",
+    "status": "NEW_SUCCESSOR_HEADERS_MATCH_NOT_FULL_TAR",
+    "exit_code": 0,
+    "wav_payloads_downloaded": 0,
+    "full_tar_order_verified": false,
+    "second_selected_location_found": false
+  },
+  "prior_remote_successors_1_to_3": {
+    "matched": 3,
+    "verified_separately_in_user_report": true
+  },
+  "prior_first_selected_anchor_header_matched": true,
+  "unique_contiguous_matched_header_positions_across_separate_runs": 7,
+  "metadata_members_strictly_between_first_and_second": 39,
+  "remaining_intermediate_metadata_members_after_six_matched": 33,
+  "prior_second_selected_header_invalid_at_predicted_position": true,
+  "next_revision_to_existing_tool": {
+    "script": "tools/t10_atika_anchored_successor_continuation.py",
+    "test": "tools/test_t10_atika_anchored_successor_continuation.py",
+    "prior_successors_to_skip": 6,
+    "new_successors": [
+      7,
+      8,
+      9
+    ],
+    "test_count": 12,
+    "CI_status": "PENDING",
+    "Windows_status": "PENDING",
+    "pinned_offline_preflight": "PENDING",
+    "remote_new_successors_checked": false,
+    "hard_cap_requests": 3,
+    "read_cap_per_request_bytes": 513,
+    "offline_default": true
+  },
+  "gates": {
+    "T10": "ACTIVE",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  },
+  "wav_payloads_recovered_total": 0
+}
