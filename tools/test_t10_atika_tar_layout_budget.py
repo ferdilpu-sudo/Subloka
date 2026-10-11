@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from t10_atika_tar_layout_budget import (
     theoretical_layout, layout_budget, main, ceil_to,
 )
-from test_t10_atika_acquisition_budget import OfflineAtikaAcquisitionBudgetTests
+import test_t10_atika_acquisition_budget as _budget_fixtures
 from t10_atika_tar_header_walk import SELECTION_NAME
 from t10_public_id_corpus import METADATA_FILENAME
 
@@ -56,11 +56,11 @@ class TarLayoutSyntheticTests(unittest.TestCase):
 
 class TarLayoutPinnedWorkspaceTests(unittest.TestCase):
     # Reuse synthetic fixtures, never fetching public audio or private records.
-    make_files = OfflineAtikaAcquisitionBudgetTests.make_files
-    cleanup_patches = OfflineAtikaAcquisitionBudgetTests.cleanup_patches
+    make_files = _budget_fixtures.OfflineAtikaAcquisitionBudgetTests.make_files
+    cleanup_patches = _budget_fixtures.OfflineAtikaAcquisitionBudgetTests.cleanup_patches
 
     def setUp(self):
-        OfflineAtikaAcquisitionBudgetTests.setUp(self)
+        _budget_fixtures.OfflineAtikaAcquisitionBudgetTests.setUp(self)
 
     def test_aggregate_and_no_offset_claim(self):
         out = layout_budget(self.workspace)

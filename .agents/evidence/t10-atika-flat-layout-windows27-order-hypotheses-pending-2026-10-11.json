@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_FLAT_TAR_LAYOUT_WINDOWS_27_PASS_AND_ORDER_HYPOTHESES_IMPLEMENTED_PENDING",
+  "source_revision_tested": "09c002019a26dd447946e52dd0732f678e9d9856",
+  "windows": {
+    "reported_tests": 27,
+    "passed": 27,
+    "duration_seconds": 0.246,
+    "result": "OK",
+    "original_suite_direct_tests": 12,
+    "rediscovered_imported_suite_tests": 15,
+    "cli_exit_guard_passed": true,
+    "provenance": "User console output (Windows PowerShell)",
+    "github_ci_workflow_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38100847100",
+    "github_ci_result": "success"
+  },
+  "output": {
+    "checkpoint": "PUBLIC_IMPERATIVE_TAR_LAYOUT_ARITHMETIC_OFFLINE_ONLY",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "source_metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "selected_metadata_count_unchanged": 30,
+    "selected_wav_bytes_publisher_metadata_only": 2590936,
+    "category_wav_count": 9500,
+    "wav_payload_bytes_from_publisher_metadata": 900344354,
+    "hypothetical_one_header_per_wav_bytes": 4864000,
+    "wav_512_alignment_padding_bytes": 2553822,
+    "hypothetical_all_wav_members_end_bytes": 907762176,
+    "hypothetical_minimum_including_two_end_blocks_bytes": 907763200,
+    "hypothetical_10240_record_padded_archive_bytes": 907765760,
+    "published_archive_bytes": 907765760,
+    "archive_minus_hypothetical_minimum_bytes": 2560,
+    "published_archive_matches_flat_10240_example": true,
+    "archive_layout_proven": false,
+    "wav_member_order_proven": false,
+    "wav_offsets_verified": false,
+    "network_calls": 0,
+    "files_written": false,
+    "wav_or_tar_downloaded": false,
+    "actual_wav_locally_verified": false
+  },
+  "corrections": {
+    "test_file": "tools/test_t10_atika_tar_layout_budget.py",
+    "change": "Use module alias for imported fixture to prevent unittest discovery of previous 15 test methods",
+    "existing_27_case_result_preserved": true,
+    "new_expected_isolated_layout_cases": 12,
+    "new_windows_validation": false
+  },
+  "next_stage": {
+    "source": "tools/t10_atika_tar_order_hypotheses.py",
+    "tests": "tools/test_t10_atika_tar_order_hypotheses.py",
+    "workflow": ".github/workflows/t10-atika-layout-offline.yml",
+    "new_direct_synthetic_test_count": 10,
+    "tests_windows_pending": true,
+    "original_30_selection_unchanged": true,
+    "existing_observations": {
+      "first_tar_member_size_bytes": 91364,
+      "six_header_next_offset_bytes": 490496,
+      "file_headers_observed": 6
+    },
+    "hypotheses": [
+      "publisher_csv_row_order",
+      "lexicographic_audio_path_order"
+    ],
+    "offset_index_generated": false,
+    "network_request_count": 0,
+    "recovered_audio_count": 0
+  },
+  "privacy_and_limits": [
+    "Even a total 10,240B alignment match is not proof of absence of auxiliary TAR records",
+    "Matching six prefix aggregate values does not establish member identity or selected WAV offsets",
+    "Source voice consent and train/test independence unverified",
+    "Any large archive download requires explicit user authorization"
+  ],
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

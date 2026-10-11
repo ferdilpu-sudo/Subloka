@@ -213,3 +213,23 @@ if ($LASTEXITCODE -ne 0) { throw "T10 TAR layout budget FAILED" }
 ```
 
 No more `select`, `fetch-metadata`, remote header walks, big downloads, models, or inference. Do not mark CP4 PASS. Source script: https://github.com/RatnaAtika/Indonesian-ASR-11-Class-Dataset/blob/main/Colab_ASR_A100_Training/scripts/build_colab_data_archives.sh .
+
+
+## Verified Windows flat TAR arithmetic, and offline order hypothesis gate — 2026-10-11
+- Actual Windows console after commit `09c0020`: **27 tests PASS (0.246s)**, containing 12 layout cases + 15 reused acquisition-budget cases accidentally imported into discovery; this was corrected for future runs without changing TAR arithmetic logic. Read-only host report independently matched 9,500 WAV metadata entries and **907,765,760B TAR size** when assuming 9,500 headers, exact 512-byte WAV padding, two 512-byte end blocks and illustrative 10,240-byte TAR record rounding. The residual before final padding is **2,560B**. Do not claim this proves no directory/PAX metadata, exact WAV sizes, TAR member order, or offsets.
+- Follow-on `tools/t10_atika_tar_order_hypotheses.py` only checks two **hypothetical member orders** against earlier already-observed first member WAV size 91364B and end-of-sixth-header offset 490496B. It never sends requests, creates or prints member offset tables, changes frozen 30-selection or restores WAV payloads. Return true = candidate is consistent with two small observations, **not verified**; false = candidate inconsistent. New **10 synthetic tests Windows PENDING**; corrected **12 layout tests Windows PENDING**; earlier Windows 27 PASS remains historical evidence.
+
+```powershell
+cd C:\Users\FLYONZ\Documents\GitHub\Subloka
+git pull --ff-only origin main
+$py = ".\.t10-benchmark\argos-venv\Scripts\python.exe"
+$public = ".\.t10-benchmark\t10-public-atika"
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_layout_budget.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 layout isolated tests FAILED" }
+& $py -m unittest discover -s tools -p "test_t10_atika_tar_order_hypotheses.py" -v
+if ($LASTEXITCODE -ne 0) { throw "T10 order hypotheses synthetic tests FAILED" }
+& $py tools\t10_atika_tar_order_hypotheses.py --workspace $public
+if ($LASTEXITCODE -ne 0) { throw "T10 order hypothesis offline audit FAILED" }
+```
+
+Do not repeat archive-size reports, select, first TAR header, six-header live pilot, or acquisition budget CLI, and do not download `Imperative.tar` or any WAV. Public speaker/consent and training disjointness remain unverified. CP4 BLOCKED / T11 TODO.
