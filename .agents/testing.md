@@ -931,3 +931,8 @@ Dokumen/task yang diperbarui:
 ### T10 ORDER-HYPOTHESES CI FAIL + SYNTHETIC-PIN PATCH / 2026-10-11
 - GitHub Actions run `38101218559`, job `114357360301`: `test_t10_atika_tar_layout_budget.py` synthetic suite completed, followed by order-hypotheses file: `Ran 10 tests in 0.013s`, **FAILED (failures=1, errors=3)**. Four pinned-workspace synthetic tests failed with `ValueError: Metadata SHA changed during order audit` / CLI exit 1. Five order-pure-logic and one synthetic mismatch-rejection case succeeded.
 - Exact cause: `from t10_atika_tar_header_walk import PINNED_METADATA_SHA` captured immutable constant once, whereas fixture patch updates the source module after import. **Fix:** change analyzer to read source-module pin on each call (same valid source of truth as `t10_atika_tar_layout_budget.py`). This is a test compatibility correction, **not bypassing the SHA guard**. Do not promote initial failure to PASS; next CI and Windows validation remain pending.
+
+
+### T10 CI VERIFIED AFTER DIGEST-SOURCE FIX / 2026-10-11
+- Actual GitHub Actions run <https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101316757> on `97189ca637f595ad0a6b8448ed3468e7ac77f75a` **success**, synthetic-only job logs `Ran 12 tests in 0.015s / OK` plus `Ran 10 tests in 0.012s / OK`. SHA pin checking remains in place and synthetic mock fixture correctly changes common source module pin. Earlier failure run `38101218559` remains documented as real test regression.
+- **Windows new code PENDING**; selected WAV index still unverified; TAR and WAV downloads 0. Neither the 12+10 CI tests nor previous 27 Windows layout tests meet CP4 quality/resource gates.

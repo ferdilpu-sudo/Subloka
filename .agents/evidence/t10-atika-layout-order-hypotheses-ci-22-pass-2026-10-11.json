@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_LAYOUT_AND_ORDER_HYPOTHESES_CI_12_PLUS_10_PASS",
+  "tested_source_commit": "97189ca637f595ad0a6b8448ed3468e7ac77f75a",
+  "github_actions": {
+    "run_id": 38101316757,
+    "job_id": 114357647181,
+    "run_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38101316757",
+    "conclusion": "success",
+    "log_read": "GitHub decoded job logs",
+    "layout": {
+      "count": 12,
+      "passes": 12,
+      "summary": "Ran 12 tests in 0.015s / OK"
+    },
+    "order_hypotheses": {
+      "count": 10,
+      "passes": 10,
+      "summary": "Ran 10 tests in 0.012s / OK"
+    }
+  },
+  "historical": {
+    "windows_layout_and_inherited_tests": {
+      "source_commit": "09c002019a26dd447946e52dd0732f678e9d9856",
+      "total": 27,
+      "passes": 27,
+      "layout_direct": 12,
+      "unintentionally_imported_budget": 15
+    },
+    "fixed_early_ci_failure": {
+      "run_id": 38101218559,
+      "failure": "test fixture SHA snapshot by-value import; corrected without weakening production guard"
+    }
+  },
+  "still_pending": {
+    "windows_layout_isolated_12": true,
+    "windows_order_tests_10": true,
+    "private_pinned_csv_order_candidates": true,
+    "wav_recovered": 0,
+    "real_member_order_verified": false
+  },
+  "offline_and_privacy": {
+    "ci_downloads_audio": false,
+    "mutates_private_holdout": false,
+    "creates_wav_index": false,
+    "has_actual_wav_integrity_evidence": false
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}
