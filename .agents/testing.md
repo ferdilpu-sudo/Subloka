@@ -952,3 +952,7 @@ Dokumen/task yang diperbarui:
 ### T10 THREE-HEADER REGRESSION CI PASS AFTER FIX — 2026-10-11
 - Source `1dec365a15d4f4d9ea6bf0a716ae8a885b772124`, GitHub Actions job `114358975061` / run `38101763518` **success**. Actual decoded log: `Ran 12 tests in 0.015s / OK`, `Ran 10 tests in 0.013s / OK`, `Ran 13 tests in 0.020s / OK`. Overall **35/35 synthetic PASS**. New 13 tests prove offline-default behavior, 3-request cap via mocks, fail-closed mismatch/Range ignored, SHA/selection guard and no sensitive output on synthetic fixtures. They do NOT verify actual TAR order.
 - Windows new suite and pinned private data dry-run **PENDING**. The `--execute-three-headers` option was not used in CI and no real remote headers were requested. Keep earlier CI failure and its root-cause documented for traceability. CP4 BLOCKED.
+
+### T10 SPARSE HEADER WINDOWS 13/13 PASS — 2026-10-11
+- User Windows: `Ran 13 tests in 0.119s / OK`; exit guard PASS. Actual pinned offline CLI: `OFFLINE_PREFLIGHT_ONLY_NO_HTTP`; 9,500 category members, hypothetical positions 2376/4751/7126 (1-based), 0 HTTP requests and 0 WAV/TAR retrieved. No selected offsets or entire TAR order verified.
+- Mode `--execute-three-headers` was **not run**. It requires a separate deliberate decision; even 3/3 cannot promote CP4. T10 ACTIVE, CP4 BLOCKED, T11 TODO. See `.agents/evidence/t10-atika-sparse3-windows13-offline-pass-2026-10-11.json`.

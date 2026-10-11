@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "checkpoint": "T10_ATIKA_SPARSE_THREE_HEADER_WINDOWS_13_PASS_OFFLINE_PREFLIGHT",
+  "provenance": "User-provided Windows PowerShell output; not independently re-executed on Windows",
+  "repository_head_before_documentation_commit": "a9355a6f3ba4a096de6515b0a7b915a92ab373da",
+  "windows_worktree_sha_independently_verified": false,
+  "windows_test": {
+    "suite": "test_t10_atika_tar_three_header_spotcheck.py",
+    "tests": 13,
+    "passed": 13,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds": 0.119,
+    "summary": "Ran 13 tests in 0.119s / OK",
+    "exit_guard_passed": true
+  },
+  "offline_preflight": {
+    "checkpoint": "PUBLIC_IMPERATIVE_THREE_HEADER_SPOT_CHECK_ONLY",
+    "source_revision": "c65fe8bcff0547214c34cfbea248b4045a0d867c",
+    "metadata_sha256": "3ba42e2261e4ef387bc15e5934ce73be8e3cf6d1700ab0d635aa9d6958f59c21",
+    "category_count": 9500,
+    "hypothesis": "LEXICOGRAPHIC_MEMBER_ORDER_NO_AUX_HEADERS",
+    "hypothetical_positions_one_based": [
+      2376,
+      4751,
+      7126
+    ],
+    "prior_first_and_sixth_aggregate_checks": true,
+    "spot_check_max_http_requests_if_opted_in": 3,
+    "spot_check_max_application_read_bytes_if_opted_in": 1539,
+    "status": "OFFLINE_PREFLIGHT_ONLY_NO_HTTP",
+    "network_requests_executed": 0,
+    "archive_or_wav_downloaded": false,
+    "source_audio_sha_verified": false,
+    "member_order_verified": false,
+    "selected_30_wav_offsets_verified": false,
+    "exit_guard_passed": true
+  },
+  "optional_next_step": {
+    "three_header_network_probe_executed": false,
+    "explicit_flag": "--execute-three-headers",
+    "network_requests_max": 3,
+    "read_bytes_max_per_request": 513,
+    "full_tar_download_approved": false
+  },
+  "prior_linux_synthetic_ci": {
+    "passed": 35,
+    "run_id": 38101763518
+  },
+  "gates": {
+    "T10": "BLOCKED",
+    "CP4": "BLOCKED",
+    "T11": "TODO"
+  }
+}

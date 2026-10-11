@@ -254,3 +254,7 @@ if ($LASTEXITCODE -ne 0) { throw "T10 three-header offline preflight FAILED" }
 ```
 
 The flag `--execute-three-headers` is **not** used by these commands. It authorizes three bounded remote header requests and should only be chosen deliberately after observing offline results; no infinite scan, no 865.7MiB TAR or selected WAV download. The 30 private fresh-consent holdout remains untouched; public voice provenance/disjointness still unverified, `T10 ACTIVE / CP4 BLOCKED / T11 TODO`.
+
+## Windows sparse-three-header preflight verified — 2026-10-11
+- New synthetic suite **13/13 Windows PASS (0.119s)**; real pinned metadata preflight returned `OFFLINE_PREFLIGHT_ONLY_NO_HTTP`. Hypothetical sorted-path quartiles: **2376, 4751, 7126** (1-based), 0 actual header requests and 0 WAV/TAR audio. Prior first/sixth aggregates remain consistent; no member offset or global order verified.
+- Deliberately separate step `--execute-three-headers` makes **up to three real HTTPS 206 header-only Range GETs**, stops at the first mismatch, and is not included in offline QA. No full TAR download or payload recovery approved; CP4 BLOCKED, T11 TODO. Evidence: `.agents/evidence/t10-atika-sparse3-windows13-offline-pass-2026-10-11.json`.
