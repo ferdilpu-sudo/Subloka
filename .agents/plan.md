@@ -1077,3 +1077,10 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 
 ### T12 authorized start — 2026-10-13
 User reports Indonesian in-app transcription succeeded on the test phone; no claim that airplane mode, exact APK revision, persistence/cancel, timing accuracy or 10-minute performance were independently verified. User then authorized offline translation integration with `lanjut`. T12 IN_PROGRESS under ADR-030; T11 remains IN_PROGRESS and CP4 BLOCKED. Scope: model readiness/download UI, eligible-segment pipeline, CAS/manual protection, retry/cancel, editor integration and focused tests/CI.
+
+
+### T12 prototype handoff — 2026-10-13
+- Implemented at `4ed4de418d731635c8da2864a1c0797a2f0763d6`: explicit ML Kit readiness/download, contextual eligible-caption actions, bidirectional pipeline, per-segment CAS/manual protection, retry/cancel and editor reload. Source text/timing are preserved; current/manual translations are not auto-replaced.
+- **T12-PROTOTYPE-002 PASS**, CI `38365151582` both build and emulator jobs. APK/report link and limitations in testing.md. No physical translation result yet. T11 remains IN_PROGRESS with user-reported Indonesian transcription success; T12 IN_PROGRESS; CP4 BLOCKED.
+- Next: install the T12 prototype APK, open a transcribed project, prepare translation models explicitly, turn internet off, translate and verify manual-edit/stale/retry persistence on Sony. No need to rerun the external30 ASR benchmark.
+- Docs updated: README, agent README, plan, testing, ADR-030, architecture, design, schema (v1 unchanged), evidence JSON. PRD unchanged. Draft PR #1 updated; no merge or release.
