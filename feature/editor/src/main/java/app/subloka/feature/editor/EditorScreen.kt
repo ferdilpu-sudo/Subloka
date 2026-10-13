@@ -27,6 +27,7 @@ import app.subloka.core.domain.CaptionEditingRules
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
 import app.subloka.core.domain.EditorWorkspace
+import app.subloka.core.domain.TranslationEligibility
 import app.subloka.core.domain.TranslationOrigin
 import app.subloka.core.domain.TranslationStatus
 import java.util.UUID
@@ -47,6 +48,7 @@ fun EditorScreen(
     demoMode: Boolean = true,
     durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
     onGenerate: () -> Unit = {},
+    onRequestTranslation: (String?) -> Unit = {},
 ) {
     if (initialSegments.isEmpty()) {
         Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -160,7 +162,13 @@ fun EditorScreen(
                 title = projectTitle,
                 exportAvailable = demoMode,
             )
-            if (demoMode) DemoBadge() else Text("Prototipe • periksa teks dan waktu. Terjemahan otomatis dan ekspor belum tersedia.", style = MaterialTheme.typography.bodySmall)
+            if (demoMode) DemoBadge() else Text("Prototipe • periksa teks dan waktu. Periksa juga makna terjemahan. Ekspor belum tersedia.", style = MaterialTheme.typography.bodySmall)
+
+            if (!demoMode) {
+                val count = segments.count(TranslationEligibility::canGenerate)
+                app.subloka.core.designsystem.SecondaryAction("Terjemahkan / perbarui $count caption",
+                    { onRequestTranslation(null) }, enabled = count > 0, modifier = Modifier.fillMaxWidth())
+            }
 
             if (expanded) {
                 Row(
@@ -172,7 +180,7 @@ fun EditorScreen(
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
-                        demoMode = demoMode, durationUs = durationUs,
+                        demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
                         workspace = workspace,
                         segments = segments,
                         selectedId = selectedId,
@@ -192,7 +200,7 @@ fun EditorScreen(
                 VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
-                    demoMode = demoMode, durationUs = durationUs,
+                    demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
                     workspace = workspace,
                     segments = segments,
                     selectedId = selectedId,
@@ -261,6 +269,7 @@ private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (Ed
 
 @Composable
 private fun WorkspacePanel(
+    onRequestTranslation: (String?) -> Unit,
     demoMode: Boolean,
     durationUs: Long,
     workspace: EditorWorkspace,
@@ -309,9 +318,10 @@ private fun WorkspacePanel(
                     },
                 )
             },
-            translationAvailable = demoMode,
+            demoMode = demoMode,
+            translationAvailable = demoMode || TranslationEligibility.canGenerate(selected),
             onRetranslate = {
-                onSegmentsChange(
+                if (!demoMode) onRequestTranslation(selected.id) else onSegmentsChange(
                     segments.toMutableList().also { list ->
                         list[selectedIndex] = selected.copy(
                             translationText = demoRetranslation(selected.sourceText, selected.sourceLanguage.code),

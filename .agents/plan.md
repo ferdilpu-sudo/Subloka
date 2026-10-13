@@ -24,7 +24,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | DONE |
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | BLOCKED |
 | T11 | Pipeline ASR produksi (prototipe terbatas diotorisasi ADR-029) | T10, CP4; pengecualian prototipe ADR-029 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | IN_PROGRESS |
-| T12 | Pipeline translation produksi | T11 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | TODO |
+| T12 | Pipeline translation (prototipe ADR-030) | T11; pengecualian prototipe ADR-030 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | IN_PROGRESS |
 | T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
 | T14 | Renderer dan ekspor MP4/SRT | T13, CP5 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | TODO |
 | T15 | Integrasi dan hardening end-to-end | T14 | Seluruh FR/NFR ditelusuri; mode pesawat, adaptive/keyboard/accessibility, kualitas, lifecycle/perangkat PASS; CP6 lulus | TODO |
@@ -1073,3 +1073,7 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Implemented and compiled: actual model provisioning/JNI/PCM transcription pipeline, safe publication to separate projects, source editor/timing/playback integration, cancel/retry and honest legacy demo disclosure.
 - **T11 remains IN_PROGRESS / CP4 BLOCKED.** Next ready action: short Sony offline in-app smoke and persisted-edit/cancellation checks. Physical inference is not established by the passing emulator missing-model test. Do not advance to production translation/export or re-label model quality as passed.
 - Documentation synchronized: README, agent README, plan, testing, decisions, architecture, schema, design, evidence JSON. PRD unchanged. No merge/release performed; draft PR https://github.com/ferdilpu-sudo/Subloka/pull/1.
+
+
+### T12 authorized start — 2026-10-13
+User reports Indonesian in-app transcription succeeded on the test phone; no claim that airplane mode, exact APK revision, persistence/cancel, timing accuracy or 10-minute performance were independently verified. User then authorized offline translation integration with `lanjut`. T12 IN_PROGRESS under ADR-030; T11 remains IN_PROGRESS and CP4 BLOCKED. Scope: model readiness/download UI, eligible-segment pipeline, CAS/manual protection, retry/cancel, editor integration and focused tests/CI.

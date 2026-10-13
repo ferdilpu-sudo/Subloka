@@ -2,7 +2,7 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. Translation and real export are not integrated. The separate demo project remains labeled.
+Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. Real export is not integrated. The separate demo project remains labeled.
 
 This is an explicitly authorized prototype while **CP4 remains BLOCKED**. Current branch build/device validation status is recorded in `.agents/testing.md`; historical CI passes below do not validate these changes.
 
@@ -482,4 +482,8 @@ Packaged native ABIs: arm64-v8a and x86_64. Initial build needs network access.
 
 Create a new project, choose the audio language, then import `ggml-base.bin` from the existing benchmark cache or explicitly download it in the app. The app verifies the model SHA-256 before use. After provisioning, inference works without network. Keep the app open and the screen unlocked during processing; leaving the app cancels this prototype operation. Rotation retains the ViewModel. After process death, reopen the saved project and retry; no partial caption checkpoint is restored.
 
-PCM is streamed into private temporary storage, downmixed and linearly resampled to 16 kHz, then transcribed in non-overlapping 30-second windows. Boundary speech and resampling quality need physical evaluation. Completed captions are published atomically only into an empty project at its original revision. No transcription is published on partial failure. Preview follows caption timestamps; source text, manual translation, split/merge and bounded timing adjustments persist locally. Style preview fidelity, automated translation, background recovery and export remain separate work.
+PCM is streamed into private temporary storage, downmixed and linearly resampled to 16 kHz, then transcribed in non-overlapping 30-second windows. Boundary speech and resampling quality need physical evaluation. Completed captions are published atomically only into an empty project at its original revision. No transcription is published on partial failure. Preview follows caption timestamps; source text, manual translation, split/merge and bounded timing adjustments persist locally. Style preview fidelity, background recovery and export remain separate work.
+
+
+## T12 translation prototype
+Open an existing transcribed project and choose **Terjemahkan / perbarui** (or the selected-caption action). Provision the separate translation models once; Wi-Fi-only download is selected by default. When models report ready, you can turn off internet and translate. Completed translations persist per caption; retry processes remaining missing/stale machine captions. Manually edited translations and current results are preserved. Source edits mark existing translations stale; automatic refresh never overwrites a manual translation. Keep the app foreground; stopping retains completed translations. Automatic translation quality still needs human review, and CP4 remains blocked. New T12 CI/device evidence is recorded in `.agents/testing.md`; prior T11 CI does not validate these new changes.

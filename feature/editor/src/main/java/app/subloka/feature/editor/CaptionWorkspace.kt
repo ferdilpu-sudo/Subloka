@@ -31,6 +31,7 @@ fun CaptionWorkspace(
     onRetranslate: () -> Unit,
     onSplit: () -> Unit,
     onMergeNext: () -> Unit,
+    demoMode: Boolean = true,
     translationAvailable: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
@@ -52,6 +53,7 @@ fun CaptionWorkspace(
         SelectedCaptionEditor(
             segment = selected,
             translationAvailable = translationAvailable,
+            demoMode = demoMode,
             onSourceChange = onSourceChange,
             onTranslationChange = onTranslationChange,
             onRetranslate = onRetranslate,
@@ -72,6 +74,7 @@ fun CaptionWorkspace(
 private fun SelectedCaptionEditor(
     segment: CaptionSegment,
     translationAvailable: Boolean,
+    demoMode: Boolean,
     onSourceChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onRetranslate: () -> Unit,
@@ -97,8 +100,12 @@ private fun SelectedCaptionEditor(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
             )
-            if (segment.translationStatus == TranslationStatus.STALE) {
-                SecondaryAction(if (translationAvailable) "Terjemahkan ulang (demo)" else "Terjemahan otomatis belum tersedia", onRetranslate, enabled = translationAvailable, modifier = Modifier.fillMaxWidth())
+            if (segment.translationStatus != TranslationStatus.CURRENT) {
+                SecondaryAction(if (demoMode) "Terjemahkan ulang (demo)" else "Terjemahkan caption ini",
+                    onRetranslate, enabled = translationAvailable, modifier = Modifier.fillMaxWidth())
+                if (!demoMode && segment.translationOrigin == app.subloka.core.domain.TranslationOrigin.MANUAL) {
+                    Text("Terjemahan manual dilindungi. Koreksi langsung pada kolom terjemahan.", style = MaterialTheme.typography.bodySmall)
+                }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(formatTime(segment.startUs), color = SubLokaColors.TextSecondary)

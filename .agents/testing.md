@@ -1152,3 +1152,13 @@ Dokumen/task yang diperbarui:
 - APK/reports artifact: https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247/artifacts/11791909316 ; zip SHA-256 `84899e9c61550fde3d1785b0cc357d94968ec2d6d15dc583a25919d147a10d51`.
 - Evidence summary `.agents/evidence/t11-prototype-ci-2026-10-13.json`. Later documentation-only changes do not alter this tested code. Local final diff/JSON consistency checks PASS.
 - Physical Sony inference/UI/lifecycle, timestamps/boundary quality, 10-minute RAM/thermal, translation and export remain NOT_RUN/unimplemented as applicable. T11 IN_PROGRESS; CP4 BLOCKED. Execute the short physical smoke protocol above next, without repeating the completed external30 CLI benchmark.
+
+
+## T11-DEVICE-REPORTED-001 — 2026-10-13
+User: `berhasil transkrip bahasa indonesia. terjemahan belum ada`. Record basic Indonesian in-app transcription as USER_REPORTED_SUCCESS. Prior task context identifies Sony, but no new device log/APK hash/duration/offline proof was supplied. Translation absence matches T11 scope. Do not infer full lifecycle, persistence, accuracy or CP4 acceptance.
+
+
+## T12-PROTOTYPE-001 — implementation and local checks, 2026-10-13
+Base `b1be2fe8d2531b84f884493be541b459e1ae01b1`, current prototype branch. Local project guardrails and git diff --check PASS. Gradle/SDK remain unavailable locally as recorded for T11; no local Android build claimed. Added pipeline tests for both directions, exclusion of current/manual/blank rows, missing-model/no-download behavior, blank/error retry without redoing successful results, CAS conflicts, noncooperative late cancellation and persistence failure. Extended Room tests for persisted machine results and deleted-segment rejection. Added fresh-app emulator SDK readiness/no-provisioning instrumentation. CI pending. This does not prove physical translation or improve the existing CP4 quality results.
+
+Physical protocol after passing build: open an existing Indonesian project → Terjemahkan/perbarui → explicit model download (Wi-Fi by default) → switch airplane mode on and Wi-Fi off → translate → inspect target field and timed preview → correct translation manually → return/reopen → verify correction remains protected on bulk retry. Edit a source with a machine translation and verify STALE then selected refresh; manual stale rows stay protected. Repeat EN→ID and stop/retry a larger batch. Exact APK, device, connection state and results should accompany evidence.

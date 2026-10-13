@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "0.2.0-asr-prototype"
+        versionName = "0.3.0-translation-prototype"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:media"))
     implementation(project(":engine:asr"))
+    implementation(project(":engine:translation"))
     implementation(project(":feature:projects"))
     implementation(project(":feature:editor"))
     implementation(project(":feature:export"))

@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.subloka.core.domain.TranslationEligibility
 import app.subloka.core.domain.ProjectSummary
 import app.subloka.demo.DemoData
 import app.subloka.feature.editor.EditorScreen
@@ -26,6 +27,8 @@ fun SubLokaApp(
     val project by persistence.project.collectAsState()
     val projects by persistence.projects.collectAsState()
     val asr by persistence.asr.collectAsState()
+    val translation by persistence.translation.collectAsState()
+    var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
     val selection by media.selection.collectAsState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) media.select(uri)
@@ -39,7 +42,7 @@ fun SubLokaApp(
     }
     fun back() {
         if (asr.busy) persistence.cancelOperation()
-        else persistence.flush { success -> if (success) route = "projects" }
+        else persistence.flush { success -> if (success) route = if (route == "translation") "editor" else "projects" }
     }
     BackHandler(route != "projects") { back() }
     when (route) {
@@ -69,12 +72,30 @@ fun SubLokaApp(
         "processing" -> ProcessingScreen(asr.busy, asr.stage, asr.error, asr.completed,
             onCancel = persistence::cancelOperation, onRetry = { route = "model" },
             onOpenEditor = { route = "editor" }, onBack = ::back, modifier = modifier)
+        "translation" -> project?.let { p ->
+            TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
+                eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
+                pairLabel = "${p.sourceLanguage.label} → ${p.targetLanguage.label}",
+                onCheck = persistence::checkTranslationModel,
+                onDownload = persistence::prepareTranslationModel,
+                onTranslate = { persistence.startTranslation(translationTarget) },
+                onCancel = persistence::cancelOperation, onBack = ::back, modifier = modifier)
+        }
         "editor" -> project?.let { p ->
             key(p.id) {
                 EditorScreen(initialSegments = segments, initialStyle = style,
                     mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
                     projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
                     onGenerate = { route = "model" },
+                    onRequestTranslation = { segmentId ->
+                        persistence.flush { success ->
+                            if (success && !asr.busy) {
+                                translationTarget = segmentId
+                                route = "translation"
+                                persistence.checkTranslationModel()
+                            }
+                        }
+                    },
                     saveStatusText = saveState.label(), saveFailed = saveState == PersistenceSaveState.FAILED,
                     onSegmentsPersist = persistence::persistSegments, onStylePersist = persistence::persistStyle,
                     onBack = ::back, onExport = { route = "export" }, modifier = modifier)

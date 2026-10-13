@@ -91,7 +91,7 @@ fun NewProjectScreen(
             Surface(color = SubLokaColors.SurfaceHigh, shape = RoundedCornerShape(8.dp)) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Caption akan dibuat", style = MaterialTheme.typography.labelMedium)
-                    Text("${sourceLanguage.label} • tanpa terjemahan otomatis")
+                    Text("${sourceLanguage.label} • lanjutkan terjemahan dari editor")
                 }
             }
         }

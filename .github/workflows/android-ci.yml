@@ -69,7 +69,7 @@ jobs:
       - name: ASR model-store unit tests
         run: ./gradlew --stacktrace :engine:asr:testDebugUnitTest
 
-      - name: Translation fidelity warning unit tests
+      - name: Translation pipeline and fidelity unit tests
         run: ./gradlew --stacktrace :engine:translation:testDebugUnitTest
 
       - name: Compile translation device tests
@@ -97,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: t11-debug-and-reports
+          name: subloka-prototype-debug-and-reports
           path: |
             app/build/outputs/apk/debug/*.apk
             **/build/reports/tests/
@@ -145,4 +145,4 @@ jobs:
           disable-animations: true
           script: |
             bash tools/run_media_device_tests.sh
-            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest
+            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest

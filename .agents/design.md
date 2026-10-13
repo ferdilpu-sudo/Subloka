@@ -713,3 +713,7 @@ T03 tidak membuktikan runtime usability. Ia menetapkan interaction contract agar
 
 ## T11 prototype flow correction (2026-10-13)
 P0 usability/data defect: demo progression could imply successful inference on user media; importing into one demo project could conflate media and captions. Replace it with separate persisted projects, actual model import/download/readiness and actual processing stages. Empty/failure/cancel states lead to retry; source-only results open the existing Caption/Timing/Style editor. Mark prototype limits, disable automatic demo translation/export for real projects, and bind preview captions to playback time. Acceptance: no fabricated ASR completion, no overwritten project, inspectable source/time edits. Physical UX/lifecycle validation remains pending.
+
+
+## T12 translation action (2026-10-13)
+P1 missing functionality: source captions exist but the translation field cannot be generated. Add contextual bulk and selected-caption actions in Caption, followed by model readiness/download and actual processing feedback. No fourth editor workspace. Preserve current/manual translations; show why manual content cannot be auto-replaced. Leave the editor during processing, flush its saves before entry, and reload the persisted snapshot on return so stale local drafts cannot replace new translations. Failures explain retry of remaining captions; completed rows survive interruption. Export remains unavailable.

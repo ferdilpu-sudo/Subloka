@@ -195,6 +195,21 @@ class RoomCaptionRepositoryTest {
         assertTrue(captionRepository.list(PROJECT_ID).isEmpty())
     }
 
+    @Test
+    fun translationCasRejectsDeletedSegmentAndSuccessfulTranslationSurvivesReopen() = runBlocking {
+        seedProjectAndSegments()
+        val snapshot = captionRepository.list(PROJECT_ID).first()
+        assertNotNull(captionRepository.applyMachineTranslation(PROJECT_ID, snapshot.id, snapshot.sourceRevision, "Generated result"))
+        database.close()
+        openDatabase()
+        val saved = captionRepository.list(PROJECT_ID).first()
+        assertEquals("Generated result", saved.translationText)
+        assertEquals(saved.sourceRevision, saved.translationSourceRevision)
+        captionRepository.splitSegment(PROJECT_ID, snapshot.id, 500_000)
+        assertEquals(null, captionRepository.applyMachineTranslation(PROJECT_ID, snapshot.id, snapshot.sourceRevision, "Late deleted result"))
+        assertFalse(captionRepository.list(PROJECT_ID).any { it.translationText == "Late deleted result" })
+    }
+
     private suspend fun seedProjectAndSegments() {
         projectRepository.upsert(project())
         val mutation = captionRepository.replaceAll(

@@ -8,6 +8,8 @@ import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.*
 import app.subloka.core.media.AndroidMediaSource
 import app.subloka.demo.DemoData
+import app.subloka.engine.translation.MlKitOfflineTranslator
+import app.subloka.engine.translation.CaptionTranslationPipeline
 import app.subloka.engine.asr.WhisperModelCatalog
 import app.subloka.engine.asr.WhisperModelStore
 import app.subloka.engine.asr.WhisperTranscriptionPipeline
@@ -21,6 +23,9 @@ import kotlinx.coroutines.flow.asStateFlow
 enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
 data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false,
     val stage: String = "", val error: String? = null, val completed: Boolean = false)
+
+data class TranslationUiState(val ready: Boolean = false, val stage: String = "",
+    val error: String? = null, val applied: Int = 0, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
     private val persistence = SubLokaDatabaseFactory.create(application)
@@ -44,6 +49,9 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val projects = _projects.asStateFlow()
     private val _asr = MutableStateFlow(AsrUiState())
     val asr = _asr.asStateFlow()
+    private val _translation = MutableStateFlow(TranslationUiState())
+    val translation = _translation.asStateFlow()
+    private var cleared = false
 
     init {
         viewModelScope.launch {
@@ -102,6 +110,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     fun persistSegments(segments: List<CaptionSegment>) {
+        if (_asr.value.busy) return
         val id = _project.value?.id ?: return
         _saveState.value = PersistenceSaveState.SAVING
         queue.trySend {
@@ -111,6 +120,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     fun persistStyle(style: CaptionStyle) {
+        if (_asr.value.busy) return
         val id = _project.value?.id ?: return
         _saveState.value = PersistenceSaveState.SAVING
         queue.trySend {
@@ -181,6 +191,63 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             } finally { pipeline = null }
         }
     }
+    /** Called only after the editor write barrier, from the dedicated translation flow. */
+    fun checkTranslationModel() = translationOperation("Memeriksa model terjemahan…") { translator ->
+        val ready = translator.state() == ModelReadinessState.READY
+        _translation.value = _translation.value.copy(ready = ready,
+            stage = if (ready) "Model terjemahan siap offline." else "Model terjemahan belum siap. Unduh terlebih dahulu.")
+    }
+
+    fun prepareTranslationModel(requireWifi: Boolean) = translationOperation("Menyiapkan model terjemahan…") { translator ->
+        translator.ensureReady(requireWifi)
+        _translation.value = _translation.value.copy(ready = true, stage = "Model siap. Anda dapat mematikan koneksi sebelum menerjemahkan.")
+    }
+
+    fun startTranslation(segmentId: String? = null) {
+        val selectedProject = _project.value ?: return
+        if (!_translation.value.ready || selectedProject.id == DemoData.PROJECT_ID) return
+        translationOperation("Menyiapkan caption…") { translator ->
+            // Snapshot is read after the route's save barrier, with editor writes locked out.
+            val snapshot = captionsRepo.list(selectedProject.id).filter { segmentId == null || it.id == segmentId }
+            val result = CaptionTranslationPipeline(translator).run(snapshot, publish = { source, text ->
+                captionsRepo.applyMachineTranslation(selectedProject.id, source.id, source.sourceRevision,
+                    text, allowReplaceManual = false) != null
+            }, onProgress = { progress ->
+                _translation.value = _translation.value.copy(applied = progress.applied,
+                    stage = "Menerjemahkan ${progress.processed}/${progress.total} • ${progress.applied} tersimpan")
+            })
+            _translation.value = _translation.value.copy(completed = true,
+                stage = "${result.applied} tersimpan • ${result.conflicted} dilewati karena berubah • ${result.failed} gagal.",
+                error = if (result.failed > 0) "Sebagian caption gagal. Coba lagi untuk caption yang belum selesai." else null)
+        }
+    }
+
+    private fun translationOperation(stage: String, action: suspend (OfflineTranslator) -> Unit) {
+        if (_asr.value.busy) return
+        _asr.value = _asr.value.copy(busy = true)
+        _translation.value = _translation.value.copy(stage = stage, error = null, completed = false, applied = 0)
+        operation = viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { MlKitOfflineTranslator().use { action(it) } }
+            } catch (cancel: CancellationException) {
+                _translation.value = _translation.value.copy(stage = "Dihentikan. Terjemahan yang sudah tersimpan tetap tersedia. Unduhan model SDK yang sudah dimulai dapat berlanjut.")
+            } catch (_: Exception) {
+                _translation.value = _translation.value.copy(error = "Proses terjemahan gagal. Periksa model dan coba lagi; hasil yang sudah tersimpan tetap tersedia.")
+            } finally {
+                // Keep the editor locked until its next snapshot includes completed publications.
+                withContext(NonCancellable) {
+                    if (!cleared) {
+                        try { _project.value?.id?.let { load(it) }; refreshProjects() }
+                        catch (_: Exception) {
+                            _translation.value = _translation.value.copy(error = "Hasil belum dapat dimuat. Kembali dan buka proyek lagi.")
+                        }
+                    }
+                }
+                _asr.value = _asr.value.copy(busy = false)
+            }
+        }
+    }
+
     fun cancelOperation() { pipeline?.cancel(); operation?.cancel() }
-    override fun onCleared() { cancelOperation(); queue.close(); super.onCleared() }
+    override fun onCleared() { cleared = true; cancelOperation(); queue.close(); super.onCleared() }
 }

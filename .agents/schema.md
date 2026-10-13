@@ -61,3 +61,7 @@ Schema version 1 sudah aktif dan export Room disimpan di version control. Karena
 
 ## T11 publication contract (2026-10-13)
 Room schema remains v1; no table/column migration. `CaptionRepository.publishGenerated(projectId, expectedRevision, segments)` checks the project revision and an empty caption list within the same transaction, validates the timeline, inserts the complete staged result and increments revision. Conflict returns false without mutation. Empty speech output is valid and also increments revision. Source-only captions use MISSING/NONE and empty translation text. A new media import gets a new project UUID rather than mutating the demo project.
+
+
+## T12 translation persistence (2026-10-13)
+No schema migration: Room v1 and the existing `applyMachineTranslation` transaction remain unchanged. Successful generated translations carry MACHINE/CURRENT with translation_source_revision equal to the accepted source_revision. The prototype never passes allowReplaceManual=true. Manual translations, including stale manual ones, are skipped. Missing/stale machine rows remain retryable after engine failure; no persistent PENDING marker is written. Per-segment commits are intentional: cancellation keeps successful translations, unlike ASR's all-or-nothing first generation.

@@ -19,7 +19,7 @@ fun ModelSetupScreen(
 ) {
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Siapkan caption offline", style = MaterialTheme.typography.headlineSmall)
-        Text("Prototipe • caption bahasa asli. Terjemahan otomatis dan ekspor belum tersedia.")
+        Text("Prototipe • caption bahasa asli. Terjemahan dapat dibuat dari editor setelah transkripsi. Ekspor belum tersedia.")
         Text("Impor ggml-base.bin atau unduh model Whisper Base (sekitar 148 MB). Unduhan memerlukan internet; video dan audio diproses di perangkat.")
         Text(if (ready) "✓ Model terverifikasi dan siap" else "Model belum siap")
         if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
