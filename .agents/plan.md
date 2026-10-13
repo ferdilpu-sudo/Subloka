@@ -1092,3 +1092,11 @@ User authorized `lanjut` after subtitle-export proposal. Implement FR10 only: va
 
 ### T14 implementation handoff / 2026-10-13
 Created pure SRT serialization, document output writer/ViewModel, existing export UI integration and save barrier, domain/writer tests. T12-DEVICE-REPORTED-002 records basic translation/manual preservation user success. T14-SRT-001 local structural checks PASS; Android CI pending, physical SRT unverified. ADR-031 scopes exception; full T13, CP5, MP4 and CP4 remain unresolved. Docs updated: architecture/schema/design/testing/decisions/README. PRD FR10 unchanged.
+
+
+### Latest handoff — T14 SRT / 2026-10-13 / code 47e3aa7
+- Implemented original/translation/two-file SRT export from immutable saved captions, per-file Android document picker, UTF-8/timing validation and honest per-file failure/cancel handling. Version 0.4.0-srt-prototype.
+- T14-SRT-002/003: both CI #193/#194 build and emulator jobs SUCCESS. Final code 47e3aa748cf18a960302763fc9df75ddbdda714f. Guardrail/diff/evidence JSON checks PASS. User evidence T12-DEVICE-REPORTED-002 covers basic translation and manual-correction preservation only.
+- Next ready action: install APK artifact 11812800467 from run 38396624117; Export → Keduanya → Siapkan SRT → save .id.srt and .en.srt independently to local Downloads. Inspect corrected text and timestamps, load each track with video, cancel one picker and confirm the other saved file remains. Source edit must block translation export until reviewed/refreshed, with original-only available.
+- Unverified: actual DocumentsUI/physical playback, low-storage/provider cleanup, process death, full lifecycle/quality. T14 remains IN_PROGRESS; T13/CP5/MP4 pending and CP4 BLOCKED. No repeat of completed external30 benchmark needed.
+- Docs: README, agent index, architecture/design/schema, ADR-031, plan/testing/evidence updated; PRD FR10 unchanged, Room v1 unchanged. Draft PR #1 updated, no merge/release.

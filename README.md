@@ -491,3 +491,5 @@ Open an existing transcribed project and choose **Terjemahkan / perbarui** (or t
 
 ## SRT subtitle export prototype
 Open a saved project → Export → Asli, Terjemahan, or Keduanya → Siapkan SRT. Save each prepared language file using the Android document picker (choose local Downloads for offline use). Two languages produce two independent `.srt` files. Translation export requires every translation current; original-only works without translation. SRT contains text/timing, not fonts/colors; MP4 rendering remains pending. Build/device evidence: `.agents/testing.md`, T14-SRT-001.
+
+SRT code `47e3aa7` passed [Android CI #194](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117): build, lint, configured unit tests and Android 11 emulator writer tests. [Download APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117/artifacts/11812800467). Real document-picker save and SRT playback on Sony still need verification.
