@@ -60,8 +60,8 @@ class WhisperTranscriptionPipelineTest {
                         if (cancel && stage.contains("bagian 2")) worker.cancel()
                     }
                     returned = true
-                } catch (_: IllegalStateException) { assertFalse(cancel) }
-                catch (_: CancellationException) { assertTrue(cancel) }
+                } catch (_: CancellationException) { assertTrue(cancel) }
+                catch (_: IllegalStateException) { assertFalse(cancel) }
                 assertFalse(returned); assertTrue(session.closed)
                 assertEquals(0, cache.listFiles()!!.size)
             } finally { cache.deleteRecursively() }

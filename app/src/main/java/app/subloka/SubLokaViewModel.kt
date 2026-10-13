@@ -82,7 +82,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         queue.trySend { load(id); _asr.value = _asr.value.copy(error = null, completed = false); onComplete() }
     }
     fun persistMediaSelection(media: MediaDescriptor, sourceLanguage: SourceLanguage, onComplete: (Boolean) -> Unit) {
-        if (_asr.value.busy) return
+        if (_asr.value.busy || _saveState.value == PersistenceSaveState.SAVING) return
         _saveState.value = PersistenceSaveState.SAVING
         queue.trySend {
             try {

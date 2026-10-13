@@ -173,7 +173,7 @@ fun EditorScreen(
                     }
                     WorkspacePanel(
                         demoMode = demoMode, durationUs = durationUs,
-                    workspace = workspace,
+                        workspace = workspace,
                         segments = segments,
                         selectedId = selectedId,
                         style = style,

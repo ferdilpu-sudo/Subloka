@@ -53,6 +53,23 @@ class WhisperModelStoreTest {
         }
     }
 
+    @Test
+    fun failedReplacementPreservesVerifiedModel() = runTest {
+        val dir = Files.createTempDirectory("model-replacement").toFile()
+        try {
+            val bytes = "verified".encodeToByteArray()
+            val model = descriptor(bytes)
+            val store = WhisperModelStore(dir)
+            store.installFrom(model, bytes.inputStream())
+            try {
+                store.installFrom(model, "corrupt".byteInputStream())
+                throw AssertionError("Expected checksum failure")
+            } catch (_: IllegalArgumentException) { }
+            assertEquals(ModelReadinessState.READY, store.state(model))
+            assertFalse(dir.resolve("${model.fileName}.part").exists())
+        } finally { dir.deleteRecursively() }
+    }
+
     private fun descriptor(bytes: ByteArray): ManagedModelDescriptor {
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
             .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
