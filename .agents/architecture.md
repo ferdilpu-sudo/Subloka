@@ -80,3 +80,7 @@ Tidak ada HTTP client untuk upload konten. Network dependency SDK harus ditinjau
 - [Media3 Transformer](https://developer.android.com/media/media3/transformer)
 
 Tautan mendukung arah evaluasi, bukan bukti bahwa integrasi proyek ini telah diuji. Setiap perubahan arsitektur baru membutuhkan ADR di decisions.md dan update task terkait.
+
+
+## T11 prototype integration (2026-10-13; ADR-029)
+`SubLokaViewModel` owns one foreground operation: explicit model provisioning → media fingerprint check → `WhisperTranscriptionPipeline` → revision-guarded Room publication. `engine:asr` bundles JNI/whisper.cpp CPU inference (pinned v1.9.4), injectable `SpeechSession`, bounded streaming PCM conversion and 30-second staging. Temp PCM and native contexts are released on completion/failure/cancel. Activity stop cancels except configuration changes. No service/checkpoint resume yet. Actual projects never invoke demo translation/export. Independent CP4 criteria remain blocked.

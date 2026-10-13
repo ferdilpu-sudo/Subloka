@@ -14,7 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +31,7 @@ fun VideoPreview(
     segment: CaptionSegment?,
     mediaUri: String?,
     compactHeight: Boolean,
+    segments: List<CaptionSegment> = listOfNotNull(segment),
     modifier: Modifier = Modifier,
 ) {
     val maxHeight = if (compactHeight) 112.dp else 248.dp
@@ -40,6 +42,17 @@ fun VideoPreview(
         }
     }
 
+    var positionUs by remember(controller) { mutableLongStateOf(0L) }
+    LaunchedEffect(controller, segment?.id) {
+        controller?.seekTo((segment?.startUs ?: 0L) / 1000)
+    }
+    LaunchedEffect(controller) {
+        while (controller != null) {
+            positionUs = controller.player.currentPosition * 1000
+            delay(100)
+        }
+    }
+    val visible = if (controller == null) segment else segments.firstOrNull { positionUs >= it.startUs && positionUs < it.endUs }
     DisposableEffect(controller) {
         onDispose { controller?.close() }
     }
@@ -68,13 +81,13 @@ fun VideoPreview(
                 Text("VIDEO PREVIEW · PILIH VIDEO", color = SubLokaColors.TextSecondary)
             }
 
-            if (segment != null) {
+            if (visible != null) {
                 Column(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 16.dp, vertical = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(segment.sourceText, color = SubLokaColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
-                    Text(segment.translationText, color = SubLokaColors.Warning, style = MaterialTheme.typography.bodySmall)
+                    Text(visible.sourceText, color = SubLokaColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                    Text(visible.translationText, color = SubLokaColors.Warning, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

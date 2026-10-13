@@ -93,3 +93,9 @@ Menggantikan ADR:
 ```
 
 Keputusan lama tidak dihapus ketika berubah; tandai SUPERSEDED dan tautkan ADR pengganti. Jangan menandai PROPOSED menjadi ACCEPTED hanya karena kode telanjur ditulis.
+
+
+## ADR-029 — T11 foreground prototype exception / ACCEPTED / 2026-10-12
+User explicitly authorized `lanjut` to real Whisper Base integration after reviewing unmet quality gates. CP4 remains BLOCKED and its thresholds/baselines are unchanged. T11 may implement a foreground-only prototype; this is not approval of release, cloud fallback, translation or export completion. Use pinned whisper.cpp v1.9.4 (peeled commit 927cfce34f31707e17f2bff35c349632fb9e2c3a), multilingual Base and existing SHA. Bundle JNI library, not an executable downloaded to writable app storage. Provision model through explicit import or download.
+
+Prototype scope: videos up to 10 minutes, bounded 30-second non-overlapping windows, source text/timestamps only, blank translations MISSING, source-only preview. Cancel when Activity stops (rotation handled by ViewModel), no background completion/resume promise. No overlap means no duplicated inference region; boundary word loss and low-volume speech need device evaluation. Model remains loaded once per job; CPU only. Stage captions in memory and publish transactionally only into an empty project at matching content revision; new imports use new UUIDs and do not overwrite the legacy demo. The complete T11 acceptance including boundary quality and physical JNI evaluation remains pending until measured.

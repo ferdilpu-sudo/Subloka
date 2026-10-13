@@ -8,6 +8,10 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -44,9 +48,11 @@ class WhisperModelStore(
             FileOutputStream(temp).use { output ->
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 while (true) {
+                    currentCoroutineContext().ensureActive()
                     val count = input.read(buffer)
                     if (count < 0) break
                     if (count == 0) continue
+                    check(temp.length() + count <= 200L * 1024 * 1024) { "Model exceeds storage limit" }
                     output.write(buffer, 0, count)
                     digest.update(buffer, 0, count)
                 }
@@ -58,10 +64,8 @@ class WhisperModelStore(
                 "Model checksum mismatch for ${model.id}: expected ${model.expectedSha256}, got $actual"
             }
 
-            if (target.exists() && !target.delete()) {
-                error("Cannot replace existing model: $target")
-            }
-            check(temp.renameTo(target)) { "Cannot finalize model install: $target" }
+            currentCoroutineContext().ensureActive()
+            Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             target
         } catch (error: Throwable) {
             temp.delete()

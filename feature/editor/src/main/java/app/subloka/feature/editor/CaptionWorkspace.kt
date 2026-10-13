@@ -31,6 +31,7 @@ fun CaptionWorkspace(
     onRetranslate: () -> Unit,
     onSplit: () -> Unit,
     onMergeNext: () -> Unit,
+    translationAvailable: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val selected = segments.first { it.id == selectedId }
@@ -43,13 +44,14 @@ fun CaptionWorkspace(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text("$staleCount terjemahan perlu diperbarui", color = SubLokaColors.Warning)
-                    Text("Perbarui semua", color = SubLokaColors.Primary)
+                    Text("Edit terjemahan di bawah", color = SubLokaColors.TextSecondary)
                 }
             }
         }
 
         SelectedCaptionEditor(
             segment = selected,
+            translationAvailable = translationAvailable,
             onSourceChange = onSourceChange,
             onTranslationChange = onTranslationChange,
             onRetranslate = onRetranslate,
@@ -69,6 +71,7 @@ fun CaptionWorkspace(
 @Composable
 private fun SelectedCaptionEditor(
     segment: CaptionSegment,
+    translationAvailable: Boolean,
     onSourceChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onRetranslate: () -> Unit,
@@ -95,7 +98,7 @@ private fun SelectedCaptionEditor(
                 minLines = 2,
             )
             if (segment.translationStatus == TranslationStatus.STALE) {
-                SecondaryAction("Terjemahkan ulang", onRetranslate, modifier = Modifier.fillMaxWidth())
+                SecondaryAction(if (translationAvailable) "Terjemahkan ulang (demo)" else "Terjemahan otomatis belum tersedia", onRetranslate, enabled = translationAvailable, modifier = Modifier.fillMaxWidth())
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(formatTime(segment.startUs), color = SubLokaColors.TextSecondary)

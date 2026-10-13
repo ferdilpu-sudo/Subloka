@@ -43,7 +43,20 @@ fun EditorScreen(
     onBack: () -> Unit,
     onExport: (List<CaptionSegment>) -> Unit,
     modifier: Modifier = Modifier,
+    projectTitle: String = "Traveling",
+    demoMode: Boolean = true,
+    durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
+    onGenerate: () -> Unit = {},
 ) {
+    if (initialSegments.isEmpty()) {
+        Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(projectTitle, style = MaterialTheme.typography.headlineSmall)
+            Text("Belum ada caption. Audio hening juga dapat menghasilkan daftar kosong.")
+            app.subloka.core.designsystem.PrimaryAction("Buat caption", onGenerate)
+            app.subloka.core.designsystem.SecondaryAction("Kembali", onBack)
+        }
+        return
+    }
     var segments by remember { mutableStateOf(initialSegments) }
     var selectedId by remember { mutableStateOf(initialSegments.first().id) }
     var workspace by remember { mutableStateOf(EditorWorkspace.CAPTION) }
@@ -144,8 +157,10 @@ fun EditorScreen(
                 onExport = { onExport(segments) },
                 saveStatusText = saveStatusText,
                 saveFailed = saveFailed,
+                title = projectTitle,
+                exportAvailable = demoMode,
             )
-            DemoBadge()
+            if (demoMode) DemoBadge() else Text("Prototipe • periksa teks dan waktu. Terjemahan otomatis dan ekspor belum tersedia.", style = MaterialTheme.typography.bodySmall)
 
             if (expanded) {
                 Row(
@@ -153,11 +168,12 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = false)
+                        VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, compactHeight = false)
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
-                        workspace = workspace,
+                        demoMode = demoMode, durationUs = durationUs,
+                    workspace = workspace,
                         segments = segments,
                         selectedId = selectedId,
                         style = style,
@@ -173,9 +189,10 @@ fun EditorScreen(
                     )
                 }
             } else {
-                VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
+                VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
+                    demoMode = demoMode, durationUs = durationUs,
                     workspace = workspace,
                     segments = segments,
                     selectedId = selectedId,
@@ -201,6 +218,8 @@ private fun ProjectTopBar(
     onExport: () -> Unit,
     saveStatusText: String,
     saveFailed: Boolean,
+    title: String,
+    exportAvailable: Boolean,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -210,7 +229,7 @@ private fun ProjectTopBar(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", modifier = Modifier.clickable(onClick = onBack), style = MaterialTheme.typography.headlineSmall)
             Column {
-                Text("Traveling", style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(
                     saveStatusText,
                     color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
@@ -221,7 +240,7 @@ private fun ProjectTopBar(
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("↶", color = SubLokaColors.TextSecondary)
             Text("↷", color = SubLokaColors.TextSecondary)
-            Text("Export", modifier = Modifier.clickable(onClick = onExport), color = SubLokaColors.Primary)
+            Text(if (exportAvailable) "Export" else "Ekspor belum tersedia", modifier = Modifier.clickable(enabled = exportAvailable, onClick = onExport), color = SubLokaColors.TextSecondary)
         }
     }
 }
@@ -242,6 +261,8 @@ private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (Ed
 
 @Composable
 private fun WorkspacePanel(
+    demoMode: Boolean,
+    durationUs: Long,
     workspace: EditorWorkspace,
     segments: List<CaptionSegment>,
     selectedId: String,
@@ -288,6 +309,7 @@ private fun WorkspacePanel(
                     },
                 )
             },
+            translationAvailable = demoMode,
             onRetranslate = {
                 onSegmentsChange(
                     segments.toMutableList().also { list ->
@@ -304,7 +326,12 @@ private fun WorkspacePanel(
             onMergeNext = onMergeNext,
             modifier = modifier,
         )
-        EditorWorkspace.TIMING -> TimingWorkspace(segment = selected, modifier = modifier)
+        EditorWorkspace.TIMING -> TimingWorkspace(segment = selected,
+            minimumStartUs = segments.getOrNull(selectedIndex - 1)?.endUs ?: 0L,
+            maximumEndUs = segments.getOrNull(selectedIndex + 1)?.startUs ?: durationUs,
+            onChange = { start, end ->
+                onSegmentsChange(segments.toMutableList().also { it[selectedIndex] = selected.copy(startUs = start, endUs = end) })
+            }, modifier = modifier)
         EditorWorkspace.STYLE -> StyleWorkspace(style = style, onStyleChange = onStyleChange, modifier = modifier)
     }
 }

@@ -1,186 +1,186 @@
 package app.subloka
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.subloka.core.database.SubLokaDatabaseFactory
-import app.subloka.core.domain.CaptionSegment
-import app.subloka.core.domain.CaptionStyle
-import app.subloka.core.domain.MediaDescriptor
-import app.subloka.core.domain.SourceLanguage
+import app.subloka.core.domain.*
+import app.subloka.core.media.AndroidMediaSource
 import app.subloka.demo.DemoData
-import kotlinx.coroutines.CompletableDeferred
+import app.subloka.engine.asr.WhisperModelCatalog
+import app.subloka.engine.asr.WhisperModelStore
+import app.subloka.engine.asr.WhisperTranscriptionPipeline
+import java.io.File
+import java.util.UUID
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
-enum class PersistenceSaveState {
-    LOADING,
-    SAVING,
-    SAVED,
-    FAILED,
-}
+enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
+data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false,
+    val stage: String = "", val error: String? = null, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
     private val persistence = SubLokaDatabaseFactory.create(application)
-    private val projectRepository = persistence.projectRepository
-    private val captionRepository = persistence.captionRepository
-
-    private val saveQueue = Channel<SaveCommand>(Channel.UNLIMITED)
-    private var pendingWrites = 0
-    private var saveFailureSinceLastBarrier = false
-
-    private val _segments = MutableStateFlow(DemoData.segments)
-    val segments: StateFlow<List<CaptionSegment>> = _segments.asStateFlow()
-
+    private val projectsRepo = persistence.projectRepository
+    private val captionsRepo = persistence.captionRepository
+    private val media = AndroidMediaSource(application)
+    private val models = WhisperModelStore(File(application.filesDir, "whisper-models"))
+    private val queue = Channel<suspend () -> Unit>(Channel.UNLIMITED)
+    private var writeFailed = false
+    private var operation: Job? = null
+    private var pipeline: WhisperTranscriptionPipeline? = null
+    private val _segments = MutableStateFlow<List<CaptionSegment>>(emptyList())
+    val segments = _segments.asStateFlow()
     private val _style = MutableStateFlow(CaptionStyle())
-    val style: StateFlow<CaptionStyle> = _style.asStateFlow()
-
+    val style = _style.asStateFlow()
     private val _saveState = MutableStateFlow(PersistenceSaveState.LOADING)
-    val saveState: StateFlow<PersistenceSaveState> = _saveState.asStateFlow()
-
-    private val _sourceUri = MutableStateFlow<String?>(null)
-    val sourceUri: StateFlow<String?> = _sourceUri.asStateFlow()
+    val saveState = _saveState.asStateFlow()
+    private val _project = MutableStateFlow<CaptionProject?>(null)
+    val project = _project.asStateFlow()
+    private val _projects = MutableStateFlow<List<CaptionProject>>(emptyList())
+    val projects = _projects.asStateFlow()
+    private val _asr = MutableStateFlow(AsrUiState())
+    val asr = _asr.asStateFlow()
 
     init {
         viewModelScope.launch {
-            loadOrSeedDemoProject()
-            for (command in saveQueue) {
-                process(command)
-            }
-        }
-    }
-
-    fun persistSegments(segments: List<CaptionSegment>) {
-        pendingWrites += 1
-        _saveState.value = PersistenceSaveState.SAVING
-        if (saveQueue.trySend(SaveCommand.Segments(segments.toList())).isFailure) {
-            pendingWrites -= 1
-            saveFailureSinceLastBarrier = true
-            _saveState.value = PersistenceSaveState.FAILED
-        }
-    }
-
-    fun persistStyle(style: CaptionStyle) {
-        pendingWrites += 1
-        _saveState.value = PersistenceSaveState.SAVING
-        if (saveQueue.trySend(SaveCommand.Style(style)).isFailure) {
-            pendingWrites -= 1
-            saveFailureSinceLastBarrier = true
-            _saveState.value = PersistenceSaveState.FAILED
-        }
-    }
-
-    fun persistMediaSelection(
-        media: MediaDescriptor,
-        sourceLanguage: SourceLanguage,
-        onComplete: (Boolean) -> Unit,
-    ) {
-        viewModelScope.launch {
             try {
-                val current = projectRepository.find(DemoData.PROJECT_ID) ?: DemoData.persistentProject
-                val now = System.currentTimeMillis()
-                projectRepository.upsert(
-                    current.copy(
-                        title = media.displayName.substringBeforeLast('.').ifBlank { current.title },
-                        sourceUri = media.uri,
-                        sourceDisplayName = media.displayName,
-                        sourceSizeBytes = media.sizeBytes,
-                        sourceFingerprint = media.fingerprintSha256,
-                        durationUs = media.durationUs,
-                        widthPx = media.widthPx,
-                        heightPx = media.heightPx,
-                        rotationDegrees = media.rotationDegrees,
-                        sourceLanguage = sourceLanguage,
-                        targetLanguage = sourceLanguage.target,
-                        contentRevision = current.contentRevision + 1,
-                        updatedAtMs = now,
-                    ),
-                )
-                _sourceUri.value = media.uri
-                onComplete(true)
-            } catch (_: Throwable) {
-                _saveState.value = PersistenceSaveState.FAILED
-                onComplete(false)
-            }
-        }
-    }
-
-    fun flush(onComplete: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val barrier = CompletableDeferred<Boolean>()
-            saveQueue.send(SaveCommand.Barrier(barrier))
-            onComplete(barrier.await())
-        }
-    }
-
-    override fun onCleared() {
-        saveQueue.close()
-        persistence.close()
-        super.onCleared()
-    }
-
-    private suspend fun loadOrSeedDemoProject() {
-        try {
-            if (projectRepository.find(DemoData.PROJECT_ID) == null) {
-                projectRepository.upsert(DemoData.persistentProject)
-                captionRepository.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
-            }
-            val project = requireNotNull(projectRepository.find(DemoData.PROJECT_ID))
-            _segments.value = captionRepository.list(DemoData.PROJECT_ID)
-            _style.value = projectRepository.getStyle(DemoData.PROJECT_ID)
-            _sourceUri.value = project.sourceUri.takeUnless { it.startsWith("demo://") }
-            _saveState.value = PersistenceSaveState.SAVED
-        } catch (_: Throwable) {
-            saveFailureSinceLastBarrier = true
-            _saveState.value = PersistenceSaveState.FAILED
-        }
-    }
-
-    private suspend fun process(command: SaveCommand) {
-        when (command) {
-            is SaveCommand.Segments -> processWrite {
-                captionRepository.restoreSnapshot(DemoData.PROJECT_ID, command.value)
-                _segments.value = command.value.sortedBy { it.startUs }
-            }
-            is SaveCommand.Style -> processWrite {
-                projectRepository.saveStyle(DemoData.PROJECT_ID, command.value)
-                _style.value = command.value
-            }
-            is SaveCommand.Barrier -> {
-                val success = !saveFailureSinceLastBarrier && pendingWrites == 0
-                command.result.complete(success)
-                saveFailureSinceLastBarrier = false
-                if (success) {
+                try {
+                    if (projectsRepo.list().isEmpty()) {
+                        projectsRepo.upsert(DemoData.persistentProject)
+                        captionsRepo.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
+                    }
+                    refreshProjects()
                     _saveState.value = PersistenceSaveState.SAVED
+                } catch (error: Exception) {
+                    if (error is CancellationException) throw error
+                    writeFailed = true; _saveState.value = PersistenceSaveState.FAILED
                 }
+                for (action in queue) {
+                    try { action() }
+                    catch (cancel: CancellationException) { currentCoroutineContext().ensureActive() }
+                    catch (_: Exception) { writeFailed = true; _saveState.value = PersistenceSaveState.FAILED }
+                }
+            } finally { persistence.close() }
+        }
+        viewModelScope.launch {
+            val ready = models.state(WhisperModelCatalog.base) == ModelReadinessState.READY
+            if (!_asr.value.busy) _asr.value = _asr.value.copy(modelReady = ready)
+        }
+    }
+    private suspend fun refreshProjects() { _projects.value = projectsRepo.list() }
+    private suspend fun load(id: String) {
+        _project.value = requireNotNull(projectsRepo.find(id))
+        _segments.value = captionsRepo.list(id)
+        _style.value = projectsRepo.getStyle(id)
+    }
+    fun openProject(id: String, onComplete: () -> Unit) {
+        if (_asr.value.busy) return
+        queue.trySend { load(id); _asr.value = _asr.value.copy(error = null, completed = false); onComplete() }
+    }
+    fun persistMediaSelection(media: MediaDescriptor, sourceLanguage: SourceLanguage, onComplete: (Boolean) -> Unit) {
+        if (_asr.value.busy) return
+        _saveState.value = PersistenceSaveState.SAVING
+        queue.trySend {
+            try {
+                val now = System.currentTimeMillis()
+                val id = UUID.randomUUID().toString()
+                projectsRepo.upsert(CaptionProject(id, media.displayName.substringBeforeLast('.').ifBlank { "Video" },
+                    media.uri, media.displayName, media.sizeBytes, media.fingerprintSha256, media.durationUs,
+                    media.widthPx, media.heightPx, media.rotationDegrees, sourceLanguage, sourceLanguage.target, 0, now, now))
+                projectsRepo.saveStyle(id, CaptionStyle(displayMode = CaptionDisplayMode.ORIGINAL))
+                load(id); refreshProjects(); _saveState.value = PersistenceSaveState.SAVED
+                _asr.value = _asr.value.copy(error = null, completed = false)
+                onComplete(true)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                _saveState.value = PersistenceSaveState.FAILED; onComplete(false)
             }
         }
     }
-
-    private suspend fun processWrite(block: suspend () -> Unit) {
-        try {
-            block()
-        } catch (_: Throwable) {
-            saveFailureSinceLastBarrier = true
-            _saveState.value = PersistenceSaveState.FAILED
-        } finally {
-            pendingWrites = (pendingWrites - 1).coerceAtLeast(0)
-            if (!saveFailureSinceLastBarrier) {
-                _saveState.value = if (pendingWrites == 0) {
-                    PersistenceSaveState.SAVED
-                } else {
-                    PersistenceSaveState.SAVING
+    fun persistSegments(segments: List<CaptionSegment>) {
+        val id = _project.value?.id ?: return
+        _saveState.value = PersistenceSaveState.SAVING
+        queue.trySend {
+            captionsRepo.restoreSnapshot(id, segments)
+            if (_project.value?.id == id) { _segments.value = segments; _project.value = projectsRepo.find(id) }
+            refreshProjects(); _saveState.value = PersistenceSaveState.SAVED
+        }
+    }
+    fun persistStyle(style: CaptionStyle) {
+        val id = _project.value?.id ?: return
+        _saveState.value = PersistenceSaveState.SAVING
+        queue.trySend {
+            projectsRepo.saveStyle(id, style)
+            if (_project.value?.id == id) { _style.value = style; _project.value = projectsRepo.find(id) }
+            _saveState.value = PersistenceSaveState.SAVED
+        }
+    }
+    fun flush(onComplete: (Boolean) -> Unit) {
+        queue.trySend { val success = !writeFailed; writeFailed = false; onComplete(success) }
+    }
+    fun prepareModel(uri: Uri? = null) {
+        if (_asr.value.busy) return
+        _asr.value = _asr.value.copy(busy = true, stage = "Menyiapkan dan memverifikasi model…", error = null)
+        operation = viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    if (uri == null) models.download(WhisperModelCatalog.base)
+                    else getApplication<Application>().contentResolver.openInputStream(uri).use { input ->
+                        requireNotNull(input) { "Model tidak dapat dibaca." }
+                        models.installFrom(WhisperModelCatalog.base, input)
+                    }
                 }
+                _asr.value = _asr.value.copy(busy = false, modelReady = true, stage = "Model siap digunakan offline.")
+            } catch (cancel: CancellationException) {
+                _asr.value = _asr.value.copy(busy = false, stage = "Penyiapan model dibatalkan.")
+            } catch (_: Exception) {
+                _asr.value = _asr.value.copy(busy = false, error = "Model gagal disiapkan. Pilih ggml-base.bin yang benar atau coba unduh lagi.")
             }
         }
     }
-
-    private sealed interface SaveCommand {
-        data class Segments(val value: List<CaptionSegment>) : SaveCommand
-        data class Style(val value: CaptionStyle) : SaveCommand
-        data class Barrier(val result: CompletableDeferred<Boolean>) : SaveCommand
+    fun startTranscription() {
+        val snapshot = _project.value ?: return
+        if (_asr.value.busy || !_asr.value.modelReady || _segments.value.isNotEmpty()) return
+        _asr.value = _asr.value.copy(busy = true, error = null, completed = false, stage = "Memeriksa video…")
+        operation = viewModelScope.launch {
+            try {
+                check(models.state(WhisperModelCatalog.base) == ModelReadinessState.READY) { "Model tidak tersedia. Siapkan kembali model." }
+                val descriptor = media.inspect(snapshot.sourceUri)
+                check(descriptor.fingerprintSha256 == snapshot.sourceFingerprint) { "Video berubah. Buat proyek baru dari video ini." }
+                val worker = WhisperTranscriptionPipeline(media, File(getApplication<Application>().cacheDir, "asr"))
+                pipeline = worker
+                val result = worker.transcribe(descriptor, snapshot.sourceLanguage, models.targetFile(WhisperModelCatalog.base)) { stage ->
+                    _asr.value = _asr.value.copy(stage = stage)
+                }
+                val jobContext = currentCoroutineContext()
+                jobContext.ensureActive()
+                _asr.value = _asr.value.copy(stage = "Menyimpan caption…")
+                val completion = CompletableDeferred<Boolean>()
+                queue.send {
+                    try {
+                        withContext(jobContext) {
+                            val published = captionsRepo.publishGenerated(snapshot.id, snapshot.contentRevision, result)
+                            if (published) { load(snapshot.id); refreshProjects(); _saveState.value = PersistenceSaveState.SAVED }
+                            completion.complete(published)
+                        }
+                    } catch (error: Exception) { completion.completeExceptionally(error) }
+                }
+                check(completion.await()) { "Proyek berubah. Hasil tidak mengganti caption yang sudah ada." }
+                _asr.value = _asr.value.copy(busy = false, completed = true,
+                    stage = if (result.isEmpty()) "Tidak ada ucapan yang terdeteksi." else "Caption tersimpan. Periksa teks dan waktunya.")
+            } catch (cancel: CancellationException) {
+                _asr.value = _asr.value.copy(busy = false, stage = "Transkripsi dihentikan. Buka proyek untuk memeriksa hasil yang sudah tersimpan.")
+            } catch (error: Exception) {
+                _asr.value = _asr.value.copy(busy = false, error = error.message ?: "Transkripsi gagal. Coba lagi.")
+            } catch (_: LinkageError) {
+                _asr.value = _asr.value.copy(busy = false, error = "Engine tidak tersedia untuk perangkat ini.")
+            } finally { pipeline = null }
+        }
     }
+    fun cancelOperation() { pipeline?.cancel(); operation?.cancel() }
+    override fun onCleared() { cancelOperation(); queue.close(); super.onCleared() }
 }

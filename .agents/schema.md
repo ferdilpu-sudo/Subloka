@@ -57,3 +57,7 @@ Readability/overflow warning dihitung dari teks, timing, style, dan ukuran frame
 ## Migrasi dan backup
 
 Schema version 1 sudah aktif dan export Room disimpan di version control. Karena v1 adalah versi pertama, tidak ada migration v0→v1. Setiap perubahan menuju version 2+ wajib memiliki migration path dari fixture lama dan tes tidak kehilangan bilingual text/style. Destructive migration dilarang untuk data pengguna. Tidak ada cloud backup pada MVP; backup Android untuk database/media/transkrip dinonaktifkan melalui konfigurasi yang diuji. Ekspor proyek sebagai arsip merupakan fitur masa depan, berbeda dengan SRT.
+
+
+## T11 publication contract (2026-10-13)
+Room schema remains v1; no table/column migration. `CaptionRepository.publishGenerated(projectId, expectedRevision, segments)` checks the project revision and an empty caption list within the same transaction, validates the timeline, inserts the complete staged result and increments revision. Conflict returns false without mutation. Empty speech output is valid and also increments revision. Source-only captions use MISSING/NONE and empty translation text. A new media import gets a new project UUID rather than mutating the demo project.

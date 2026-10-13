@@ -23,7 +23,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | DONE |
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | DONE |
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | BLOCKED |
-| T11 | Pipeline ASR produksi | T10, CP4 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | TODO |
+| T11 | Pipeline ASR produksi (prototipe terbatas diotorisasi ADR-029) | T10, CP4; pengecualian prototipe ADR-029 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | IN_PROGRESS |
 | T12 | Pipeline translation produksi | T11 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | TODO |
 | T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
 | T14 | Renderer dan ekspor MP4/SRT | T13, CP5 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | TODO |
@@ -1049,3 +1049,18 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - **Decision: public 30-WAV acquisition BLOCKED_NO_VERIFIED_INDEX.** End repetitive header/CSV hypothesis tests. Do not calculate trusted offsets from this CSV match. Reopen only with an authoritative index bound to the pinned archive, or a separately approved full-download alternative: 907,765,760 archive bytes (865.7 MiB from previous size evidence), hash verification, safe selective extraction and local disk preflight. No full download, new Range reads, WAV recovery or inference performed/authorized in this turn.
 - **Next actionable T10 work:** use the existing private independent holdout collection plan, 20 clean + 10 challenging, >=5 real consenting speakers and >=250 clean reference words. Do not rerun init or tests already PASS; collect real recordings and blind human references before audit/seal/inference. Public Atika does not replace this holdout. ASR 28.61% and ID->EN 24/30 gates, Android E2E and independent review remain unresolved. T10 remains BLOCKED (active phase), CP4 BLOCKED, T11 TODO.
 - Evidence: `.agents/evidence/t10-atika-csv-windows-match-acquisition-blocked-2026-10-11.json`. Docs-only change: inspected consistency of reported counts, source pins, status and next-action restrictions; no new regression suite needed. Product/schema/architecture unchanged.
+
+
+### T11 prototype authorization — 2026-10-12
+- User explicitly replied `lanjut` after being shown verified external Base results (clean 48/205=23.41%; TELDIALOG 22/83=26.51%) and asked to authorize T11 prototype integration despite CP4 BLOCKED. This permits bounded real in-app transcription, not production readiness or a CP4 PASS.
+- IN_PROGRESS: JNI Base inference, bounded PCM conversion/chunking, model import/download readiness, cancellation and atomic publication into a separate project, real processing/editor integration.
+- Acceptance for this increment: no fake ASR/translation on real projects; cancellation/failure cannot publish partial captions or replace existing projects; offline inference after explicit model provisioning; tests for PCM/time boundaries and revision guards; Android build/lint and physical smoke clearly distinguished.
+- Expected changes: engine/asr, app composition/viewmodel, project/editor UI, caption repository publication guard, Android CI, and existing agent docs. Native foreground-only prototype; full T13 recovery/foreground service and T14 export remain pending.
+
+
+### T11 prototype handoff — 2026-10-13
+- Implemented: JNI Base integration, PCM/time conversion, cancellable bounded staging, revision-protected complete publication, real projects/model/processing/editor flow, timestamp playback and timing edits.
+- Added test coverage and PR Android CI with native toolchain/APK reports. Local structural checks PASS; Gradle bootstrap blocked by network. Evidence T11-PROTOTYPE-001.
+- T11 IN_PROGRESS and CP4 BLOCKED: compile/CI and physical integration still require evidence. No claim of model-quality acceptance, automated translation, recovery, or export.
+- Updated README, architecture, schema (v1 unchanged; new repository contract), design, testing, plan, decisions. PRD unchanged; ADR-029 records existing user authorization.
+- Next: inspect CI results and fix failures, then physical short-video offline smoke before longer performance validation.

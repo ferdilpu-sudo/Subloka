@@ -709,3 +709,7 @@ Komponen yang benar-benar dipakai frontend demo: `PrimaryAction`, `SecondaryActi
 | Adaptive/IME/accessibility | NFR usability/accessibility, R14 |
 
 T03 tidak membuktikan runtime usability. Ia menetapkan interaction contract agar implementasi frontend dapat dinilai tanpa improvisasi IA.
+
+
+## T11 prototype flow correction (2026-10-13)
+P0 usability/data defect: demo progression could imply successful inference on user media; importing into one demo project could conflate media and captions. Replace it with separate persisted projects, actual model import/download/readiness and actual processing stages. Empty/failure/cancel states lead to retry; source-only results open the existing Caption/Timing/Style editor. Mark prototype limits, disable automatic demo translation/export for real projects, and bind preview captions to playback time. Acceptance: no fabricated ASR completion, no overwritten project, inspectable source/time edits. Physical UX/lifecycle validation remains pending.

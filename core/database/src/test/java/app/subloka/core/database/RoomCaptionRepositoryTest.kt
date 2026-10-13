@@ -170,6 +170,31 @@ class RoomCaptionRepositoryTest {
         assertEquals(style, projectRepository.getStyle(PROJECT_ID))
     }
 
+    @Test
+    fun generatedPublicationRequiresEmptyProjectAndExactRevisionAndSurvivesReopen() = runBlocking {
+        projectRepository.upsert(project())
+        val generated = listOf(CaptionSegment("asr-1", 0, 1_000_000, SourceLanguage.ENGLISH, "Generated", "", TranslationStatus.MISSING, TranslationOrigin.NONE))
+        assertFalse(captionRepository.publishGenerated(PROJECT_ID, 7, generated))
+        assertTrue(captionRepository.list(PROJECT_ID).isEmpty())
+        assertTrue(captionRepository.publishGenerated(PROJECT_ID, 0, generated))
+        assertFalse(captionRepository.publishGenerated(PROJECT_ID, 1, generated.map { it.copy(sourceText = "overwrite") }))
+        database.close()
+        openDatabase()
+        assertEquals("Generated", captionRepository.list(PROJECT_ID).single().sourceText)
+        assertEquals(1L, projectRepository.find(PROJECT_ID)?.contentRevision)
+    }
+
+    @Test
+    fun invalidGeneratedTimelineRollsBackWithoutBumpingRevision() = runBlocking {
+        projectRepository.upsert(project())
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { captionRepository.publishGenerated(PROJECT_ID, 0,
+                listOf(currentSegment("bad", 0, 11_000_000, "Outside video", "Translation"))) }
+        }
+        assertEquals(0L, projectRepository.find(PROJECT_ID)?.contentRevision)
+        assertTrue(captionRepository.list(PROJECT_ID).isEmpty())
+    }
+
     private suspend fun seedProjectAndSegments() {
         projectRepository.upsert(project())
         val mutation = captionRepository.replaceAll(

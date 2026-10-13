@@ -9,6 +9,13 @@ import androidx.compose.ui.Modifier
 import app.subloka.core.designsystem.SubLokaTheme
 
 class MainActivity : ComponentActivity() {
+    override fun onStop() {
+        if (!isChangingConfigurations) {
+            androidx.lifecycle.ViewModelProvider(this)[SubLokaViewModel::class.java].cancelOperation()
+        }
+        super.onStop()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

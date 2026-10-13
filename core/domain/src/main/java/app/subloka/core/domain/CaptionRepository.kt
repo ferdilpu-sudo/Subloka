@@ -1,6 +1,8 @@
 package app.subloka.core.domain
 
 interface CaptionRepository {
+    /** Publish a staged first generation only when the project is still empty and unchanged. */
+    suspend fun publishGenerated(projectId: String, expectedRevision: Long, segments: List<CaptionSegment>): Boolean
     suspend fun list(projectId: String): List<CaptionSegment>
     suspend fun replaceAll(projectId: String, segments: List<CaptionSegment>): EditorMutation<List<CaptionSegment>>
     suspend fun saveSourceText(projectId: String, segmentId: String, sourceText: String): EditorMutation<CaptionSegment>

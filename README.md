@@ -2,7 +2,9 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current implementation has the **frontend demo plus local Room persistence/editor rules**. Media import/playback, speech recognition, offline translation engine, and real export are not connected yet. Demo inference/export states remain labeled and must not be interpreted as real processing.
+Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. Translation and real export are not integrated. The separate demo project remains labeled.
+
+This is an explicitly authorized prototype while **CP4 remains BLOCKED**. Current branch build/device validation status is recorded in `.agents/testing.md`; historical CI passes below do not validate these changes.
 
 ## Product direction
 
@@ -71,7 +73,7 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. **T10 is now BLOCKED at CP4** after model/readiness smoke: the remaining gate is human-dataset quality plus physical-device RTF/RAM/thermal benchmark. T11 has not started. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. **T10 is now BLOCKED at CP4** after model/readiness smoke: the remaining gate is human-dataset quality plus physical-device RTF/RAM/thermal benchmark. T11 is IN_PROGRESS under the user-approved prototype exception (ADR-029). See `.agents/plan.md` and `.agents/testing.md`.
 
 ## T10 physical benchmark
 
@@ -102,7 +104,7 @@ python tools/t10_translation_review.py init .t10-benchmark/translation-results.c
 python tools/t10_translation_review.py report .t10-benchmark/translation-review.csv --json .t10-benchmark/translation-summary.json
 ```
 
-See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.
+See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 is **IN_PROGRESS** under ADR-029.
 
 ### Restore provisional translation review after pulling
 
@@ -466,3 +468,14 @@ git pull --ff-only origin main
 ```
 
 No new pip download, model preparation or Android run is needed. If pilot succeeds, share the new 10-row `pilot.csv`; if offline SBD resources are missing, share only the printed error and local `session.json`. The previous two aborted runs are not evidence of translation quality; Argos accuracy and host latency are still **UNKNOWN**, CP4 BLOCKED.
+
+
+## T11 prototype setup and limits
+
+Build requires Java 21, SDK 37, NDK `28.2.13676358`, and CMake `3.22.1`.
+CMake fetches whisper.cpp v1.9.4 pinned at `927cfce34f31707e17f2bff35c349632fb9e2c3a`.
+Packaged native ABIs: arm64-v8a and x86_64. Initial build needs network access.
+
+Create a new project, choose the audio language, then import `ggml-base.bin` from the existing benchmark cache or explicitly download it in the app. The app verifies the model SHA-256 before use. After provisioning, inference works without network. Keep the app open and the screen unlocked during processing; leaving the app cancels this prototype operation. Rotation retains the ViewModel. After process death, reopen the saved project and retry; no partial caption checkpoint is restored.
+
+PCM is streamed into private temporary storage, downmixed and linearly resampled to 16 kHz, then transcribed in non-overlapping 30-second windows. Boundary speech and resampling quality need physical evaluation. Completed captions are published atomically only into an empty project at its original revision. No transcription is published on partial failure. Preview follows caption timestamps; source text, manual translation, split/merge and bounded timing adjustments persist locally. Style preview fidelity, automated translation, background recovery and export remain separate work.

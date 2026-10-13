@@ -1,5 +1,8 @@
 package app.subloka.feature.projects
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,7 +42,7 @@ fun NewProjectScreen(
     var sourceLanguage by remember { mutableStateOf(SourceLanguage.ENGLISH) }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(20.dp),
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -47,7 +50,7 @@ fun NewProjectScreen(
             Text("New Project", style = MaterialTheme.typography.headlineSmall)
         }
 
-        DemoBadge()
+        Text("Prototipe • video maksimal 10 menit. Periksa hasil caption sebelum digunakan.")
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -88,10 +91,12 @@ fun NewProjectScreen(
             Surface(color = SubLokaColors.SurfaceHigh, shape = RoundedCornerShape(8.dp)) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Caption akan dibuat", style = MaterialTheme.typography.labelMedium)
-                    Text("${sourceLanguage.label} + ${sourceLanguage.target.label}")
+                    Text("${sourceLanguage.label} • tanpa terjemahan otomatis")
                 }
             }
         }
+
+        if (selectedMedia != null && selectedMedia.durationUs > 600_000_000L) Text("Video melebihi 10 menit. Kembali dan pilih video yang lebih pendek.", color = SubLokaColors.Error)
 
         PrimaryAction(
             text = when {
@@ -102,7 +107,7 @@ fun NewProjectScreen(
             onClick = {
                 if (selectedMedia != null) onContinue(sourceLanguage) else onPickVideo()
             },
-            enabled = !mediaLoading,
+            enabled = !mediaLoading && (selectedMedia == null || selectedMedia.durationUs <= 600_000_000L),
             modifier = Modifier.fillMaxWidth(),
         )
     }
