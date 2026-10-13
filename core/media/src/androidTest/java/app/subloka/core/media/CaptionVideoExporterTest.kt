@@ -39,6 +39,7 @@ class CaptionVideoExporterTest {
         val output = File(context.cacheDir, "output-${System.nanoTime()}.mp4")
         try {
             val p = project(input)
+            assertTrue("Fixture must actually have portrait rotation", p.rotationDegrees in setOf(90, 270))
             withTimeout(90_000) { CaptionVideoExporter(context).render(p, listOf(cue()), CaptionStyle(), output) }
             assertArrayEquals(bytes, input.readBytes())
             val d = AndroidMediaSource(context).inspect(Uri.fromFile(output).toString())
