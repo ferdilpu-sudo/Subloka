@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.CaptionDisplayMode
 import app.subloka.core.domain.CaptionStyle
+import app.subloka.core.domain.CaptionOrder
 
 @Composable
 fun StyleWorkspace(
@@ -39,6 +40,9 @@ fun StyleWorkspace(
                 }
             }
 
+            ToggleRow("Terjemahan di atas", style.order == CaptionOrder.TRANSLATION_FIRST) {
+                onStyleChange(style.copy(order = if (it) CaptionOrder.TRANSLATION_FIRST else CaptionOrder.SOURCE_FIRST))
+            }
             Text("Original size · ${style.sourceSizePercent}%")
             Slider(
                 value = style.sourceSizePercent.toFloat(),
@@ -63,7 +67,7 @@ fun StyleWorkspace(
                 valueRange = 8f..35f,
             )
             Text(
-                "Safe-area guide dan warna final perlu diverifikasi terhadap frame video nyata.",
+                "Preview dan MP4 memakai tata letak yang sama. Caption terlalu panjang harus dipecah sebelum ekspor.",
                 color = SubLokaColors.TextSecondary,
                 style = MaterialTheme.typography.bodySmall,
             )

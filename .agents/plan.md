@@ -1100,3 +1100,11 @@ Created pure SRT serialization, document output writer/ViewModel, existing expor
 - Next ready action: install APK artifact 11812800467 from run 38396624117; Export → Keduanya → Siapkan SRT → save .id.srt and .en.srt independently to local Downloads. Inspect corrected text and timestamps, load each track with video, cancel one picker and confirm the other saved file remains. Source edit must block translation export until reviewed/refreshed, with original-only available.
 - Unverified: actual DocumentsUI/physical playback, low-storage/provider cleanup, process death, full lifecycle/quality. T14 remains IN_PROGRESS; T13/CP5/MP4 pending and CP4 BLOCKED. No repeat of completed external30 benchmark needed.
 - Docs: README, agent index, architecture/design/schema, ADR-031, plan/testing/evidence updated; PRD FR10 unchanged, Room v1 unchanged. Draft PR #1 updated, no merge/release.
+
+
+## Active increment — T14 MP4 / 2026-10-13
+Authorized `lanjut saja`; SRT physical test remains unverified. Implement ADR-032 bounded MP4 render plus shared preview painter, real progress/cancel, staged output validation and save. Acceptance: same layout rule in preview/export; frame-timestamp text changes; audio/rotation retained; no output offered after cancellation/failure. Tests: actual synthetic-video Transformer encode/decode on emulator, boundary/overflow/style painter tests, cancellation and source-preservation checks. T14 remains IN_PROGRESS; T13/CP5 and CP4 not closed.
+
+
+### T14 MP4 implementation handoff / 2026-10-13
+Created shared subtitle painter, Media3 Transformer foreground exporter, private staging/save ViewModel, export UI progress/cancel/save, preview style/order integration and synthetic real-encode instrumentation. Local structural checks PASS (T14-MP4-001); CI pending. No schema migration; PRD unchanged. Docs updated architecture/schema/design/decisions/plan/testing/README. T14 remains IN_PROGRESS, physical SRT/MP4/provider/lifecycle tests pending, T13/CP5 and CP4 unresolved.

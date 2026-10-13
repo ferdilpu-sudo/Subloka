@@ -2,7 +2,7 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. The SRT prototype exports original/translation as separate UTF-8 files; MP4 export is not integrated. The separate demo project remains labeled.
+Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. The SRT prototype exports original/translation as separate UTF-8 files; The foreground MP4 prototype is now integrated; physical codec/playback validation remains pending. The separate demo project remains labeled.
 
 This is an explicitly authorized prototype while **CP4 remains BLOCKED**. Current branch build/device validation status is recorded in `.agents/testing.md`; historical CI passes below do not validate these changes.
 
@@ -493,3 +493,7 @@ Open an existing transcribed project and choose **Terjemahkan / perbarui** (or t
 Open a saved project → Export → Asli, Terjemahan, or Keduanya → Siapkan SRT. Save each prepared language file using the Android document picker (choose local Downloads for offline use). Two languages produce two independent `.srt` files. Translation export requires every translation current; original-only works without translation. SRT contains text/timing, not fonts/colors; MP4 rendering remains pending. Build/device evidence: `.agents/testing.md`, T14-SRT-001.
 
 SRT code `47e3aa7` passed [Android CI #194](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117): build, lint, configured unit tests and Android 11 emulator writer tests. [Download APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117/artifacts/11812800467). Real document-picker save and SRT playback on Sony still need verification.
+
+
+## MP4 video export prototype
+Open a real project → Export → choose original/translation/both → Render MP4. Keep the app foreground; backgrounding cancels rendering. After validation completes, Save MP4 opens Android's location picker. Choose local storage for offline use. Output: H.264/AAC, SDR only, <=10-minute sources, longest side capped to 1280 pixels without upscaling. Subtitle Style settings/order use the shared preview renderer; captions that overflow must be split or reduced in size. Original video is unchanged; external save is separate from rendering. Full T13 recovery, physical Sony acceptance and quality gates remain pending. Evidence: T14-MP4-001 in `.agents/testing.md`.

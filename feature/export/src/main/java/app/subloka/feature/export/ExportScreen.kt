@@ -28,6 +28,13 @@ fun ExportScreen(
     onPrepare: (SrtExportMode) -> Unit,
     onSave: (Int) -> Unit,
     onBack: () -> Unit,
+    videoReady: Boolean,
+    videoRendering: Boolean,
+    videoMessage: String?,
+    videoProgress: Int?,
+    onRender: (SrtExportMode) -> Unit,
+    onSaveVideo: () -> Unit,
+    onCancelVideo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var mode by rememberSaveable { mutableStateOf(SrtExportMode.BOTH) }
@@ -42,12 +49,23 @@ fun ExportScreen(
         SecondaryAction("Kembali ke editor", onBack, enabled = !locked)
         Text("Ekspor subtitle", style = MaterialTheme.typography.headlineSmall)
         if (demoMode) Text("Proyek demo — file berisi contoh caption.")
-        Text("SRT menyimpan teks dan timing. Font, warna, dan style tidak disertakan. Ekspor video MP4 belum tersedia.")
+        Text("SRT menyimpan teks dan timing. Font, warna, dan style tidak disertakan pada SRT. MP4 menanamkan subtitle ke video.")
         ExportRadio("Asli (${sourceLanguage.label})", mode == SrtExportMode.SOURCE, !locked) { mode = SrtExportMode.SOURCE }
         ExportRadio("Terjemahan (${sourceLanguage.target.label})", mode == SrtExportMode.TRANSLATION, !locked) { mode = SrtExportMode.TRANSLATION }
-        ExportRadio("Keduanya — dua file terpisah", mode == SrtExportMode.BOTH, !locked) { mode = SrtExportMode.BOTH }
+        ExportRadio("Keduanya (SRT: dua file; MP4: dua bahasa)", mode == SrtExportMode.BOTH, !locked) { mode = SrtExportMode.BOTH }
         if (blocked) Text("Lengkapi atau perbarui terjemahan sebelum ekspor. Pilihan Asli tetap tersedia.", color = MaterialTheme.colorScheme.error)
         PrimaryAction("Siapkan SRT", { onPrepare(mode) }, enabled = !locked && !blocked && segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
+        HorizontalDivider()
+        Text("Video MP4", style = MaterialTheme.typography.titleMedium)
+        Text("SDR · sisi terpanjang maksimal 1280 piksel · style dari editor. Tetap buka aplikasi selama render.")
+        SecondaryAction("Render MP4", { onRender(mode) }, enabled = !demoMode && !locked && !blocked && segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
+        if (videoRendering) {
+            Text(videoProgress?.let { "Render $it%" } ?: "Render sedang berjalan…")
+            SecondaryAction("Hentikan render", onCancelVideo)
+        }
+        videoMessage?.let { Text(it) }
+        if (videoReady) SecondaryAction("Simpan MP4 hasil render", onSaveVideo, enabled = !locked, modifier = Modifier.fillMaxWidth())
+        HorizontalDivider()
         if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         message?.let { Text(it) }
         if (documents.isNotEmpty()) {

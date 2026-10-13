@@ -69,3 +69,7 @@ No schema migration: Room v1 and the existing `applyMachineTranslation` transact
 
 ## SRT snapshot contract (2026-10-13)
 Room v1 unchanged; no export_records/job rows written for this bounded prototype. Each prepared snapshot is a list of immutable name/text pairs. SRT floors both microsecond endpoints to milliseconds and rejects zero-length intervals after conversion. UTF-8, CRLF, sequential indices after sorting, original and target in separate files. Blank lines inside text are removed to preserve cue structure; invalid control characters/timestamp arrows rejected. Each external file has independent success state; process death clears in-memory status, never fabricates completion.
+
+
+## MP4 prototype data contract (2026-10-13)
+Room v1 unchanged. Immutable project/caption/style snapshot after editor flush; export mode overrides only snapshot displayMode. No caption mutations by renderer. Private UUID output files under filesDir/mp4-staging; external URI requested only after completed render validation. No export_records or durable job rows added. In-memory ready state is cleared after process death and old staging deleted at next ViewModel initialization; no resume/completion claim. Original/translated share [startUs,endUs); blank/stale translation blocks modes needing translation. Font sizes 70..140%, bottom 8..35%, max 4 lines per language and combined subtitle block <=50% of frame. Font is device sans-serif bold, not a downloadable font. Colors fixed white/source, warm yellow/translation with existing background/outline controls.

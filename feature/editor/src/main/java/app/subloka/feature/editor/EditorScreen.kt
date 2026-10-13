@@ -47,6 +47,8 @@ fun EditorScreen(
     projectTitle: String = "Traveling",
     demoMode: Boolean = true,
     durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
+    videoWidth: Int = 16,
+    videoHeight: Int = 9,
     onGenerate: () -> Unit = {},
     onRequestTranslation: (String?) -> Unit = {},
 ) {
@@ -176,7 +178,7 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, compactHeight = false)
+                        VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = false)
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
@@ -197,7 +199,7 @@ fun EditorScreen(
                     )
                 }
             } else {
-                VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
+                VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = keyboardLikelyVisible)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
                     demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,

@@ -1,5 +1,9 @@
 package app.subloka.feature.editor
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.nativeCanvas
+import app.subloka.core.domain.CaptionStyle
+import app.subloka.core.media.SubtitlePainter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +35,9 @@ fun VideoPreview(
     segment: CaptionSegment?,
     mediaUri: String?,
     compactHeight: Boolean,
+    captionStyle: CaptionStyle = CaptionStyle(),
+    videoWidth: Int = 16,
+    videoHeight: Int = 9,
     segments: List<CaptionSegment> = listOfNotNull(segment),
     modifier: Modifier = Modifier,
 ) {
@@ -52,7 +59,10 @@ fun VideoPreview(
             delay(100)
         }
     }
-    val visible = if (controller == null) segment else segments.firstOrNull { positionUs >= it.startUs && positionUs < it.endUs }
+    val painter = remember(segments, captionStyle) { SubtitlePainter(segments, captionStyle) }
+    val renderError = remember(painter, videoWidth, videoHeight) {
+        runCatching { painter.validate(videoWidth, videoHeight) }.exceptionOrNull()?.message
+    }
     DisposableEffect(controller) {
         onDispose { controller?.close() }
     }
@@ -81,15 +91,18 @@ fun VideoPreview(
                 Text("VIDEO PREVIEW · PILIH VIDEO", color = SubLokaColors.TextSecondary)
             }
 
-            if (visible != null) {
-                Column(
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(visible.sourceText, color = SubLokaColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
-                    Text(visible.translationText, color = SubLokaColors.Warning, style = MaterialTheme.typography.bodySmall)
+            if (renderError == null) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val scale = minOf(size.width / videoWidth, size.height / videoHeight)
+                    val canvas = drawContext.canvas.nativeCanvas
+                    canvas.save()
+                    canvas.translate((size.width - videoWidth * scale) / 2, (size.height - videoHeight * scale) / 2)
+                    // Render at full oriented resolution, scaled into the player's fit rectangle.
+                    canvas.scale(scale, scale)
+                    painter.draw(canvas, videoWidth, videoHeight, if (controller == null) segment?.startUs ?: 0 else positionUs)
+                    canvas.restore()
                 }
-            }
+            } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(if (controller == null) "Preview belum tersedia" else "Playback lokal", style = MaterialTheme.typography.bodySmall)

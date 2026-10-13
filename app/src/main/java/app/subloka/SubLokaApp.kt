@@ -20,6 +20,7 @@ fun SubLokaApp(
     persistence: SubLokaViewModel = viewModel(),
     media: SubLokaMediaViewModel = viewModel(),
     exporter: SrtExportViewModel = viewModel(),
+    videoExporter: VideoExportViewModel = viewModel(),
 ) {
     var route by rememberSaveable { mutableStateOf("projects") }
     val segments by persistence.segments.collectAsState()
@@ -30,6 +31,10 @@ fun SubLokaApp(
     val asr by persistence.asr.collectAsState()
     val translation by persistence.translation.collectAsState()
     var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    val videoExportState by videoExporter.state.collectAsState()
+    val mp4Picker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("video/mp4")) {
+        videoExporter.save(it)
+    }
     val exportState by exporter.state.collectAsState()
     val srtPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-subrip")) {
         exporter.save(it)
@@ -46,7 +51,8 @@ fun SubLokaApp(
         if (project == null && route !in listOf("projects", "new")) route = "projects"
     }
     fun back() {
-        if (route == "export" && (exportState.busy || exportState.pending != null)) return
+        if (route == "export" && videoExportState.rendering) { videoExporter.cancelRender(); return }
+        if (route == "export" && (exportState.busy || exportState.pending != null || videoExportState.busy || videoExportState.pending)) return
         if (asr.busy) persistence.cancelOperation()
         else persistence.flush { success -> if (success) route = if (route in listOf("translation", "export")) "editor" else "projects" }
     }
@@ -92,6 +98,8 @@ fun SubLokaApp(
                 EditorScreen(initialSegments = segments, initialStyle = style,
                     mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
                     projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
+                    videoWidth = if (p.rotationDegrees in setOf(90, 270)) p.heightPx else p.widthPx,
+                    videoHeight = if (p.rotationDegrees in setOf(90, 270)) p.widthPx else p.heightPx,
                     onGenerate = { route = "model" },
                     onRequestTranslation = { segmentId ->
                         persistence.flush { success ->
@@ -107,7 +115,7 @@ fun SubLokaApp(
                     onBack = ::back, onExport = { snapshot ->
                         persistence.persistSegments(snapshot)
                         persistence.flush { success ->
-                            if (success && !asr.busy) { exporter.reset(); route = "export" }
+                            if (success && !asr.busy) { exporter.reset(); videoExporter.reset(); route = "export" }
                         }
                     }, modifier = modifier)
             }
@@ -115,12 +123,27 @@ fun SubLokaApp(
         "export" -> project?.let { p ->
             ExportScreen(segments, p.sourceLanguage,
                 p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"),
-                exportState.busy, exportState.pending != null, exportState.documents,
+                exportState.busy || videoExportState.busy, exportState.pending != null || videoExportState.pending, exportState.documents,
                 exportState.saved, exportState.message,
                 onPrepare = { mode -> exporter.prepare(p.title, p.sourceLanguage, p.durationUs, segments, mode) },
                 onSave = { index -> exporter.select(index)?.let { name ->
                     try { srtPicker.launch(name) } catch (_: Exception) { exporter.pickerFailed() }
-                } }, onBack = ::back, modifier = modifier)
+                } },
+                videoReady = videoExportState.ready, videoRendering = videoExportState.rendering,
+                videoMessage = videoExportState.message, videoProgress = videoExportState.progress,
+                onRender = { mode ->
+                    if (!asr.busy && !exportState.busy && exportState.pending == null) {
+                        videoExporter.render(p, segments, style.copy(displayMode = when (mode) {
+                            app.subloka.core.domain.SrtExportMode.SOURCE -> app.subloka.core.domain.CaptionDisplayMode.ORIGINAL
+                            app.subloka.core.domain.SrtExportMode.TRANSLATION -> app.subloka.core.domain.CaptionDisplayMode.TRANSLATION
+                            app.subloka.core.domain.SrtExportMode.BOTH -> app.subloka.core.domain.CaptionDisplayMode.DUAL
+                        }))
+                    }
+                },
+                onSaveVideo = { videoExporter.select()?.let { name ->
+                    try { mp4Picker.launch(name) } catch (_: Exception) { videoExporter.pickerFailed() }
+                } }, onCancelVideo = videoExporter::cancelRender,
+                onBack = ::back, modifier = modifier)
         }
     }
 }
