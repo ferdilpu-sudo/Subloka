@@ -1,6 +1,6 @@
 # Arsitektur Aplikasi
 
-Status: baseline diimplementasikan sampai T08 untuk frontend, domain, dan persistence lokal. Media/ASR/translation/export produksi masih mengikuti task berikutnya. Tidak ada backend server; seluruh komputasi konten dirancang lokal dan jaringan hanya untuk penyiapan model yang disetujui pengguna.
+Status: baseline T09 mencakup frontend, domain, persistence dan media lokal. T11 kini mengintegrasikan prototipe ASR foreground sesuai ADR-029; validasi fisik, translation dan export produksi masih mengikuti task berikutnya. Tidak ada backend server; seluruh komputasi konten dirancang lokal dan jaringan hanya untuk penyiapan model yang disetujui pengguna.
 
 ## Stack dan batas kepastian
 

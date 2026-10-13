@@ -8,6 +8,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.subloka.core.domain.ProjectSummary
+import app.subloka.demo.DemoData
 import app.subloka.feature.editor.EditorScreen
 import app.subloka.feature.export.ExportScreen
 import app.subloka.feature.projects.*
@@ -72,7 +73,7 @@ fun SubLokaApp(
             key(p.id) {
                 EditorScreen(initialSegments = segments, initialStyle = style,
                     mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
-                    projectTitle = p.title, demoMode = p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
+                    projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
                     onGenerate = { route = "model" },
                     saveStatusText = saveState.label(), saveFailed = saveState == PersistenceSaveState.FAILED,
                     onSegmentsPersist = persistence::persistSegments, onStylePersist = persistence::persistStyle,

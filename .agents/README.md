@@ -19,7 +19,7 @@ Folder `.agents/` adalah source of truth untuk spesifikasi, keputusan, rencana, 
 | Persistence lokal T08 | **DONE**; Room v1, autosave/editor rules, reopen, revision dan schema fixture teruji |
 | Media T09 | **DONE**; content URI, metadata/rotation/audio, PCM decode, relink, error gate dan Media3 playback teruji pada Android 11 emulator |
 | T10 engine evaluation | **BLOCKED at CP4**; Whisper model integrity + synthetic functional smoke + arm64 benchmark build PASS; ML Kit EN↔ID readiness smoke PASS; human/physical benchmark belum selesai |
-| Production ASR / translation pipeline / export nyata | Belum diintegrasikan dan belum diverifikasi |
+| ASR / translation / export | T11 prototipe ASR foreground diintegrasikan sesuai ADR-029; lihat testing.md untuk CI. Validasi fisik, translation dan export produksi belum selesai |
 | Akurasi, performa dan kompatibilitas | Belum diverifikasi |
 
 Bukti teknis terbaru: `DATA-001` pada GitHub Actions run #15, revision `deb5b1ebfe87254535a5a5845fa368cb6e6c8829`; domain tests, Room integration tests, schema fixture, assemble dan lint PASS. Ini belum membuktikan media/ASR/translation/export produksi.

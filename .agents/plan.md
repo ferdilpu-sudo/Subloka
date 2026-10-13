@@ -1064,3 +1064,5 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - T11 IN_PROGRESS and CP4 BLOCKED: compile/CI and physical integration still require evidence. No claim of model-quality acceptance, automated translation, recovery, or export.
 - Updated README, architecture, schema (v1 unchanged; new repository contract), design, testing, plan, decisions. PRD unchanged; ADR-029 records existing user authorization.
 - Next: inspect CI results and fix failures, then physical short-video offline smoke before longer performance validation.
+
+- Draft PR: https://github.com/ferdilpu-sudo/Subloka/pull/1. CI `38334285944` build job PASS after fixing the cancellation test's exception ordering; see T11-PROTOTYPE-002. Added emulator JNI load/error test (not model inference). Preserve demo disclosure for legacy demo IDs with attached media. Physical smoke still NOT_RUN.

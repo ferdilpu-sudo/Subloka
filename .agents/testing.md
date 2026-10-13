@@ -1127,3 +1127,20 @@ Dokumen/task yang diperbarui:
 - Added meaningful tests: decoder-chunk-invariant resampling at 44.1/48 kHz, stereo/leading PTS, invalid/discontinuous/oversized PCM rejection; window offset/clamp/repetition; injected pipeline silence/failure/cancel cleanup; Room stale/nonempty publication rejection, rollback and reopen persistence. GitHub Android CI now runs on PRs and provisions pinned NDK/CMake, uploading APK/reports. CI results pending.
 - Physical in-app model import, airplane-mode inference, background cancellation, rotation/process-death reopening, timestamp accuracy, URI loss, 10-minute memory/thermal run and visual accessibility: NOT_RUN. CLI benchmark evidence does not validate in-app JNI. T11 remains IN_PROGRESS; CP4 BLOCKED.
 - User-provided external30 benchmark already verified in prior session: clean 48/205 = 23.41% WER; TELDIALOG 22/83 = 26.51%; clean median/p95 RTF 1.71949/2.00369, challenging 2.615875/3.02972; sampled peak RSS 376900 KiB, battery 35→39.2°C. External exploratory corpus, not independent gate holdout. Does not change CP4.
+
+
+### T11-PROTOTYPE-002 — first PR CI, 2026-10-13
+- Head `e350b50d3f75feeffddd71740fbe0ff91544ccc9`, merge checkout `ad742975632239163ea7a8c5a24a69d929261e88`, Android CI run `38333974677`, build job `115089807210`.
+- Domain, Room publication/reopen integration and media unit steps PASS. ASR 10 tests: 9 PASS, 1 FAIL (`failureAndCancellationNeverReturnPartialResults`). The test caught IllegalStateException before CancellationException (its subclass), causing the cancellation assertion to be misclassified. No production assertion or cancellation guard was weakened.
+- Follow-up head `4302e1af39354582c1fdb4f5a975b7ce94c7a7cc` fixes catch ordering, adds verified-model replacement preservation test, bundled-native missing-model instrumentation and upstream license asset. Native code compiled with -O3 even for debug, baseline x86_64 ISA without AVX/FMA; physical performance remains unmeasured.
+- Added native loading test is explicitly not inference evidence. CI run `38334285944` pending at this entry.
+
+### T11 physical smoke protocol (NOT_RUN)
+1. Install the debug APK from this PR's successful CI on Sony; keep existing app data where signatures match. Import an existing SHA-verified ggml-base.bin through the app's model picker.
+2. Enable airplane mode and turn Wi-Fi off. Create a new project from a short 30–60-second spoken video; choose the actual language. Keep the app foreground/unlocked. Confirm actual stages, readable source captions, valid video-relative times and no automatic translation.
+3. Play and select captions; correct a word, split/merge and adjust time. Return to Projects, reopen and restart the app; verify saved text/timing. Demo and other projects must remain intact.
+4. Start a separate empty project and cancel during decoding/inference; confirm no partial captions. Retry once. Background the app during another attempt; confirm stop/retry state, not fake success. Rotate once during processing; verify no duplicate job.
+5. After short smoke, evaluate speech spanning 30-second boundaries, acoustic silence, URI permission loss and a <=10-minute video with device RAM/thermal telemetry. Report failures separately; passing this smoke cannot close CP4 or prove translation/export.
+
+- Run `38334285944`, head `4302e1af39354582c1fdb4f5a975b7ce94c7a7cc`, build job `115090774378`: **PASS** for domain/database/media/ASR/translation unit steps, Android test APK compilation, Room schema fixture, debug APK assembly and lint. Native x86_64/arm64 linking is covered by APK assembly. Emulator media/native loading job still pending at this entry.
+- Follow-up UI compatibility correction: always label the stable legacy demo project ID as demo, even if an older app attached a real source URI to it. New projects retain independent UUIDs; legacy content is not rewritten.
