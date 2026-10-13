@@ -160,7 +160,7 @@ fun EditorScreen(
                 saveStatusText = saveStatusText,
                 saveFailed = saveFailed,
                 title = projectTitle,
-                exportAvailable = demoMode,
+                exportAvailable = !saveFailed,
             )
             if (demoMode) DemoBadge() else Text("Prototipe • periksa teks dan waktu. Periksa juga makna terjemahan. Ekspor belum tersedia.", style = MaterialTheme.typography.bodySmall)
 

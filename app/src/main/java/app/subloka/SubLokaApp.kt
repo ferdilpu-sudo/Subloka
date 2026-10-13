@@ -19,6 +19,7 @@ fun SubLokaApp(
     modifier: Modifier = Modifier,
     persistence: SubLokaViewModel = viewModel(),
     media: SubLokaMediaViewModel = viewModel(),
+    exporter: SrtExportViewModel = viewModel(),
 ) {
     var route by rememberSaveable { mutableStateOf("projects") }
     val segments by persistence.segments.collectAsState()
@@ -29,6 +30,10 @@ fun SubLokaApp(
     val asr by persistence.asr.collectAsState()
     val translation by persistence.translation.collectAsState()
     var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    val exportState by exporter.state.collectAsState()
+    val srtPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-subrip")) {
+        exporter.save(it)
+    }
     val selection by media.selection.collectAsState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) media.select(uri)
@@ -41,8 +46,9 @@ fun SubLokaApp(
         if (project == null && route !in listOf("projects", "new")) route = "projects"
     }
     fun back() {
+        if (route == "export" && (exportState.busy || exportState.pending != null)) return
         if (asr.busy) persistence.cancelOperation()
-        else persistence.flush { success -> if (success) route = if (route == "translation") "editor" else "projects" }
+        else persistence.flush { success -> if (success) route = if (route in listOf("translation", "export")) "editor" else "projects" }
     }
     BackHandler(route != "projects") { back() }
     when (route) {
@@ -98,10 +104,24 @@ fun SubLokaApp(
                     },
                     saveStatusText = saveState.label(), saveFailed = saveState == PersistenceSaveState.FAILED,
                     onSegmentsPersist = persistence::persistSegments, onStylePersist = persistence::persistStyle,
-                    onBack = ::back, onExport = { route = "export" }, modifier = modifier)
+                    onBack = ::back, onExport = { snapshot ->
+                        persistence.persistSegments(snapshot)
+                        persistence.flush { success ->
+                            if (success && !asr.busy) { exporter.reset(); route = "export" }
+                        }
+                    }, modifier = modifier)
             }
         }
-        "export" -> ExportScreen(segments = segments, onBack = { route = "editor" }, onDone = ::back, modifier = modifier)
+        "export" -> project?.let { p ->
+            ExportScreen(segments, p.sourceLanguage,
+                p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"),
+                exportState.busy, exportState.pending != null, exportState.documents,
+                exportState.saved, exportState.message,
+                onPrepare = { mode -> exporter.prepare(p.title, p.sourceLanguage, p.durationUs, segments, mode) },
+                onSave = { index -> exporter.select(index)?.let { name ->
+                    try { srtPicker.launch(name) } catch (_: Exception) { exporter.pickerFailed() }
+                } }, onBack = ::back, modifier = modifier)
+        }
     }
 }
 

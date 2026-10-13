@@ -65,3 +65,7 @@ Room schema remains v1; no table/column migration. `CaptionRepository.publishGen
 
 ## T12 translation persistence (2026-10-13)
 No schema migration: Room v1 and the existing `applyMachineTranslation` transaction remain unchanged. Successful generated translations carry MACHINE/CURRENT with translation_source_revision equal to the accepted source_revision. The prototype never passes allowReplaceManual=true. Manual translations, including stale manual ones, are skipped. Missing/stale machine rows remain retryable after engine failure; no persistent PENDING marker is written. Per-segment commits are intentional: cancellation keeps successful translations, unlike ASR's all-or-nothing first generation.
+
+
+## SRT snapshot contract (2026-10-13)
+Room v1 unchanged; no export_records/job rows written for this bounded prototype. Each prepared snapshot is a list of immutable name/text pairs. SRT floors both microsecond endpoints to milliseconds and rejects zero-length intervals after conversion. UTF-8, CRLF, sequential indices after sorting, original and target in separate files. Blank lines inside text are removed to preserve cue structure; invalid control characters/timestamp arrows rejected. Each external file has independent success state; process death clears in-memory status, never fabricates completion.

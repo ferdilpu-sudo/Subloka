@@ -717,3 +717,7 @@ P0 usability/data defect: demo progression could imply successful inference on u
 
 ## T12 translation action (2026-10-13)
 P1 missing functionality: source captions exist but the translation field cannot be generated. Add contextual bulk and selected-caption actions in Caption, followed by model readiness/download and actual processing feedback. No fourth editor workspace. Preserve current/manual translations; show why manual content cannot be auto-replaced. Leave the editor during processing, flush its saves before entry, and reload the persisted snapshot on return so stale local drafts cannot replace new translations. Failures explain retry of remaining captions; completed rows survive interruption. Export remains unavailable.
+
+
+## SRT export flow (2026-10-13)
+P1 missing final action: real projects previously disabled Export. Enable after successful editor persistence. Existing Export flow offers Asli / Terjemahan / Keduanya (two files), Siapkan SRT, then a save button for each language file. Current-translation gate applies only to modes requiring translation; original remains available. No style promise for SRT. Scrollable controls, 48dp radio targets, real indeterminate progress, per-file count, cancel/error/retry messages. Each save opens system location picker; choose local device storage for offline use. MP4 explicitly unavailable. Acceptance: latest saved corrections in output, both language directions, canceled second file leaves first intact, no success on write/close failure.

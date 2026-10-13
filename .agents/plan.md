@@ -26,7 +26,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T11 | Pipeline ASR produksi (prototipe terbatas diotorisasi ADR-029) | T10, CP4; pengecualian prototipe ADR-029 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | IN_PROGRESS |
 | T12 | Pipeline translation (prototipe ADR-030) | T11; pengecualian prototipe ADR-030 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | IN_PROGRESS |
 | T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
-| T14 | Renderer dan ekspor MP4/SRT | T13, CP5 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | TODO |
+| T14 | Renderer dan ekspor MP4/SRT | T13, CP5; bounded SRT exception ADR-031 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | IN_PROGRESS — SRT prototype only |
 | T15 | Integrasi dan hardening end-to-end | T14 | Seluruh FR/NFR ditelusuri; mode pesawat, adaptive/keyboard/accessibility, kualitas, lifecycle/perangkat PASS; CP6 lulus | TODO |
 | T16 | Paket rilis dan handoff | T15, CP6 | Build kandidat, checksum, petunjuk instalasi/model, known limits, sumber/lisensi, docs final; CP7 ditinjau | TODO |
 
@@ -1084,3 +1084,11 @@ User reports Indonesian in-app transcription succeeded on the test phone; no cla
 - **T12-PROTOTYPE-002 PASS**, CI `38365151582` both build and emulator jobs. APK/report link and limitations in testing.md. No physical translation result yet. T11 remains IN_PROGRESS with user-reported Indonesian transcription success; T12 IN_PROGRESS; CP4 BLOCKED.
 - Next: install the T12 prototype APK, open a transcribed project, prepare translation models explicitly, turn internet off, translate and verify manual-edit/stale/retry persistence on Sony. No need to rerun the external30 ASR benchmark.
 - Docs updated: README, agent README, plan, testing, ADR-030, architecture, design, schema (v1 unchanged), evidence JSON. PRD unchanged. Draft PR #1 updated; no merge or release.
+
+
+## Active increment — T14 SRT prototype / 2026-10-13
+User authorized `lanjut` after subtitle-export proposal. Implement FR10 only: validated UTF-8 original/translation/two separate files, saved through Android document picker after editor save barrier. No MP4, no T13/CP5 completion claim. Acceptance: exact numbering/timestamps, current-translation gate, snapshot isolation, explicit per-file success/cancel/error. Tests: domain serialization regressions, app document-output instrumentation, CI build/lint. Physical Sony save/playback pending.
+
+
+### T14 implementation handoff / 2026-10-13
+Created pure SRT serialization, document output writer/ViewModel, existing export UI integration and save barrier, domain/writer tests. T12-DEVICE-REPORTED-002 records basic translation/manual preservation user success. T14-SRT-001 local structural checks PASS; Android CI pending, physical SRT unverified. ADR-031 scopes exception; full T13, CP5, MP4 and CP4 remain unresolved. Docs updated: architecture/schema/design/testing/decisions/README. PRD FR10 unchanged.

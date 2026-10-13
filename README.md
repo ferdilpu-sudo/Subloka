@@ -2,7 +2,7 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. Real export is not integrated. The separate demo project remains labeled.
+Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. The SRT prototype exports original/translation as separate UTF-8 files; MP4 export is not integrated. The separate demo project remains labeled.
 
 This is an explicitly authorized prototype while **CP4 remains BLOCKED**. Current branch build/device validation status is recorded in `.agents/testing.md`; historical CI passes below do not validate these changes.
 
@@ -487,3 +487,7 @@ PCM is streamed into private temporary storage, downmixed and linearly resampled
 
 ## T12 translation prototype
 Open an existing transcribed project and choose **Terjemahkan / perbarui** (or the selected-caption action). Provision the separate translation models once; Wi-Fi-only download is selected by default. When models report ready, you can turn off internet and translate. Completed translations persist per caption; retry processes remaining missing/stale machine captions. Manually edited translations and current results are preserved. Source edits mark existing translations stale; automatic refresh never overwrites a manual translation. Keep the app foreground; stopping retains completed translations. Automatic translation quality still needs human review, and CP4 remains blocked. T12 code `4ed4de4` passed [Android CI #191](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38365151582): all configured unit steps, APK assembly, lint and fresh-app emulator adapter checks. [Download T12 APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38365151582/artifacts/11797056630). Physical translation and user-flow validation remain pending; details are in `.agents/testing.md`.
+
+
+## SRT subtitle export prototype
+Open a saved project → Export → Asli, Terjemahan, or Keduanya → Siapkan SRT. Save each prepared language file using the Android document picker (choose local Downloads for offline use). Two languages produce two independent `.srt` files. Translation export requires every translation current; original-only works without translation. SRT contains text/timing, not fonts/colors; MP4 rendering remains pending. Build/device evidence: `.agents/testing.md`, T14-SRT-001.
