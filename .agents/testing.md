@@ -1144,3 +1144,11 @@ Dokumen/task yang diperbarui:
 
 - Run `38334285944`, head `4302e1af39354582c1fdb4f5a975b7ce94c7a7cc`, build job `115090774378`: **PASS** for domain/database/media/ASR/translation unit steps, Android test APK compilation, Room schema fixture, debug APK assembly and lint. Native x86_64/arm64 linking is covered by APK assembly. Emulator media/native loading job still pending at this entry.
 - Follow-up UI compatibility correction: always label the stable legacy demo project ID as demo, even if an older app attached a real source URI to it. New projects retain independent UUIDs; legacy content is not rewritten.
+
+
+## T11-PROTOTYPE-003 — final code CI PASS, 2026-10-13
+- Code revision `150ec9af39d03444554195a077da0cc80c3c7af8`; Android CI run `38355668247`: build job `115157854152` **SUCCESS**, media-device job `115157854312` **SUCCESS**. Run `38334285944` also ultimately passed both jobs.
+- PASS: domain/database/media/ASR/translation unit steps; Android test compilation; Room schema fixture; debug APK with arm64/x86_64 native linkage; lint; Android 11 emulator media task and class-filtered `app.subloka.NativeAsrLoadingTest`. The native test only loads the bundled engine and rejects a missing model; it does not run speech inference.
+- APK/reports artifact: https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247/artifacts/11791909316 ; zip SHA-256 `84899e9c61550fde3d1785b0cc357d94968ec2d6d15dc583a25919d147a10d51`.
+- Evidence summary `.agents/evidence/t11-prototype-ci-2026-10-13.json`. Later documentation-only changes do not alter this tested code. Local final diff/JSON consistency checks PASS.
+- Physical Sony inference/UI/lifecycle, timestamps/boundary quality, 10-minute RAM/thermal, translation and export remain NOT_RUN/unimplemented as applicable. T11 IN_PROGRESS; CP4 BLOCKED. Execute the short physical smoke protocol above next, without repeating the completed external30 CLI benchmark.

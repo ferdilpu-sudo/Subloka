@@ -1,0 +1,31 @@
+{
+  "evidence_id": "T11-PROTOTYPE-003",
+  "date": "2026-10-13",
+  "code_revision": "150ec9af39d03444554195a077da0cc80c3c7af8",
+  "workflow_run": 38355668247,
+  "build_job": 115157854152,
+  "media_device_job": 115157854312,
+  "result": "PASS",
+  "scope": [
+    "project guardrails",
+    "domain/database/media/ASR/translation unit tests",
+    "Room schema fixture unchanged",
+    "Android test APK compilation",
+    "debug APK assembly including arm64-v8a and x86_64 JNI",
+    "Android lint",
+    "Android 11 emulator media tests",
+    "emulator bundled JNI loading and missing-model failure path"
+  ],
+  "artifact_id": 11791909316,
+  "artifact_sha256": "84899e9c61550fde3d1785b0cc357d94968ec2d6d15dc583a25919d147a10d51",
+  "not_verified": [
+    "physical in-app model inference",
+    "end-to-end UI/lifecycle on Sony",
+    "boundary caption accuracy",
+    "10-minute ASR RAM/thermal performance",
+    "automatic translation integration",
+    "real export"
+  ],
+  "t11_status": "IN_PROGRESS",
+  "cp4_status": "BLOCKED"
+}

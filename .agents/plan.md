@@ -1066,3 +1066,10 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - Next: inspect CI results and fix failures, then physical short-video offline smoke before longer performance validation.
 
 - Draft PR: https://github.com/ferdilpu-sudo/Subloka/pull/1. CI `38334285944` build job PASS after fixing the cancellation test's exception ordering; see T11-PROTOTYPE-002. Added emulator JNI load/error test (not model inference). Preserve demo disclosure for legacy demo IDs with attached media. Physical smoke still NOT_RUN.
+
+
+### Final T11 prototype handoff — 2026-10-13
+- Tested code `150ec9af39d03444554195a077da0cc80c3c7af8` on PR #1: **T11-PROTOTYPE-003 PASS**, Android CI `38355668247` build + emulator jobs successful. APK and reports linked in testing.md.
+- Implemented and compiled: actual model provisioning/JNI/PCM transcription pipeline, safe publication to separate projects, source editor/timing/playback integration, cancel/retry and honest legacy demo disclosure.
+- **T11 remains IN_PROGRESS / CP4 BLOCKED.** Next ready action: short Sony offline in-app smoke and persisted-edit/cancellation checks. Physical inference is not established by the passing emulator missing-model test. Do not advance to production translation/export or re-label model quality as passed.
+- Documentation synchronized: README, agent README, plan, testing, decisions, architecture, schema, design, evidence JSON. PRD unchanged. No merge/release performed; draft PR https://github.com/ferdilpu-sudo/Subloka/pull/1.

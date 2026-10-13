@@ -25,6 +25,10 @@ Editor workspaces are deliberately limited to **Caption**, **Timing**, and **Sty
 
 ## Verification status
 
+T11 prototype code `150ec9a` passed [Android CI run #189](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247): unit tests, debug assembly, lint, media emulator tests and bundled JNI loading/error handling. [Download the debug APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247/artifacts/11791909316). Physical speech inference and the end-to-end user flow still require the Sony smoke protocol in `.agents/testing.md`. CP4 remains blocked.
+
+Historical baseline evidence:
+
 Android CI has verified the frontend scaffold on GitHub Actions:
 
 - project guardrail validator: **PASS**
