@@ -160,7 +160,8 @@ fun EditorScreen(
         val expanded = maxWidth >= 840.dp && maxHeight >= 480.dp
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
-        val showPreview = previewRequested && !keyboardLikelyVisible && maxHeight >= 600.dp
+        val hasPreviewSpace = !keyboardLikelyVisible && maxHeight >= 600.dp
+        val showPreview = previewRequested && hasPreviewSpace
         val selected = segments.first { it.id == selectedId }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -172,7 +173,7 @@ fun EditorScreen(
                 title = projectTitle,
                 exportAvailable = !saveFailed,
             )
-            if (!keyboardLikelyVisible && maxHeight >= 600.dp) {
+            if (hasPreviewSpace) {
                 if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
             }
 
@@ -209,7 +210,7 @@ fun EditorScreen(
                     )
                 }
             } else {
-                if (!keyboardLikelyVisible && maxHeight >= 600.dp) {
+                if (hasPreviewSpace) {
                     TextButton(onClick = { previewRequested = !previewRequested }) {
                         Text(if (previewRequested) "Sembunyikan preview" else "Tampilkan preview")
                     }
