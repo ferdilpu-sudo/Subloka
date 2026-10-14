@@ -187,7 +187,7 @@ fun EditorScreen(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = false)
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }

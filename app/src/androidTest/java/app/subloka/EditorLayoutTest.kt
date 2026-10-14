@@ -31,6 +31,7 @@ class EditorLayoutTest {
                     Box(Modifier.size(320.dp, 480.dp)) {
                         EditorScreen(listOf(caption), CaptionStyle(), null, "Tersimpan", false,
                             {}, {}, {}, { exported = true },
+                            demoMode = false,
                             projectTitle = "Judul proyek sangat panjang yang tidak boleh menimpa ekspor".repeat(3))
                     }
                 }
@@ -38,6 +39,9 @@ class EditorLayoutTest {
         }
         compose.onNodeWithText("Ekspor").assertIsDisplayed().performClick()
         compose.runOnIdle { assertTrue(exported) }
+        val titleBounds = compose.onNodeWithText("Judul proyek", substring = true).fetchSemanticsNode().boundsInRoot
+        val exportBounds = compose.onNodeWithText("Ekspor").fetchSemanticsNode().boundsInRoot
+        assertTrue("Title must not overlap export", titleBounds.right <= exportBounds.left)
         compose.onNodeWithContentDescription("Kembali").assertIsDisplayed()
         compose.onNodeWithText("Caption").assertIsSelected()
         compose.onNodeWithText("Teks asli").assertIsDisplayed()
