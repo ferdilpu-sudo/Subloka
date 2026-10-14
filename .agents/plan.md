@@ -1108,3 +1108,11 @@ Authorized `lanjut saja`; SRT physical test remains unverified. Implement ADR-03
 
 ### T14 MP4 implementation handoff / 2026-10-13
 Created shared subtitle painter, Media3 Transformer foreground exporter, private staging/save ViewModel, export UI progress/cancel/save, preview style/order integration and synthetic real-encode instrumentation. Local structural checks PASS (T14-MP4-001); CI pending. No schema migration; PRD unchanged. Docs updated architecture/schema/design/decisions/plan/testing/README. T14 remains IN_PROGRESS, physical SRT/MP4/provider/lifecycle tests pending, T13/CP5 and CP4 unresolved.
+
+
+### Latest handoff — MP4 prototype / 2026-10-14 / tested code e3b5e23
+- Completed implementation: shared preview/MP4 subtitle painter, H.264/AAC SDR foreground render, <=10-minute input, longest side <=1280, private staging/output validation, stop/background cancellation and separate document save. App version 0.5.0-mp4-prototype. No changes to original video/captions by export.
+- T14-MP4-003 PASS: CI #197 run 38399395230 both build and Android 11 emulator jobs. Portrait fixture corrected after historical FAIL T14-MP4-002; no assertion weakened. Artifact 11814203440. Guardrail/diff/JSON checks PASS for final docs.
+- Next ready action: short physical Sony MP4 protocol in testing.md. No physical SRT/MP4 success reported yet; continuing work is not test attestation. User-reported ASR/translation/manual protection success remains scoped T12-DEVICE-REPORTED-002.
+- T14 IN_PROGRESS until physical/export acceptance; full T13/CP5 and CP4 still unresolved. Do not infer release/quality/performance readiness from synthetic emulator tests. Do not rerun completed external30 ASR benchmark.
+- Docs updated: README/agent index, testing/plan and MP4 evidence; architecture/schema/design/ADR-032 updated with code. PRD unchanged, Room v1 unchanged. Draft PR #1 retained; no merge/release.
