@@ -2,6 +2,8 @@ package app.subloka.feature.editor
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -11,7 +13,7 @@ import app.subloka.core.domain.CaptionSegment
 @Composable
 fun TimingWorkspace(segment: CaptionSegment, minimumStartUs: Long, maximumEndUs: Long,
                     onChange: (Long, Long) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Column(modifier.verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text("Waktu caption", style = MaterialTheme.typography.titleMedium)
         Text("Awal: ${formatTime(segment.startUs)}")
         NudgeButtons { delta ->

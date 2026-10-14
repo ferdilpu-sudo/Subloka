@@ -1,6 +1,12 @@
 package app.subloka.feature.editor
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Tab
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -53,7 +59,7 @@ fun EditorScreen(
     onRequestTranslation: (String?) -> Unit = {},
 ) {
     if (initialSegments.isEmpty()) {
-        Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(projectTitle, style = MaterialTheme.typography.headlineSmall)
             Text("Belum ada caption. Audio hening juga dapat menghasilkan daftar kosong.")
             app.subloka.core.designsystem.PrimaryAction("Buat caption", onGenerate)
@@ -149,10 +155,12 @@ fun EditorScreen(
         commitSegments(next, merged.id)
     }
 
+    var previewRequested by remember { mutableStateOf(true) }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val expanded = maxWidth >= 840.dp
+        val expanded = maxWidth >= 840.dp && maxHeight >= 480.dp
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
+        val showPreview = previewRequested && !keyboardLikelyVisible && maxHeight >= 600.dp
         val selected = segments.first { it.id == selectedId }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -164,9 +172,11 @@ fun EditorScreen(
                 title = projectTitle,
                 exportAvailable = !saveFailed,
             )
-            if (demoMode) DemoBadge() else Text("Prototipe • periksa teks dan waktu. Periksa juga makna terjemahan. Ekspor belum tersedia.", style = MaterialTheme.typography.bodySmall)
+            if (!keyboardLikelyVisible && maxHeight >= 600.dp) {
+                if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
+            }
 
-            if (!demoMode) {
+            if (!demoMode && !keyboardLikelyVisible) {
                 val count = segments.count(TranslationEligibility::canGenerate)
                 app.subloka.core.designsystem.SecondaryAction("Terjemahkan / perbarui $count caption",
                     { onRequestTranslation(null) }, enabled = count > 0, modifier = Modifier.fillMaxWidth())
@@ -174,7 +184,7 @@ fun EditorScreen(
 
             if (expanded) {
                 Row(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -199,7 +209,12 @@ fun EditorScreen(
                     )
                 }
             } else {
-                VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = keyboardLikelyVisible)
+                if (!keyboardLikelyVisible && maxHeight >= 600.dp) {
+                    TextButton(onClick = { previewRequested = !previewRequested }) {
+                        Text(if (previewRequested) "Sembunyikan preview" else "Tampilkan preview")
+                    }
+                }
+                if (showPreview) VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
                     demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
@@ -236,22 +251,16 @@ private fun ProjectTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", modifier = Modifier.clickable(onClick = onBack), style = MaterialTheme.typography.headlineSmall)
-            Column {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    saveStatusText,
-                    color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
+        TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Kembali" }) {
+            Text("‹", style = MaterialTheme.typography.headlineSmall)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("↶", color = SubLokaColors.TextSecondary)
-            Text("↷", color = SubLokaColors.TextSecondary)
-            Text(if (exportAvailable) "Export" else "Ekspor belum tersedia", modifier = Modifier.clickable(enabled = exportAvailable, onClick = onExport), color = SubLokaColors.TextSecondary)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+            Text(saveStatusText, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
+                style = MaterialTheme.typography.labelSmall)
         }
+        TextButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
     }
 }
 
@@ -259,12 +268,9 @@ private fun ProjectTopBar(
 private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (EditorWorkspace) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
         EditorWorkspace.entries.forEach { item ->
-            Text(
-                text = item.name.lowercase().replaceFirstChar { it.uppercase() },
-                modifier = Modifier.clickable { onWorkspaceChange(item) }.padding(horizontal = 12.dp, vertical = 10.dp),
-                color = if (workspace == item) SubLokaColors.Primary else SubLokaColors.TextSecondary,
-                style = MaterialTheme.typography.labelLarge,
-            )
+            Tab(selected = workspace == item, onClick = { onWorkspaceChange(item) },
+                modifier = Modifier.weight(1f),
+                text = { Text(item.name.lowercase().replaceFirstChar { it.uppercase() }) })
         }
     }
 }

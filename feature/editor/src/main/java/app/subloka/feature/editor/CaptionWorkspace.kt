@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,21 +38,25 @@ fun CaptionWorkspace(
     modifier: Modifier = Modifier,
 ) {
     val selected = segments.first { it.id == selectedId }
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(selectedId) { listState.scrollToItem(0) }
+    LazyColumn(modifier = modifier, state = listState, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val staleCount = segments.count { it.translationStatus == TranslationStatus.STALE }
         if (staleCount > 0) {
+            item(key = "stale") {
             Surface(color = SubLokaColors.Warning.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp)) {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text("$staleCount terjemahan perlu diperbarui", color = SubLokaColors.Warning)
                     Text("Edit terjemahan di bawah", color = SubLokaColors.TextSecondary)
                 }
             }
+            }
         }
 
-        SelectedCaptionEditor(
+        item(key = "editor") { SelectedCaptionEditor(
             segment = selected,
             translationAvailable = translationAvailable,
             demoMode = demoMode,
@@ -59,14 +65,12 @@ fun CaptionWorkspace(
             onRetranslate = onRetranslate,
             onSplit = onSplit,
             onMergeNext = onMergeNext,
-        )
+        ) }
 
-        Text("Segments", style = MaterialTheme.typography.titleSmall)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(segments, key = { it.id }) { segment ->
+        item(key = "heading") { Text("Segments", style = MaterialTheme.typography.titleSmall) }
+            items(segments, key = { "segment-${it.id}" }) { segment ->
                 SegmentCard(segment = segment, selected = segment.id == selectedId, onClick = { onSelect(segment.id) })
             }
-        }
     }
 }
 
@@ -85,20 +89,24 @@ private fun SelectedCaptionEditor(
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("${segment.sourceLanguage.label.uppercase()} · ASLI", style = MaterialTheme.typography.labelMedium)
             OutlinedTextField(
+                label = { Text("Teks asli") },
                 value = segment.sourceText,
                 onValueChange = onSourceChange,
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
+                maxLines = 4,
             )
             Text("${segment.sourceLanguage.target.label.uppercase()} · TERJEMAHAN", style = MaterialTheme.typography.labelMedium)
             if (segment.translationStatus == TranslationStatus.STALE) {
                 Text("Perlu diperbarui", color = SubLokaColors.Warning, style = MaterialTheme.typography.labelMedium)
             }
             OutlinedTextField(
+                label = { Text("Terjemahan") },
                 value = segment.translationText,
                 onValueChange = onTranslationChange,
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
+                maxLines = 4,
             )
             if (segment.translationStatus != TranslationStatus.CURRENT) {
                 SecondaryAction(if (demoMode) "Terjemahkan ulang (demo)" else "Terjemahkan caption ini",
