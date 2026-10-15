@@ -8,6 +8,7 @@
 namespace {
 struct Session {
     whisper_context *ctx = nullptr;
+    std::string vad_path;
     std::atomic<bool> cancelled{false};
     ~Session() { if (ctx) whisper_free(ctx); }
 };
@@ -20,10 +21,14 @@ void quiet_log(enum ggml_log_level, const char *, void *) {}
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_app_subloka_engine_asr_NativeWhisper_open(JNIEnv *env, jobject, jstring path) {
+Java_app_subloka_engine_asr_NativeWhisper_open(JNIEnv *env, jobject, jstring path, jstring vadPath) {
     const char *name = env->GetStringUTFChars(path, nullptr);
     if (!name) return 0;
     auto session = std::make_unique<Session>();
+    const char *vad_name = env->GetStringUTFChars(vadPath, nullptr);
+    if (!vad_name) { env->ReleaseStringUTFChars(path, name); return 0; }
+    session->vad_path = vad_name;
+    env->ReleaseStringUTFChars(vadPath, vad_name);
     whisper_log_set(quiet_log, nullptr); // Never log transcript/media content.
     auto params = whisper_context_default_params();
     params.use_gpu = false;
@@ -52,6 +57,10 @@ Java_app_subloka_engine_asr_NativeWhisper_run(JNIEnv *env, jobject, jlong handle
     params.no_timestamps = false;
     params.print_realtime = params.print_progress = params.print_timestamps = params.print_special = false;
     params.suppress_nst = true;
+    params.vad = true;
+    params.vad_model_path = session->vad_path.c_str();
+    // Pinned whisper_full_get_segment_t0/t1 map VAD-compressed time back to the
+    // original window. Kotlin adds the 30-second window offset exactly once.
     params.abort_callback = abort_run;
     params.abort_callback_user_data = session;
     const int result = whisper_full(session->ctx, params, samples.data(), count);

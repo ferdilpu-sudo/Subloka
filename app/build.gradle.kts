@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "0.5.1-editor-layout"
+        versionName = "0.5.2-speech-timing"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

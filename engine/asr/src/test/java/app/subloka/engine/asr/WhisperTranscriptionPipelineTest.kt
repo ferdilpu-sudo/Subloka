@@ -32,7 +32,7 @@ class WhisperTranscriptionPipelineTest {
         val cache = Files.createTempDirectory("pipeline").toFile()
         try {
             val session = FakeSession()
-            val result = WhisperTranscriptionPipeline(media(), cache) { session }.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused")) {}
+            val result = WhisperTranscriptionPipeline(media(), cache) { _, _ -> session }.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused"), File("unused-vad")) {}
             assertEquals(2, result.size)
             assertEquals(30_000_000L, result[1].startUs)
             assertEquals(31_000_000L, result[1].endUs)
@@ -40,11 +40,34 @@ class WhisperTranscriptionPipelineTest {
             assertEquals(0, cache.listFiles()!!.size)
         } finally { cache.deleteRecursively() }
     }
+    @Test fun vadModelIsPassedToSessionAndEmptyDetectedWindowDoesNotCompressFollowingTime() = runBlocking {
+        val cache = Files.createTempDirectory("vad-pipeline").toFile()
+        val base = File("base.bin")
+        val vad = File("vad.bin")
+        try {
+            var calls = 0
+            var closed = false
+            val session = object : SpeechSession {
+                override fun transcribe(samples: FloatArray, language: String): List<RawSpeechSegment> =
+                    if (++calls == 1) emptyList() else listOf(RawSpeechSegment(200_000, 800_000, "speech"))
+                override fun cancel() {}
+                override fun close() { closed = true }
+            }
+            val result = WhisperTranscriptionPipeline(media(), cache) { actualBase, actualVad ->
+                assertEquals(base, actualBase); assertEquals(vad, actualVad); session
+            }.transcribe(descriptor, SourceLanguage.INDONESIA, base, vad) {}
+            assertEquals(30_200_000L, result.single().startUs)
+            assertEquals(30_800_000L, result.single().endUs)
+            assertTrue(closed)
+            assertEquals(0, cache.listFiles()!!.size)
+        } finally { cache.deleteRecursively() }
+    }
+
     @Test fun silenceSkipsInference() = runBlocking {
         val cache = Files.createTempDirectory("pipeline").toFile()
         try {
             val session = FakeSession()
-            val result = WhisperTranscriptionPipeline(media(true), cache) { session }.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused")) {}
+            val result = WhisperTranscriptionPipeline(media(true), cache) { _, _ -> session }.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused"), File("unused-vad")) {}
             assertTrue(result.isEmpty()); assertEquals(0, session.calls); assertTrue(session.closed)
         } finally { cache.deleteRecursively() }
     }
@@ -53,10 +76,10 @@ class WhisperTranscriptionPipelineTest {
             val cache = Files.createTempDirectory("pipeline").toFile()
             try {
                 val session = FakeSession(failSecond = !cancel)
-                val worker = WhisperTranscriptionPipeline(media(), cache) { session }
+                val worker = WhisperTranscriptionPipeline(media(), cache) { _, _ -> session }
                 var returned = false
                 try {
-                    worker.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused")) { stage ->
+                    worker.transcribe(descriptor, SourceLanguage.ENGLISH, File("unused"), File("unused-vad")) { stage ->
                         if (cancel && stage.contains("bagian 2")) worker.cancel()
                     }
                     returned = true

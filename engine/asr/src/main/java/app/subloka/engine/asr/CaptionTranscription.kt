@@ -14,7 +14,7 @@ object CaptionTranscription {
     ) {
         val limit = minOf(offsetUs + windowDurationUs, videoDurationUs)
         raw.sortedBy { it.startUs }.forEach { item ->
-            if (item.text.isBlank() || item.startUs < 0 || item.endUs <= item.startUs || item.startUs >= windowDurationUs) return@forEach
+            if (!item.text.any(Char::isLetterOrDigit) || item.startUs < 0 || item.endUs <= item.startUs || item.startUs >= windowDurationUs) return@forEach
             val start = maxOf(offsetUs + item.startUs, output.lastOrNull()?.endUs ?: 0L)
             val end = minOf(offsetUs + item.endUs.coerceAtMost(windowDurationUs), limit)
             if (end <= start) return@forEach

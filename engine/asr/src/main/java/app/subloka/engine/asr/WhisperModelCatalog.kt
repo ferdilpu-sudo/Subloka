@@ -28,5 +28,18 @@ object WhisperModelCatalog {
         sourceRevision = MODEL_REVISION,
     )
 
+    // Pinned converted Silero VAD; provision explicitly with the caption model.
+    val vad = ManagedModelDescriptor(
+        id = "silero-vad-6.2.0",
+        displayName = "Silero pendeteksi ucapan",
+        fileName = "ggml-silero-v6.2.0.bin",
+        downloadUrl = "https://huggingface.co/ggml-org/whisper-vad/resolve/9ffd54a1e1ee413ddf265af9913beaf518d1639b/ggml-silero-v6.2.0.bin?download=true",
+        expectedSha256 = "2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987",
+        nominalSizeMiB = 1,
+        licenseName = "MIT",
+        sourceRevision = "9ffd54a1e1ee413ddf265af9913beaf518d1639b",
+    )
+    val captionModels: List<ManagedModelDescriptor> = listOf(base, vad)
+
     val candidates: List<ManagedModelDescriptor> = listOf(tiny, base)
 }

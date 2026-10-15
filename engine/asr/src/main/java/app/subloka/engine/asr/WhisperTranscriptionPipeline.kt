@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 class WhisperTranscriptionPipeline(
     private val media: MediaSource,
     private val cache: File,
-    private val openSession: (File) -> SpeechSession = ::WhisperSpeechSession,
+    private val openSession: (File, File) -> SpeechSession = ::WhisperSpeechSession,
 ) {
     private val cancelled = AtomicBoolean(false)
     private val lock = Any()
@@ -27,7 +27,7 @@ class WhisperTranscriptionPipeline(
         synchronized(lock) { session?.cancel() }
     }
 
-    suspend fun transcribe(descriptor: MediaDescriptor, language: SourceLanguage, model: File,
+    suspend fun transcribe(descriptor: MediaDescriptor, language: SourceLanguage, model: File, vadModel: File,
                            onStage: (String) -> Unit): List<CaptionSegment> = withContext(Dispatchers.IO) {
         require(descriptor.durationUs in 1..600_000_000L) { "Prototipe mendukung video maksimal 10 menit." }
         val context = currentCoroutineContext()
@@ -47,7 +47,7 @@ class WhisperTranscriptionPipeline(
             }
             checkActive()
             onStage("Memuat model caption…")
-            val engine = openSession(model)
+            val engine = openSession(model, vadModel)
             synchronized(lock) { session = engine }
             checkActive()
             val captions = mutableListOf<CaptionSegment>()

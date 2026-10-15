@@ -43,8 +43,9 @@ fun SubLokaApp(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) media.select(uri)
     }
+    var importVad by rememberSaveable { mutableStateOf(false) }
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) persistence.prepareModel(uri)
+        if (uri != null) persistence.prepareModel(uri, importVad)
     }
     // After process death there is no active job; reopen the persisted project from the list.
     LaunchedEffect(project, route) {
@@ -78,7 +79,8 @@ fun SubLokaApp(
             }, modifier = modifier,
         )
         "model" -> ModelSetupScreen(asr.modelReady, asr.busy, asr.stage, asr.error,
-            onImport = { modelPicker.launch(arrayOf("*/*")) }, onDownload = { persistence.prepareModel() },
+            onImport = { importVad = false; modelPicker.launch(arrayOf("*/*")) },
+            onImportVad = { importVad = true; modelPicker.launch(arrayOf("*/*")) }, onDownload = { persistence.prepareModel() },
             onReady = { persistence.startTranscription(); route = "processing" },
             onBack = ::back, onCancel = persistence::cancelOperation, modifier = modifier)
         "processing" -> ProcessingScreen(asr.busy, asr.stage, asr.error, asr.completed,

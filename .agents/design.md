@@ -728,3 +728,6 @@ P1: user cannot export subtitled video; prior preview ignores saved style. Use s
 
 ### Editor overflow repair / 2026-10-14
 Long project names truncate within a weighted header; Back/Export use Material buttons and workspace tabs expose selection. Caption fields and segments share one vertical scroll surface; timing/style scroll independently; style choices wrap. Compact preview is optional and suppressed when IME is visible or available height is below 600dp. Wide layout requires at least 840x480dp. Caption editing retains priority over video context. This addresses reported overlap without changing persistence, translation or export behavior.
+
+### Caption model setup (ADR-033)
+Caption setup explains Base plus the small speech detector, with separate local import actions and one explicit download-missing-models action. Existing verified Base is reused. Start remains disabled until both model digests pass. Existing captions are untouched by this update; a new project is needed to compare generation.

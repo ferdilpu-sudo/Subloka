@@ -14,17 +14,17 @@ interface SpeechSession : AutoCloseable {
 
 @Keep
 internal class NativeWhisper {
-    external fun open(path: String): Long
+    external fun open(path: String, vadPath: String): Long
     external fun run(handle: Long, samples: FloatArray, language: String): Array<RawSpeechSegment>
     external fun cancel(handle: Long)
     external fun close(handle: Long)
     companion object { init { System.loadLibrary("subloka_asr") } }
 }
 
-class WhisperSpeechSession(model: File) : SpeechSession {
+class WhisperSpeechSession(model: File, vadModel: File) : SpeechSession {
     private val native = NativeWhisper()
     private val lock = Any()
-    private var handle = native.open(model.absolutePath).also { check(it != 0L) }
+    private var handle = native.open(model.absolutePath, vadModel.absolutePath).also { check(it != 0L) }
 
     override fun transcribe(samples: FloatArray, language: String): List<RawSpeechSegment> =
         native.run(handle, samples, language).toList()

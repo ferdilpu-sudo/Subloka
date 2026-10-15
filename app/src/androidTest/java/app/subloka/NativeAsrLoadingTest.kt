@@ -15,6 +15,6 @@ class NativeAsrLoadingTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val missing = File(context.cacheDir, "never-installed-test-model.bin")
         check(!missing.exists())
-        assertThrows(IllegalStateException::class.java) { WhisperSpeechSession(missing) }
+        assertThrows(IllegalStateException::class.java) { WhisperSpeechSession(missing, missing) }
     }
 }
