@@ -130,5 +130,15 @@
     "bytes": 574041195,
     "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
     "license": "MIT"
+  },
+  "android_validation": {
+    "evidence": "ASR-REPLACEMENT-002",
+    "commit": "fdd565fc25a57c961f9c9188c050f70c880f559d",
+    "run_id": 38854509879,
+    "build_job": 116822856521,
+    "emulator_job": 116822856743,
+    "conclusion": "success",
+    "artifact_url": "https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879/artifacts/12026632296",
+    "real_turbo_inference_on_emulator": false
   }
 }
