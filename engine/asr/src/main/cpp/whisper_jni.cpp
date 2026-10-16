@@ -35,7 +35,7 @@ Java_app_subloka_engine_asr_NativeWhisper_open(JNIEnv *env, jobject, jstring pat
     params.flash_attn = false;
     session->ctx = whisper_init_from_file_with_params(name, params);
     env->ReleaseStringUTFChars(path, name);
-    if (!session->ctx) { fail(env, "MODEL_FAILURE: cannot load Whisper Base"); return 0; }
+    if (!session->ctx) { fail(env, "MODEL_FAILURE: cannot load caption model"); return 0; }
     return reinterpret_cast<jlong>(session.release());
 }
 

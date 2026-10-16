@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
-data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false,
+data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false, val useTurbo: Boolean = true,
     val stage: String = "", val error: String? = null, val completed: Boolean = false)
 
 data class TranslationUiState(val ready: Boolean = false, val stage: String = "",
@@ -51,6 +51,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val asr = _asr.asStateFlow()
     private val _translation = MutableStateFlow(TranslationUiState())
     val translation = _translation.asStateFlow()
+    private var readinessGeneration = 0L
     private var cleared = false
 
     init {
@@ -74,10 +75,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
                 }
             } finally { persistence.close() }
         }
-        viewModelScope.launch {
-            val ready = captionModelsReady()
-            if (!_asr.value.busy) _asr.value = _asr.value.copy(modelReady = ready)
-        }
+        refreshCaptionReadiness()
     }
     private suspend fun refreshProjects() { _projects.value = projectsRepo.list() }
     private suspend fun load(id: String) {
@@ -132,48 +130,69 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     fun flush(onComplete: (Boolean) -> Unit) {
         queue.trySend { val success = !writeFailed; writeFailed = false; onComplete(success) }
     }
-    private suspend fun captionModelsReady(): Boolean =
-        WhisperModelCatalog.captionModels.all { models.state(it) == ModelReadinessState.READY }
+    private fun refreshCaptionReadiness() {
+        val generation = ++readinessGeneration
+        val selected = _asr.value.useTurbo
+        viewModelScope.launch {
+            val ready = captionModelsReady(selected)
+            if (generation == readinessGeneration && !_asr.value.busy) {
+                _asr.value = _asr.value.copy(modelReady = ready)
+            }
+        }
+    }
+
+    fun selectCaptionModel(useTurbo: Boolean) {
+        if (_asr.value.busy || _asr.value.useTurbo == useTurbo) return
+        _asr.value = _asr.value.copy(useTurbo = useTurbo, modelReady = false, stage = "", error = null)
+        refreshCaptionReadiness()
+    }
+
+    private suspend fun captionModelsReady(useTurbo: Boolean): Boolean =
+        WhisperModelCatalog.captionModels(useTurbo).all { models.state(it) == ModelReadinessState.READY }
 
     fun prepareModel(uri: Uri? = null, importVad: Boolean = false) {
         if (_asr.value.busy) return
+        val selected = _asr.value.useTurbo
+        ++readinessGeneration
         _asr.value = _asr.value.copy(busy = true, stage = "Menyiapkan dan memverifikasi model…", error = null)
         operation = viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     if (uri == null) {
                         // Explicit download action only; do not download again when a model is ready.
-                        WhisperModelCatalog.captionModels.forEach { model ->
+                        WhisperModelCatalog.captionModels(selected).forEach { model ->
                             if (models.state(model) != ModelReadinessState.READY) models.download(model)
                         }
                     } else getApplication<Application>().contentResolver.openInputStream(uri).use { input ->
                         requireNotNull(input) { "Model tidak dapat dibaca." }
-                        models.installFrom(if (importVad) WhisperModelCatalog.vad else WhisperModelCatalog.base, input)
+                        models.installFrom(if (importVad) WhisperModelCatalog.vad else WhisperModelCatalog.captionModel(selected), input)
                     }
                 }
-                val ready = captionModelsReady()
+                val ready = captionModelsReady(selected)
                 _asr.value = _asr.value.copy(busy = false, modelReady = ready,
                     stage = if (ready) "Model caption dan pendeteksi ucapan siap offline."
                     else "Masih ada model yang belum siap. Impor model lainnya atau pilih Unduh model yang belum tersedia.")
             } catch (cancel: CancellationException) {
                 _asr.value = _asr.value.copy(busy = false, stage = "Penyiapan model dibatalkan.")
             } catch (_: Exception) {
-                _asr.value = _asr.value.copy(busy = false, error = "Model gagal disiapkan. Pastikan file sesuai tombol impor (Base atau pendeteksi ucapan), lalu coba lagi.")
+                _asr.value = _asr.value.copy(busy = false, error = "Model gagal disiapkan. Pastikan file sesuai pilihan model (Turbo/Base atau pendeteksi ucapan), lalu coba lagi.")
             }
         }
     }
     fun startTranscription() {
         val snapshot = _project.value ?: return
         if (_asr.value.busy || !_asr.value.modelReady || _segments.value.isNotEmpty()) return
+        val selected = _asr.value.useTurbo
+        ++readinessGeneration
         _asr.value = _asr.value.copy(busy = true, error = null, completed = false, stage = "Memeriksa video…")
         operation = viewModelScope.launch {
             try {
-                check(captionModelsReady()) { "Model tidak tersedia. Siapkan kembali model." }
+                check(captionModelsReady(selected)) { "Model tidak tersedia. Siapkan kembali model." }
                 val descriptor = media.inspect(snapshot.sourceUri)
                 check(descriptor.fingerprintSha256 == snapshot.sourceFingerprint) { "Video berubah. Buat proyek baru dari video ini." }
                 val worker = WhisperTranscriptionPipeline(media, File(getApplication<Application>().cacheDir, "asr"))
                 pipeline = worker
-                val result = worker.transcribe(descriptor, snapshot.sourceLanguage, models.targetFile(WhisperModelCatalog.base),
+                val result = worker.transcribe(descriptor, snapshot.sourceLanguage, models.targetFile(WhisperModelCatalog.captionModel(selected)),
                     models.targetFile(WhisperModelCatalog.vad)) { stage ->
                     _asr.value = _asr.value.copy(stage = stage)
                 }

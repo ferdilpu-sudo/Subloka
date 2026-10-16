@@ -16,6 +16,7 @@ data class ManagedModelDescriptor(
     val nominalSizeMiB: Int,
     val licenseName: String,
     val sourceRevision: String,
+    val expectedSizeBytes: Long? = null,
 ) {
     init {
         require(id.isNotBlank()) { "id must not be blank" }
@@ -23,6 +24,7 @@ data class ManagedModelDescriptor(
         require(downloadUrl.startsWith("https://")) { "model URL must use HTTPS" }
         require(expectedSha256.length == 64) { "expectedSha256 must be SHA-256 hex" }
         require(nominalSizeMiB > 0) { "nominalSizeMiB must be positive" }
+        require(expectedSizeBytes == null || expectedSizeBytes > 0) { "expectedSizeBytes must be positive" }
     }
 }
 

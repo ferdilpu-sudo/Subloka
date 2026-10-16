@@ -40,7 +40,7 @@ class WhisperModelStoreTest {
             val store = WhisperModelStore(dir)
 
             try {
-                store.installFrom(model, "corrupt".byteInputStream())
+                store.installFrom(model, "corrupte".byteInputStream())
                 throw AssertionError("Expected checksum failure")
             } catch (_: IllegalArgumentException) {
                 // Expected.
@@ -62,8 +62,44 @@ class WhisperModelStoreTest {
             val store = WhisperModelStore(dir)
             store.installFrom(model, bytes.inputStream())
             try {
-                store.installFrom(model, "corrupt".byteInputStream())
+                store.installFrom(model, "corrupte".byteInputStream())
                 throw AssertionError("Expected checksum failure")
+            } catch (_: IllegalArgumentException) { }
+            assertEquals(ModelReadinessState.READY, store.state(model))
+            assertFalse(dir.resolve("${model.fileName}.part").exists())
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun oversizedImportStopsAtModelLimitAndPreservesInstalledModel() = runTest {
+        val dir = Files.createTempDirectory("model-size-limit").toFile()
+        try {
+            val bytes = "verified".encodeToByteArray()
+            val model = descriptor(bytes)
+            val store = WhisperModelStore(dir)
+            store.installFrom(model, bytes.inputStream())
+            try {
+                store.installFrom(model, (bytes + byteArrayOf(1)).inputStream())
+                throw AssertionError("Expected size limit failure")
+            } catch (_: IllegalStateException) { }
+            assertEquals(ModelReadinessState.READY, store.state(model))
+            assertFalse(dir.resolve("${model.fileName}.part").exists())
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun truncatedImportCannotReplaceInstalledModelEvenWithMatchingChecksum() = runTest {
+        val dir = Files.createTempDirectory("model-truncated").toFile()
+        try {
+            val bytes = "verified".encodeToByteArray()
+            val model = descriptor(bytes)
+            val store = WhisperModelStore(dir)
+            store.installFrom(model, bytes.inputStream())
+            val short = "short".encodeToByteArray()
+            val inconsistent = model.copy(expectedSha256 = descriptor(short).expectedSha256)
+            try {
+                store.installFrom(inconsistent, short.inputStream())
+                throw AssertionError("Expected exact size failure")
             } catch (_: IllegalArgumentException) { }
             assertEquals(ModelReadinessState.READY, store.state(model))
             assertFalse(dir.resolve("${model.fileName}.part").exists())
@@ -82,6 +118,7 @@ class WhisperModelStoreTest {
             nominalSizeMiB = 1,
             licenseName = "TEST",
             sourceRevision = "fixture",
+            expectedSizeBytes = bytes.size.toLong(),
         )
     }
 }

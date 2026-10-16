@@ -1,0 +1,134 @@
+{
+  "id": "ASR-REPLACEMENT-001",
+  "date": "2026-10-16",
+  "environment": "Linux x86_64 CPU, 4 threads, pinned whisper.cpp 927cfce34f31707e17f2bff35c349632fb9e2c3a, Silero 6.2.0",
+  "audio_frames_16khz": 1592332,
+  "audio_uploaded": false,
+  "manual_reference_available": false,
+  "models": [
+    {
+      "name": "base",
+      "metrics": {
+        "exit_code": 0,
+        "wall_seconds": 13.166269291999924,
+        "peak_rss_kib": 387504
+      },
+      "segments_by_window": [
+        0,
+        5,
+        0,
+        1
+      ],
+      "bounds_us": [
+        [
+          42420000,
+          42920000
+        ],
+        [
+          42920000,
+          46380000
+        ],
+        [
+          46380000,
+          51270000
+        ],
+        [
+          51270000,
+          53520000
+        ],
+        [
+          53520000,
+          56110000
+        ],
+        [
+          92720000,
+          93710000
+        ]
+      ],
+      "private_output_sha256": "cb79b9e5eb133b55293b453bad28717eb958b4d758650179d2ad46a66a64ea11"
+    },
+    {
+      "name": "turbo-q5",
+      "metrics": {
+        "exit_code": 0,
+        "wall_seconds": 98.05481755099993,
+        "peak_rss_kib": 1051212
+      },
+      "segments_by_window": [
+        0,
+        5,
+        0,
+        1
+      ],
+      "bounds_us": [
+        [
+          42420000,
+          42880000
+        ],
+        [
+          42880000,
+          46280000
+        ],
+        [
+          47910000,
+          51410000
+        ],
+        [
+          51410000,
+          53390000
+        ],
+        [
+          53390000,
+          56110000
+        ],
+        [
+          92720000,
+          93710000
+        ]
+      ],
+      "private_output_sha256": "1a4e5c53e1ce53ccc44f413d154161732019485c952256907219d951b220cacd"
+    },
+    {
+      "name": "maleo-ai/whisper-base-id",
+      "revision": "fb3ebb61d48afc5cd10330eb509adb62a231e65d",
+      "bytes": 81768602,
+      "sha256": "2ac0dc902f477389be18d8b6f6fbe97695197c12ab1392b2f4bea23732c2cfe8",
+      "wall_seconds": 8.439867467,
+      "segments_by_window": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "decision": "Not integrated: main dialogue is a single 13.69s caption with current decoder; conversational accuracy not independently verified"
+    },
+    {
+      "name": "maleo-ai/whisper-small-id",
+      "revision": "37a5b9a0fa5739e8e859984dabca44337a45fa55",
+      "bytes": 264464624,
+      "sha256": "4f976a9aeae18e30d2043887302fe35ba45e8f8cb0a9f9f727d56d32cdef33c9",
+      "wall_seconds": 31.297496484,
+      "segments_by_window": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "decision": "Not integrated: main dialogue is a single 13.69s caption with current decoder; conversational accuracy not independently verified"
+    }
+  ],
+  "limitations": [
+    "No WER or manually checked timing accuracy",
+    "Not Android runtime or Sony memory/thermal/performance acceptance",
+    "Private audio and transcripts remain outside git/CI",
+    "CP4 remains BLOCKED"
+  ],
+  "turbo_source": {
+    "repository": "ggerganov/whisper.cpp",
+    "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+    "file": "ggml-large-v3-turbo-q5_0.bin",
+    "bytes": 574041195,
+    "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+    "license": "MIT"
+  }
+}

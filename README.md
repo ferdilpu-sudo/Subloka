@@ -502,3 +502,8 @@ MP4 code `e3b5e23` passed [Android CI #197](https://github.com/ferdilpu-sudo/Sub
 
 ### Caption timing update — 0.5.2-speech-timing
 Caption generation now requires Whisper Base plus the small Silero speech detector (under 1 MB). In model setup, use **Unduh model yang belum tersedia**; an already verified Base model is reused. You can also import Base and Silero independently for offline setup. Media stays on-device. Create a new project from the original video to test new generation; saved captions and manual edits are not automatically replaced. A local diagnostic reproduced the reported failure and removed its long repetition with speech detection, but word errors and physical-device timing still need review. This is not a release-quality accuracy guarantee.
+
+
+### Caption model replacement — 0.5.3-turbo-caption
+The setup screen now starts with **Whisper Large-v3 Turbo q5_0** (~574 MB download), with **Base • ringan** (~148 MB) available explicitly. Both use the existing Silero speech detector. Choose the model, then download missing files or import the matching GGML model. Turbo uses more memory and may take longer than the video; Sony speed/thermal behavior and human-verified quality are still unverified. Start with a short NEW project; saved captions and edits are not overwritten. Processing remains offline after provisioning.
+The local private-video probe produced six separate Turbo captions with original-clock timestamps; two specialized Indonesian candidates instead collapsed the main dialogue into one long caption and were not selected. This is bounded local evidence, not a measured WER improvement or CP4 pass. Android build status and physical protocol are in `.agents/testing.md`.

@@ -102,3 +102,7 @@ References reviewed 2026-10-13: https://developer.android.com/media/media3/trans
 
 ### ASR speech gating and timeline preservation (ADR-033)
 The explicit caption-model readiness set includes Whisper Base and Silero VAD 6.2.0. Model import selects a target and validates its pinned digest without downloading another model; explicit download installs only missing/invalid targets. JNI supplies the VAD model path to pinned whisper_full. Its segment timestamp getters map compressed speech time back to original-window time, then CaptionTranscription adds the outer PCM window offset. Silent windows do not compress the video timeline; punctuation-only output does not create captions. No schema or persistence contract change.
+
+
+### Caption model selection (ADR-034)
+Model setup defaults to multilingual Large-v3 Turbo q5_0; Base remains an explicit lightweight choice. ViewModel snapshots selection for provisioning/inference, clears readiness on changes, rejects obsolete asynchronous readiness results using a generation counter, and disables changes during jobs. No silent model fallback. Shared native VAD/30s original-clock pipeline and atomic caption publication are unchanged. Descriptor expectedSizeBytes enables a bounded 574041195-byte install instead of the old global 200 MiB ceiling; absent exact size retains the legacy bound. Model files are separate; existing captions/edits remain intact.

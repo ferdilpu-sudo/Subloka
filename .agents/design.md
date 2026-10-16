@@ -731,3 +731,7 @@ Long project names truncate within a weighted header; Back/Export use Material b
 
 ### Caption model setup (ADR-033)
 Caption setup explains Base plus the small speech detector, with separate local import actions and one explicit download-missing-models action. Existing verified Base is reused. Start remains disabled until both model digests pass. Existing captions are untouched by this update; a new project is needed to compare generation.
+
+
+### Model setup — ADR-034
+Keep the existing setup screen; a two-option Turbo / Base • ringan segmented control selects recognition weights. Show selected model size, offline processing, heavier-model performance uncertainty and a short-video trial instruction before the explicit import/download. Readiness and import label follow selection; choices disabled during provisioning/inference. Turbo is the initial choice each app launch. Silero is shared; saved captions are unaffected. No editor redesign.

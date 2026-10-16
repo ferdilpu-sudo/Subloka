@@ -73,3 +73,7 @@ Room v1 unchanged; no export_records/job rows written for this bounded prototype
 
 ## MP4 prototype data contract (2026-10-13)
 Room v1 unchanged. Immutable project/caption/style snapshot after editor flush; export mode overrides only snapshot displayMode. No caption mutations by renderer. Private UUID output files under filesDir/mp4-staging; external URI requested only after completed render validation. No export_records or durable job rows added. In-memory ready state is cleared after process death and old staging deleted at next ViewModel initialization; no resume/completion claim. Original/translated share [startUs,endUs); blank/stale translation blocks modes needing translation. Font sizes 70..140%, bottom 8..35%, max 4 lines per language and combined subtitle block <=50% of frame. Font is device sans-serif bold, not a downloadable font. Colors fixed white/source, warm yellow/translation with existing background/outline controls.
+
+
+### ADR-034 provisioning metadata
+ManagedModelDescriptor adds optional positive expectedSizeBytes for exact model installation limits. This is in-memory catalog metadata, not persisted project data. Room schema remains v1; caption timestamps/identity/translation state and existing projects are unchanged.

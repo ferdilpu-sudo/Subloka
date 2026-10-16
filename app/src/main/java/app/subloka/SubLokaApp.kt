@@ -79,6 +79,7 @@ fun SubLokaApp(
             }, modifier = modifier,
         )
         "model" -> ModelSetupScreen(asr.modelReady, asr.busy, asr.stage, asr.error,
+            useTurbo = asr.useTurbo, onModelSelected = persistence::selectCaptionModel,
             onImport = { importVad = false; modelPicker.launch(arrayOf("*/*")) },
             onImportVad = { importVad = true; modelPicker.launch(arrayOf("*/*")) }, onDownload = { persistence.prepareModel() },
             onReady = { persistence.startTranscription(); route = "processing" },

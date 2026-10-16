@@ -39,7 +39,21 @@ object WhisperModelCatalog {
         licenseName = "MIT",
         sourceRevision = "9ffd54a1e1ee413ddf265af9913beaf518d1639b",
     )
-    val captionModels: List<ManagedModelDescriptor> = listOf(base, vad)
+    val turbo = ManagedModelDescriptor(
+        id = "whisper-large-v3-turbo-q5_0",
+        displayName = "Whisper Large-v3 Turbo",
+        fileName = "ggml-large-v3-turbo-q5_0.bin",
+        downloadUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo-q5_0.bin?download=true",
+        expectedSha256 = "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+        nominalSizeMiB = 548,
+        licenseName = "MIT",
+        sourceRevision = "5359861c739e955e79d9a303bcbc70fb988958b1",
+        expectedSizeBytes = 574_041_195L,
+    )
+
+    fun captionModel(useTurbo: Boolean): ManagedModelDescriptor = if (useTurbo) turbo else base
+
+    fun captionModels(useTurbo: Boolean): List<ManagedModelDescriptor> = listOf(captionModel(useTurbo), vad)
 
     val candidates: List<ManagedModelDescriptor> = listOf(tiny, base)
 }

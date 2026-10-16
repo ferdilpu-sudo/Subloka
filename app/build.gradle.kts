@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "0.5.2-speech-timing"
+        versionName = "0.5.3-turbo-caption"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
