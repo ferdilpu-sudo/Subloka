@@ -1158,3 +1158,7 @@ Candidate implementation selection: ADR-034, Turbo q5_0 plus existing Silero, ex
 
 ## Active increment — TranslateGemma / 2026-10-17
 IN_PROGRESS. User requests improved translation after reporting better Turbo transcription. Reconstruct lost uncommitted work from prior session. Integrate pinned offline TranslateGemma 4B Q4_K_M, explicit terms consent and model install, preserve manual corrections/source/timing, optional replacement of automatic output. Verify bounded install, cancellation and native coexistence in CI. Previous scratch probe artifacts unavailable; do not claim recovered implementation tested based on those results. CP4 remains BLOCKED; physical performance/quality pending.
+
+
+### TranslateGemma checkpoint / 2026-10-17
+Implementation 60ae291 includes pinned native model/install/UI, terms consent, explicit machine replacement and protected manual CAS. TRANSLATION-GEMMA-002 local shared-core inference: 60 outputs, cancellation/oversize PASS, ~2.52GiB peak host RSS. Known modality/context errors remain; no CP4 promotion. CI #208 unit tasks passed; Android compilation/emulator still pending at this checkpoint. Additional bundled Mozilla llamafile attribution included before APK delivery. PRD unchanged; Room v1 unchanged. User-reported Turbo improvement recorded separately from measured quality. Next: finish CI and inspect native APK exports, then physical short-caption setup/offline review.
