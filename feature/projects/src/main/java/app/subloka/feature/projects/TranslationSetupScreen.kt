@@ -30,7 +30,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
     var showTerms by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val permitted = !useGemma || termsAccepted
-    val count = if (replaceMachine) replaceableCount else eligibleCount
+    val count = if (hasRecovery) recoveryCount else if (replaceMachine) replaceableCount else eligibleCount
     if (confirmDiscard) {
         AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Hapus antrean tertunda?") },
             text = { Text("Caption dan hasil terjemahan tetap tersimpan. Setelah ini kamu bisa memilih model atau membuat antrean baru.") },
