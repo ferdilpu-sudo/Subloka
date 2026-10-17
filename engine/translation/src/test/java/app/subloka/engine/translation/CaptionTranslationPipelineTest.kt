@@ -96,4 +96,20 @@ class CaptionTranslationPipelineTest {
         } catch (_: IllegalStateException) { }
         assertEquals(1, writes)
     }
+    @Test fun explicitReplacementUpdatesMachineOnlyAndPreservesOldTextOnFailure() = runBlocking {
+        val current = segment("machine", status = TranslationStatus.CURRENT, origin = TranslationOrigin.MACHINE)
+        val manual = segment("manual", status = TranslationStatus.CURRENT, origin = TranslationOrigin.MANUAL)
+        val staleManual = segment("stale-manual", status = TranslationStatus.STALE, origin = TranslationOrigin.MANUAL)
+        val published = mutableListOf<String>()
+        val translator = FakeTranslator()
+        val result = CaptionTranslationPipeline(translator).run(listOf(current, manual, staleManual),
+            { source, _ -> published += source.id; true }, {}, replaceCurrentMachine = true)
+        assertEquals(listOf("machine"), published); assertEquals(1, result.applied)
+        translator.translateAction = { error("model failed") }
+        published.clear()
+        val failed = CaptionTranslationPipeline(translator).run(listOf(current),
+            { source, _ -> published += source.id; true }, {}, replaceCurrentMachine = true)
+        assertEquals(1, failed.failed); assertTrue(published.isEmpty())
+        assertEquals("Existing", current.translationText)
+    }
 }

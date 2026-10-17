@@ -8,6 +8,8 @@ import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.*
 import app.subloka.core.media.AndroidMediaSource
 import app.subloka.demo.DemoData
+import app.subloka.engine.translation.TranslateGemmaOfflineTranslator
+import app.subloka.engine.translation.TranslateGemmaModel
 import app.subloka.engine.translation.MlKitOfflineTranslator
 import app.subloka.engine.translation.CaptionTranslationPipeline
 import app.subloka.engine.asr.WhisperModelCatalog
@@ -24,7 +26,7 @@ enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
 data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false, val useTurbo: Boolean = true,
     val stage: String = "", val error: String? = null, val completed: Boolean = false)
 
-data class TranslationUiState(val ready: Boolean = false, val stage: String = "",
+data class TranslationUiState(val useGemma: Boolean = true, val termsAccepted: Boolean = false, val ready: Boolean = false, val stage: String = "",
     val error: String? = null, val applied: Int = 0, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
@@ -49,7 +51,10 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val projects = _projects.asStateFlow()
     private val _asr = MutableStateFlow(AsrUiState())
     val asr = _asr.asStateFlow()
-    private val _translation = MutableStateFlow(TranslationUiState())
+    private val translationPrefs = application.getSharedPreferences("translation-model", 0)
+    private val termsKey = "gemma-terms-${TranslateGemmaModel.TERMS_VERSION}"
+    @Volatile private var gemmaTranslator: TranslateGemmaOfflineTranslator? = null
+    private val _translation = MutableStateFlow(TranslationUiState(termsAccepted = translationPrefs.getBoolean(termsKey, false)))
     val translation = _translation.asStateFlow()
     private var readinessGeneration = 0L
     private var cleared = false
@@ -221,9 +226,27 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             } finally { pipeline = null }
         }
     }
+    fun selectTranslationModel(useGemma: Boolean) {
+        if (_asr.value.busy) return
+        _translation.value = _translation.value.copy(useGemma = useGemma, ready = false)
+        checkTranslationModel()
+    }
+    fun acceptGemmaTerms(accepted: Boolean) {
+        if (_asr.value.busy) return
+        translationPrefs.edit().putBoolean(termsKey, accepted).apply()
+        _translation.value = _translation.value.copy(termsAccepted = accepted, ready = false)
+        if (accepted) checkTranslationModel()
+    }
+    fun importTranslationModel(uri: Uri) = translationOperation("Memverifikasi model…") { translator ->
+        check(translator is TranslateGemmaOfflineTranslator)
+        getApplication<Application>().contentResolver.openInputStream(uri).use { input ->
+            translator.importModel(requireNotNull(input))
+        }
+        _translation.value = _translation.value.copy(ready = true, stage = "Model siap offline.")
+    }
     /** Called only after the editor write barrier, from the dedicated translation flow. */
     fun checkTranslationModel() = translationOperation("Memeriksa model terjemahan…") { translator ->
-        val ready = translator.state() == ModelReadinessState.READY
+        val ready = (!_translation.value.useGemma || _translation.value.termsAccepted) && translator.state() == ModelReadinessState.READY
         _translation.value = _translation.value.copy(ready = ready,
             stage = if (ready) "Model terjemahan siap offline." else "Model terjemahan belum siap. Unduh terlebih dahulu.")
     }
@@ -233,7 +256,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _translation.value = _translation.value.copy(ready = true, stage = "Model siap. Anda dapat mematikan koneksi sebelum menerjemahkan.")
     }
 
-    fun startTranslation(segmentId: String? = null) {
+    fun startTranslation(segmentId: String? = null, replaceCurrentMachine: Boolean = false) {
         val selectedProject = _project.value ?: return
         if (!_translation.value.ready || selectedProject.id == DemoData.PROJECT_ID) return
         translationOperation("Menyiapkan caption…") { translator ->
@@ -245,7 +268,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             }, onProgress = { progress ->
                 _translation.value = _translation.value.copy(applied = progress.applied,
                     stage = "Menerjemahkan ${progress.processed}/${progress.total} • ${progress.applied} tersimpan")
-            })
+            }, replaceCurrentMachine = replaceCurrentMachine)
             _translation.value = _translation.value.copy(completed = true,
                 stage = "${result.applied} tersimpan • ${result.conflicted} dilewati karena berubah • ${result.failed} gagal.",
                 error = if (result.failed > 0) "Sebagian caption gagal. Coba lagi untuk caption yang belum selesai." else null)
@@ -256,13 +279,21 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         if (_asr.value.busy) return
         _asr.value = _asr.value.copy(busy = true)
         _translation.value = _translation.value.copy(stage = stage, error = null, completed = false, applied = 0)
+        val selection = _translation.value
         operation = viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) { MlKitOfflineTranslator().use { action(it) } }
+                withContext(Dispatchers.IO) {
+                    val translator = if (selection.useGemma) TranslateGemmaOfflineTranslator(getApplication(), selection.termsAccepted) {
+                        _translation.value = _translation.value.copy(stage = it)
+                    }.also { gemmaTranslator = it } else MlKitOfflineTranslator()
+                    try { translator.use { action(it) } } finally { gemmaTranslator = null }
+                }
             } catch (cancel: CancellationException) {
-                _translation.value = _translation.value.copy(stage = "Dihentikan. Terjemahan yang sudah tersimpan tetap tersedia. Unduhan model SDK yang sudah dimulai dapat berlanjut.")
+                _translation.value = _translation.value.copy(stage = "Dihentikan. Terjemahan yang sudah tersimpan tetap tersedia. Unduhan ML Kit yang sudah dimulai dapat berlanjut.")
             } catch (_: Exception) {
                 _translation.value = _translation.value.copy(error = "Proses terjemahan gagal. Periksa model dan coba lagi; hasil yang sudah tersimpan tetap tersedia.")
+            } catch (_: LinkageError) {
+                _translation.value = _translation.value.copy(error = "Engine terjemahan tidak tersedia untuk perangkat ini.")
             } finally {
                 // Keep the editor locked until its next snapshot includes completed publications.
                 withContext(NonCancellable) {
@@ -278,6 +309,6 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun cancelOperation() { pipeline?.cancel(); operation?.cancel() }
+    fun cancelOperation() { pipeline?.cancel(); gemmaTranslator?.cancel(); operation?.cancel() }
     override fun onCleared() { cleared = true; cancelOperation(); queue.close(); super.onCleared() }
 }

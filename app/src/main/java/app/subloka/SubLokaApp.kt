@@ -44,6 +44,9 @@ fun SubLokaApp(
         if (uri != null) media.select(uri)
     }
     var importVad by rememberSaveable { mutableStateOf(false) }
+    val translationModelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) persistence.importTranslationModel(uri)
+    }
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) persistence.prepareModel(uri, importVad)
     }
@@ -90,10 +93,14 @@ fun SubLokaApp(
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
                 eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
+                replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },
+                useGemma = translation.useGemma, termsAccepted = translation.termsAccepted,
+                onModelSelected = persistence::selectTranslationModel, onTermsAccepted = persistence::acceptGemmaTerms,
+                onImport = { translationModelPicker.launch(arrayOf("*/*")) },
                 pairLabel = "${p.sourceLanguage.label} → ${p.targetLanguage.label}",
                 onCheck = persistence::checkTranslationModel,
                 onDownload = persistence::prepareTranslationModel,
-                onTranslate = { persistence.startTranslation(translationTarget) },
+                onTranslate = { replace -> persistence.startTranslation(translationTarget, replace) },
                 onCancel = persistence::cancelOperation, onBack = ::back, modifier = modifier)
         }
         "editor" -> project?.let { p ->

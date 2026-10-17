@@ -77,3 +77,7 @@ Room v1 unchanged. Immutable project/caption/style snapshot after editor flush; 
 
 ### ADR-034 provisioning metadata
 ManagedModelDescriptor adds optional positive expectedSizeBytes for exact model installation limits. This is in-memory catalog metadata, not persisted project data. Room schema remains v1; caption timestamps/identity/translation state and existing projects are unchanged.
+
+
+### TranslateGemma metadata (ADR-035)
+Room v1 unchanged. Terms acceptance is stored separately in application preferences keyed by Gemma terms version; default false. Translation model choice defaults to Gemma in session. Replacement of current automatic translations requires an explicit run flag; manual translations remain excluded in both eligibility and repository CAS. Source text, identity and timestamps are not modified.

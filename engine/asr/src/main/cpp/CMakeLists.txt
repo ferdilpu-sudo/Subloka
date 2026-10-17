@@ -24,4 +24,5 @@ FetchContent_Declare(whisper
 FetchContent_MakeAvailable(whisper)
 add_library(subloka_asr SHARED whisper_jni.cpp)
 target_compile_features(subloka_asr PRIVATE cxx_std_17)
+target_link_options(subloka_asr PRIVATE "-Wl,--exclude-libs,ALL")
 target_link_libraries(subloka_asr PRIVATE whisper android log)

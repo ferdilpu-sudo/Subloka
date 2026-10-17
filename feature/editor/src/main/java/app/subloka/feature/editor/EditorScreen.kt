@@ -180,7 +180,7 @@ fun EditorScreen(
             if (!demoMode && !keyboardLikelyVisible) {
                 val count = segments.count(TranslationEligibility::canGenerate)
                 app.subloka.core.designsystem.SecondaryAction("Terjemahkan / perbarui $count caption",
-                    { onRequestTranslation(null) }, enabled = count > 0, modifier = Modifier.fillMaxWidth())
+                    { onRequestTranslation(null) }, enabled = segments.any { TranslationEligibility.canGenerate(it, true) }, modifier = Modifier.fillMaxWidth())
             }
 
             if (expanded) {
@@ -328,7 +328,7 @@ private fun WorkspacePanel(
                 )
             },
             demoMode = demoMode,
-            translationAvailable = demoMode || TranslationEligibility.canGenerate(selected),
+            translationAvailable = demoMode || TranslationEligibility.canGenerate(selected, true),
             onRetranslate = {
                 if (!demoMode) onRequestTranslation(selected.id) else onSegmentsChange(
                     segments.toMutableList().also { list ->

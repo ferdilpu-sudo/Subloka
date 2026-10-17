@@ -15,9 +15,10 @@ data class TranslationProgress(val total: Int, val processed: Int = 0, val appli
 class CaptionTranslationPipeline(private val translator: OfflineTranslator) {
     suspend fun run(snapshot: List<CaptionSegment>,
                     publish: suspend (CaptionSegment, String) -> Boolean,
-                    onProgress: (TranslationProgress) -> Unit): TranslationProgress {
+                    onProgress: (TranslationProgress) -> Unit,
+                    replaceCurrentMachine: Boolean = false): TranslationProgress {
         check(translator.state() == ModelReadinessState.READY) { "Siapkan model terjemahan terlebih dahulu." }
-        val eligible = snapshot.filter(TranslationEligibility::canGenerate)
+        val eligible = snapshot.filter { TranslationEligibility.canGenerate(it, replaceCurrentMachine) }
         var progress = TranslationProgress(eligible.size)
         onProgress(progress)
         for (segment in eligible) {

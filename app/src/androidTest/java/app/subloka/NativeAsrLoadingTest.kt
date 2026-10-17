@@ -16,5 +16,14 @@ class NativeAsrLoadingTest {
         val missing = File(context.cacheDir, "never-installed-test-model.bin")
         check(!missing.exists())
         assertThrows(IllegalStateException::class.java) { WhisperSpeechSession(missing, missing) }
+        // Load both independently linked ggml revisions into one process, without model downloads.
+        val type = Class.forName("app.subloka.engine.translation.NativeGemma")
+        val instance = type.getField("INSTANCE").get(null)
+        val open = type.getDeclaredMethod("open", String::class.java)
+        val failure = assertThrows(java.lang.reflect.InvocationTargetException::class.java) {
+            open.invoke(instance, missing.absolutePath)
+        }
+        check(failure.cause is IllegalStateException)
+        assertThrows(IllegalStateException::class.java) { WhisperSpeechSession(missing, missing) }
     }
 }

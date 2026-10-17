@@ -509,3 +509,8 @@ The setup screen now starts with **Whisper Large-v3 Turbo q5_0** (~574 MB downlo
 The local private-video probe produced six separate Turbo captions with original-clock timestamps; two specialized Indonesian candidates instead collapsed the main dialogue into one long caption and were not selected. This is bounded local evidence, not a measured WER improvement or CP4 pass. Android build status and physical protocol are in `.agents/testing.md`.
 
 Code `fdd565f` passed [Android CI #206](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879), both build/lint/unit and emulator jobs. [Download 0.5.3 Turbo caption APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879/artifacts/12026632296). Native local sample comparison is recorded separately; physical Sony quality/performance acceptance remains pending.
+
+
+### Translation upgrade — 0.6.0-gemma-translation candidate
+Translation setup now defaults to **TranslateGemma 4B Q4_K_M**, with ML Kit available as an explicit lightweight alternative. Gemma requires a separate **2.49 GB** download, substantial RAM, and explicit acceptance of bundled Gemma terms/policy. Import the matching GGUF or download over Wi-Fi. After SHA/size verification, caption translation runs locally without internet. Try one short caption first; Sony memory/runtime and translation quality remain unverified for this candidate.
+To regenerate existing automatic results, enable **Ganti juga hasil terjemahan otomatis yang sudah ada**. Manual corrections are always protected; original text and timestamps are preserved. Long captions beyond the bounded context fail rather than silently truncate. Build/testing status lives in `.agents/testing.md`; candidate is not a release or CP4 pass.

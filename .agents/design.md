@@ -735,3 +735,7 @@ Caption setup explains Base plus the small speech detector, with separate local 
 
 ### Model setup — ADR-034
 Keep the existing setup screen; a two-option Turbo / Base • ringan segmented control selects recognition weights. Show selected model size, offline processing, heavier-model performance uncertainty and a short-video trial instruction before the explicit import/download. Readiness and import label follow selection; choices disabled during provisioning/inference. Turbo is the initial choice each app launch. Silero is shared; saved captions are unaffected. No editor redesign.
+
+
+### Translation model upgrade (ADR-035)
+P1: users cannot improve existing current automatic output with a replacement engine. Keep contextual translation setup; choose TranslateGemma or lightweight ML Kit. Show 2.49 GB/RAM tradeoff, scrollable bundled terms/policy and unchecked explicit consent. Default Wi-Fi-only download plus local GGUF import; readiness disabled until consent/model verification. Unchecked replacement option includes existing automatic results while always skipping manual corrections. Busy locks choice/consent and offers cancel. Existing editor action remains accessible for current machine captions. Acceptance: no silent overwrite, no implicit download, no false-ready model choice, preserved original timing/text.
