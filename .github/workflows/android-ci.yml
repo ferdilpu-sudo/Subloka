@@ -7,6 +7,7 @@ on:
       - ".agents/**"
       - "README.md"
       - "FILELIST.txt"
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -42,7 +43,7 @@ jobs:
           echo "Updated sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
 
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Configure Gradle cache
         uses: gradle/actions/setup-gradle@v4
@@ -68,7 +69,7 @@ jobs:
       - name: ASR model-store unit tests
         run: ./gradlew --stacktrace :engine:asr:testDebugUnitTest
 
-      - name: Translation fidelity warning unit tests
+      - name: Translation pipeline and fidelity unit tests
         run: ./gradlew --stacktrace :engine:translation:testDebugUnitTest
 
       - name: Compile translation device tests
@@ -92,6 +93,15 @@ jobs:
       - name: Lint debug
         run: ./gradlew --stacktrace :app:lintDebug
 
+      - name: Upload debug APK and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: subloka-prototype-debug-and-reports
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            **/build/reports/tests/
+            app/build/reports/lint-results-debug.html
 
   media-device:
     runs-on: ubuntu-latest
@@ -117,7 +127,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Enable KVM
         shell: bash
@@ -133,4 +143,6 @@ jobs:
           arch: x86_64
           profile: pixel_4
           disable-animations: true
-          script: bash tools/run_media_device_tests.sh
+          script: |
+            bash tools/run_media_device_tests.sh
+            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest,app.subloka.SrtDocumentWriterTest,app.subloka.EditorLayoutTest,app.subloka.TranslationRecoveryUiTest

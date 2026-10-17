@@ -1,135 +1,162 @@
 package app.subloka
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.subloka.core.domain.CaptionStyle
+import app.subloka.core.domain.TranslationEligibility
+import app.subloka.core.domain.ProjectSummary
 import app.subloka.demo.DemoData
 import app.subloka.feature.editor.EditorScreen
 import app.subloka.feature.export.ExportScreen
-import app.subloka.feature.projects.ModelSetupScreen
-import app.subloka.feature.projects.NewProjectScreen
-import app.subloka.feature.projects.ProcessingScreen
-import app.subloka.feature.projects.ProjectsScreen
-
-private sealed interface DemoRoute {
-    data object Projects : DemoRoute
-    data object NewProject : DemoRoute
-    data object ModelSetup : DemoRoute
-    data object Processing : DemoRoute
-    data object Editor : DemoRoute
-    data object Export : DemoRoute
-}
+import app.subloka.feature.projects.*
 
 @Composable
 fun SubLokaApp(
     modifier: Modifier = Modifier,
     persistence: SubLokaViewModel = viewModel(),
     media: SubLokaMediaViewModel = viewModel(),
+    exporter: SrtExportViewModel = viewModel(),
+    videoExporter: VideoExportViewModel = viewModel(),
 ) {
-    var route by remember { mutableStateOf<DemoRoute>(DemoRoute.Projects) }
-    val persistedSegments by persistence.segments.collectAsState()
-    val persistedStyle by persistence.style.collectAsState()
+    var route by rememberSaveable { mutableStateOf("projects") }
+    val segments by persistence.segments.collectAsState()
+    val style by persistence.style.collectAsState()
     val saveState by persistence.saveState.collectAsState()
-    val sourceUri by persistence.sourceUri.collectAsState()
-    val mediaSelection by media.selection.collectAsState()
-
-    var editorSegments by remember { mutableStateOf(DemoData.segments) }
-    var editorStyle by remember { mutableStateOf(CaptionStyle()) }
-
-    val documentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val project by persistence.project.collectAsState()
+    val projects by persistence.projects.collectAsState()
+    val asr by persistence.asr.collectAsState()
+    val translation by persistence.translation.collectAsState()
+    var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    val videoExportState by videoExporter.state.collectAsState()
+    val mp4Picker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("video/mp4")) {
+        videoExporter.save(it)
+    }
+    val exportState by exporter.state.collectAsState()
+    val srtPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-subrip")) {
+        exporter.save(it)
+    }
+    val selection by media.selection.collectAsState()
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) media.select(uri)
     }
-
-    LaunchedEffect(persistedSegments) {
-        if (persistedSegments.isNotEmpty()) {
-            editorSegments = persistedSegments
-        }
+    var importVad by rememberSaveable { mutableStateOf(false) }
+    val translationModelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) persistence.importTranslationModel(uri)
     }
-    LaunchedEffect(persistedStyle) {
-        editorStyle = persistedStyle
+    val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) persistence.prepareModel(uri, importVad)
     }
-
+    // After process death there is no active job; reopen the persisted project from the list.
+    LaunchedEffect(project, route) {
+        if (project == null && route !in listOf("projects", "new")) route = "projects"
+    }
+    fun back() {
+        if (route == "export" && videoExportState.rendering) { videoExporter.cancelRender(); return }
+        if (route == "export" && (exportState.busy || exportState.pending != null || videoExportState.busy || videoExportState.pending)) return
+        if (asr.busy) persistence.cancelOperation()
+        else persistence.flush { success -> if (success) route = if (route in listOf("translation", "export")) "editor" else "projects" }
+    }
+    BackHandler(route != "projects") { back() }
     when (route) {
-        DemoRoute.Projects -> ProjectsScreen(
-            projects = listOf(DemoData.project),
-            onNewProject = {
-                media.clear()
-                route = DemoRoute.NewProject
-            },
-            onOpenProject = { route = DemoRoute.Editor },
-            modifier = modifier,
+        "projects" -> ProjectsScreen(
+            projects = projects.map { p -> ProjectSummary(p.id, p.title, p.sourceDisplayName, p.sourceLanguage,
+                "%02d:%02d".format(p.durationUs / 60_000_000, p.durationUs / 1_000_000 % 60),
+                "${p.widthPx} × ${p.heightPx}", "Tersimpan lokal") },
+            onNewProject = { media.clear(); route = "new" },
+            onOpenProject = { p -> persistence.openProject(p.id) { route = "editor" } }, modifier = modifier,
         )
-        DemoRoute.NewProject -> {
-            val selected = (mediaSelection as? MediaSelectionState.Ready)?.descriptor
-            NewProjectScreen(
-                selectedMedia = selected,
-                mediaLoading = mediaSelection == MediaSelectionState.Loading,
-                mediaError = (mediaSelection as? MediaSelectionState.Error)?.message,
-                onPickVideo = { documentPicker.launch(arrayOf("video/*")) },
-                onBack = { route = DemoRoute.Projects },
-                onContinue = { sourceLanguage ->
-                    if (selected != null) {
-                        persistence.persistMediaSelection(selected, sourceLanguage) { success ->
-                            if (success) route = DemoRoute.ModelSetup
+        "new" -> NewProjectScreen(
+            selectedMedia = (selection as? MediaSelectionState.Ready)?.descriptor,
+            mediaLoading = selection == MediaSelectionState.Loading || saveState == PersistenceSaveState.SAVING,
+            mediaError = (selection as? MediaSelectionState.Error)?.message
+                ?: if (saveState == PersistenceSaveState.FAILED) "Proyek gagal disimpan. Coba lagi." else null,
+            onPickVideo = { picker.launch(arrayOf("video/*")) }, onBack = ::back,
+            onContinue = { language ->
+                (selection as? MediaSelectionState.Ready)?.descriptor?.let { descriptor ->
+                    persistence.persistMediaSelection(descriptor, language) { ok -> if (ok) route = "model" }
+                }
+            }, modifier = modifier,
+        )
+        "model" -> ModelSetupScreen(asr.modelReady, asr.busy, asr.stage, asr.error,
+            useTurbo = asr.useTurbo, onModelSelected = persistence::selectCaptionModel,
+            onImport = { importVad = false; modelPicker.launch(arrayOf("*/*")) },
+            onImportVad = { importVad = true; modelPicker.launch(arrayOf("*/*")) }, onDownload = { persistence.prepareModel() },
+            onReady = { persistence.startTranscription(); route = "processing" },
+            onBack = ::back, onCancel = persistence::cancelOperation, modifier = modifier)
+        "processing" -> ProcessingScreen(asr.busy, asr.stage, asr.error, asr.completed,
+            onCancel = persistence::cancelOperation, onRetry = { route = "model" },
+            onOpenEditor = { route = "editor" }, onBack = ::back, modifier = modifier)
+        "translation" -> project?.let { p ->
+            TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
+                recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
+                onResume = persistence::resumeTranslation, onDiscardRecovery = persistence::discardTranslationRecovery,
+                eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
+                replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },
+                useGemma = translation.useGemma, termsAccepted = translation.termsAccepted,
+                onModelSelected = persistence::selectTranslationModel, onTermsAccepted = persistence::acceptGemmaTerms,
+                onImport = { translationModelPicker.launch(arrayOf("*/*")) },
+                pairLabel = "${p.sourceLanguage.label} → ${p.targetLanguage.label}",
+                onCheck = persistence::checkTranslationModel,
+                onDownload = persistence::prepareTranslationModel,
+                onTranslate = { replace -> persistence.startTranslation(translationTarget, replace) },
+                onCancel = persistence::cancelOperation, onBack = ::back, modifier = modifier)
+        }
+        "editor" -> project?.let { p ->
+            key(p.id) {
+                EditorScreen(initialSegments = segments, initialStyle = style,
+                    mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
+                    projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
+                    videoWidth = if (p.rotationDegrees in setOf(90, 270)) p.heightPx else p.widthPx,
+                    videoHeight = if (p.rotationDegrees in setOf(90, 270)) p.widthPx else p.heightPx,
+                    onGenerate = { route = "model" },
+                    onRequestTranslation = { segmentId ->
+                        persistence.flush { success ->
+                            if (success && !asr.busy) {
+                                translationTarget = segmentId
+                                route = "translation"
+                                persistence.checkTranslationModel()
+                            }
                         }
+                    },
+                    saveStatusText = saveState.label(), saveFailed = saveState == PersistenceSaveState.FAILED,
+                    onSegmentsPersist = persistence::persistSegments, onStylePersist = persistence::persistStyle,
+                    onBack = ::back, onExport = { snapshot ->
+                        persistence.persistSegments(snapshot)
+                        persistence.flush { success ->
+                            if (success && !asr.busy) { exporter.reset(); videoExporter.reset(); route = "export" }
+                        }
+                    }, modifier = modifier)
+            }
+        }
+        "export" -> project?.let { p ->
+            ExportScreen(segments, p.sourceLanguage,
+                p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"),
+                exportState.busy || videoExportState.busy, exportState.pending != null || videoExportState.pending, exportState.documents,
+                exportState.saved, exportState.message,
+                onPrepare = { mode -> exporter.prepare(p.title, p.sourceLanguage, p.durationUs, segments, mode) },
+                onSave = { index -> exporter.select(index)?.let { name ->
+                    try { srtPicker.launch(name) } catch (_: Exception) { exporter.pickerFailed() }
+                } },
+                videoReady = videoExportState.ready, videoRendering = videoExportState.rendering,
+                videoMessage = videoExportState.message, videoProgress = videoExportState.progress,
+                onRender = { mode ->
+                    if (!asr.busy && !exportState.busy && exportState.pending == null) {
+                        videoExporter.render(p, segments, style.copy(displayMode = when (mode) {
+                            app.subloka.core.domain.SrtExportMode.SOURCE -> app.subloka.core.domain.CaptionDisplayMode.ORIGINAL
+                            app.subloka.core.domain.SrtExportMode.TRANSLATION -> app.subloka.core.domain.CaptionDisplayMode.TRANSLATION
+                            app.subloka.core.domain.SrtExportMode.BOTH -> app.subloka.core.domain.CaptionDisplayMode.DUAL
+                        }))
                     }
                 },
-                modifier = modifier,
-            )
+                onSaveVideo = { videoExporter.select()?.let { name ->
+                    try { mp4Picker.launch(name) } catch (_: Exception) { videoExporter.pickerFailed() }
+                } }, onCancelVideo = videoExporter::cancelRender,
+                onBack = ::back, modifier = modifier)
         }
-        DemoRoute.ModelSetup -> ModelSetupScreen(
-            onReady = { route = DemoRoute.Processing },
-            modifier = modifier,
-        )
-        DemoRoute.Processing -> ProcessingScreen(
-            stages = DemoData.stages,
-            onCancel = { route = DemoRoute.Projects },
-            onDemoComplete = { route = DemoRoute.Editor },
-            modifier = modifier,
-        )
-        DemoRoute.Editor -> EditorScreen(
-            initialSegments = editorSegments,
-            initialStyle = editorStyle,
-            mediaUri = sourceUri,
-            saveStatusText = saveState.label(),
-            saveFailed = saveState == PersistenceSaveState.FAILED,
-            onSegmentsPersist = { segments ->
-                editorSegments = segments
-                persistence.persistSegments(segments)
-            },
-            onStylePersist = { style ->
-                editorStyle = style
-                persistence.persistStyle(style)
-            },
-            onBack = {
-                persistence.flush { success ->
-                    if (success) route = DemoRoute.Projects
-                }
-            },
-            onExport = { segments ->
-                editorSegments = segments
-                persistence.persistSegments(segments)
-                persistence.flush { success ->
-                    if (success) route = DemoRoute.Export
-                }
-            },
-            modifier = modifier,
-        )
-        DemoRoute.Export -> ExportScreen(
-            segments = editorSegments,
-            onBack = { route = DemoRoute.Editor },
-            onDone = { route = DemoRoute.Projects },
-            modifier = modifier,
-        )
     }
 }
 

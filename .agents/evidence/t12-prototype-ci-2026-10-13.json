@@ -1,0 +1,29 @@
+{
+  "id": "T12-PROTOTYPE-002",
+  "date": "2026-10-13",
+  "code_revision": "4ed4de418d731635c8da2864a1c0797a2f0763d6",
+  "workflow_run": 38365151582,
+  "build_job": 115188395984,
+  "media_device_job": 115188396418,
+  "result": "PASS",
+  "artifact_id": 11797056630,
+  "artifact_sha256": "cd2df1b35b955589e11606e50c802d24cc75c4c86777b17aa452c0bdfe868f6e",
+  "scope": [
+    "domain/Room/media/ASR/translation unit steps",
+    "Android test compilation",
+    "Room v1 schema unchanged",
+    "debug APK assembly",
+    "Android lint",
+    "Android 11 media and native loading emulator tests",
+    "fresh-app ML Kit adapter readiness and missing-model refusal"
+  ],
+  "not_verified": [
+    "physical EN-ID translation in this APK",
+    "airplane-mode in-app translation",
+    "physical editor/manual protection/retry/lifecycle UX",
+    "quality acceptance",
+    "real export"
+  ],
+  "task_status": "T12 IN_PROGRESS",
+  "cp4": "BLOCKED"
+}

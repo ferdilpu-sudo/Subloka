@@ -19,6 +19,19 @@ class RoomCaptionRepository(
     private val projectDao = database.projectDao()
     private val captionDao = database.captionDao()
 
+    override suspend fun publishGenerated(
+        projectId: String, expectedRevision: Long, segments: List<CaptionSegment>,
+    ): Boolean = database.withTransaction {
+        val project = requireProject(projectId)
+        if (project.content_revision != expectedRevision || captionDao.list(projectId).isNotEmpty()) {
+            return@withTransaction false
+        }
+        validateForProject(project, segments)
+        if (segments.isNotEmpty()) captionDao.insertAll(segments.map { it.toEntity(projectId, nowMs()) })
+        bumpRevision(projectId)
+        true
+    }
+
     override suspend fun list(projectId: String): List<CaptionSegment> {
         val project = requireProject(projectId)
         val language = project.sourceLanguage()

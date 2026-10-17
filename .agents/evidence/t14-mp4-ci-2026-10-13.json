@@ -1,0 +1,266 @@
+{
+  "recorded_date": "2026-10-14",
+  "ci_date": "2026-10-13",
+  "task": "T14 MP4 foreground prototype",
+  "code_commit": "e3b5e23df59873666e38f23341cb19732de3a49e",
+  "run_id": 38399395230,
+  "run_number": 197,
+  "jobs": [
+    {
+      "id": 115302808180,
+      "name": "media-device",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38399395230,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Set up Java 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Configure Gradle cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install Android 17 compile SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Enable KVM",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run media tests on Android 11 emulator",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Configure Gradle cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Post Set up Java 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ]
+    },
+    {
+      "id": 115302808543,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38399395230,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Set up Java 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install Android 17 SDK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Configure Gradle cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Validate wrapper",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Validate project guardrails",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Domain unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Database integration tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Media unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "ASR model-store unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Translation pipeline and fidelity unit tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Compile translation device tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Compile media device tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Compile real-video app media diagnostic tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Verify Room schema fixture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Assemble debug",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Lint debug",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Upload debug APK and test reports",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Configure Gradle cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 36
+        },
+        {
+          "name": "Post Set up Java 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 37
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 38
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 39
+        }
+      ]
+    }
+  ],
+  "artifact": {
+    "id": 11814203440,
+    "name": "subloka-prototype-debug-and-reports",
+    "size_in_bytes": 47348433,
+    "url": "https://api.github.com/repos/ferdilpu-sudo/Subloka/actions/artifacts/11814203440",
+    "archive_download_url": "https://api.github.com/repos/ferdilpu-sudo/Subloka/actions/artifacts/11814203440/zip",
+    "expired": false,
+    "created_at": "2026-10-13T12:48:06Z",
+    "expires_at": "2027-01-11T12:43:23Z",
+    "updated_at": "2026-10-13T12:48:06Z",
+    "digest": "sha256:ed0a4429d87ab64f92d2319df850982def2604c68acd353c651ba1b8372313fd",
+    "workflow_run": {
+      "id": 38399395230,
+      "repository_id": 1407181811,
+      "head_repository_id": 1407181811,
+      "head_branch": "codex/t11-offline-asr-prototype",
+      "head_sha": "e3b5e23df59873666e38f23341cb19732de3a49e"
+    }
+  },
+  "verified": [
+    "configured unit tests and schema fixture",
+    "debug assembly and lint",
+    "Android 11 synthetic portrait timed-overlay encode/decode, audio presence, source preservation",
+    "landscape source-only encode with missing translation, cancellation cleanup",
+    "painter interval/overflow and app loading/SRT writer instrumentation"
+  ],
+  "unverified": [
+    "physical Sony MP4 and SRT document-picker save/playback",
+    "long-video device performance and thermal behavior",
+    "provider/process-death/low-storage recovery acceptance",
+    "CP4 quality and full T13/CP5"
+  ]
+}

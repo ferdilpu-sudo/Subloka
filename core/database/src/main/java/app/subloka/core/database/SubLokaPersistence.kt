@@ -8,6 +8,7 @@ import app.subloka.core.domain.ProjectRepository
 class SubLokaPersistence private constructor(
     private val database: SubLokaDatabase,
 ) : AutoCloseable {
+    val translationRecovery = TranslationRecoveryStore(database)
     val projectRepository: ProjectRepository = RoomProjectRepository(database)
     val captionRepository: CaptionRepository = RoomCaptionRepository(database)
 

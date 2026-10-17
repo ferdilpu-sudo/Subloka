@@ -709,3 +709,37 @@ Komponen yang benar-benar dipakai frontend demo: `PrimaryAction`, `SecondaryActi
 | Adaptive/IME/accessibility | NFR usability/accessibility, R14 |
 
 T03 tidak membuktikan runtime usability. Ia menetapkan interaction contract agar implementasi frontend dapat dinilai tanpa improvisasi IA.
+
+
+## T11 prototype flow correction (2026-10-13)
+P0 usability/data defect: demo progression could imply successful inference on user media; importing into one demo project could conflate media and captions. Replace it with separate persisted projects, actual model import/download/readiness and actual processing stages. Empty/failure/cancel states lead to retry; source-only results open the existing Caption/Timing/Style editor. Mark prototype limits, disable automatic demo translation/export for real projects, and bind preview captions to playback time. Acceptance: no fabricated ASR completion, no overwritten project, inspectable source/time edits. Physical UX/lifecycle validation remains pending.
+
+
+## T12 translation action (2026-10-13)
+P1 missing functionality: source captions exist but the translation field cannot be generated. Add contextual bulk and selected-caption actions in Caption, followed by model readiness/download and actual processing feedback. No fourth editor workspace. Preserve current/manual translations; show why manual content cannot be auto-replaced. Leave the editor during processing, flush its saves before entry, and reload the persisted snapshot on return so stale local drafts cannot replace new translations. Failures explain retry of remaining captions; completed rows survive interruption. Export remains unavailable.
+
+
+## SRT export flow (2026-10-13)
+P1 missing final action: real projects previously disabled Export. Enable after successful editor persistence. Existing Export flow offers Asli / Terjemahan / Keduanya (two files), Siapkan SRT, then a save button for each language file. Current-translation gate applies only to modes requiring translation; original remains available. No style promise for SRT. Scrollable controls, 48dp radio targets, real indeterminate progress, per-file count, cancel/error/retry messages. Each save opens system location picker; choose local device storage for offline use. MP4 explicitly unavailable. Acceptance: latest saved corrections in output, both language directions, canceled second file leaves first intact, no success on write/close failure.
+
+
+## MP4 export and shared preview (2026-10-13)
+P1: user cannot export subtitled video; prior preview ignores saved style. Use shared painter in preview and MP4, respecting oriented video fit rectangle, size/outline/background/bottom and language order. Add contextual language-order toggle in Style. Existing export screen offers Render MP4 after original/translation/both selection; explain SDR/1280/foreground limits. Progress is actual Transformer percentage when available, indeterminate otherwise. Stop/back cancels rendering without publishing partial video; explicit Save MP4 appears only after validated completion. Empty, stale, overflow, changed source, codec, disk and save failures remain visible/retryable; demo projects cannot render fake media. No IA/workspace redesign. Physical readability, device codecs and exact rendered playback remain unverified until measured.
+
+### Editor overflow repair / 2026-10-14
+Long project names truncate within a weighted header; Back/Export use Material buttons and workspace tabs expose selection. Caption fields and segments share one vertical scroll surface; timing/style scroll independently; style choices wrap. Compact preview is optional and suppressed when IME is visible or available height is below 600dp. Wide layout requires at least 840x480dp. Caption editing retains priority over video context. This addresses reported overlap without changing persistence, translation or export behavior.
+
+### Caption model setup (ADR-033)
+Caption setup explains Base plus the small speech detector, with separate local import actions and one explicit download-missing-models action. Existing verified Base is reused. Start remains disabled until both model digests pass. Existing captions are untouched by this update; a new project is needed to compare generation.
+
+
+### Model setup — ADR-034
+Keep the existing setup screen; a two-option Turbo / Base • ringan segmented control selects recognition weights. Show selected model size, offline processing, heavier-model performance uncertainty and a short-video trial instruction before the explicit import/download. Readiness and import label follow selection; choices disabled during provisioning/inference. Turbo is the initial choice each app launch. Silero is shared; saved captions are unaffected. No editor redesign.
+
+
+### Translation model upgrade (ADR-035)
+P1: users cannot improve existing current automatic output with a replacement engine. Keep contextual translation setup; choose TranslateGemma or lightweight ML Kit. Show 2.49 GB/RAM tradeoff, scrollable bundled terms/policy and unchecked explicit consent. Default Wi-Fi-only download plus local GGUF import; readiness disabled until consent/model verification. Unchecked replacement option includes existing automatic results while always skipping manual corrections. Busy locks choice/consent and offers cancel. Existing editor action remains accessible for current machine captions. Acceptance: no silent overwrite, no implicit download, no false-ready model choice, preserved original timing/text.
+
+
+### Resume translation (ADR-036)
+P1: after a ten-minute translation is interrupted, users cannot distinguish completed replacement work from still-pending old translations. Existing contextual setup shows pending count and locks engine selection. Once model ready, offer Lanjutkan sisa terjemahan; hide new replacement options until pending work is finished or explicitly discarded. Discard uses a confirmation explaining that caption results stay saved. Global editor action remains accessible even when all captions already CURRENT/MANUAL, so users can inspect/discard stale pending work. Foreground interruption copy explains reopening project and resuming. No new editor workspace or automatic background execution.

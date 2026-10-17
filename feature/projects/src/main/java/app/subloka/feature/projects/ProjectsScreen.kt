@@ -1,6 +1,8 @@
 package app.subloka.feature.projects
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +31,7 @@ fun ProjectsScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(20.dp),
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
@@ -40,7 +42,7 @@ fun ProjectsScreen(
             Column {
                 Text("SubLoka", style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    "Caption bilingual offline",
+                    "Prototipe caption offline",
                     color = SubLokaColors.TextSecondary,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -59,7 +61,7 @@ fun ProjectsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Belum ada project", style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "Pilih video untuk membuat caption bilingual secara offline.",
+                    "Pilih video untuk membuat caption bahasa asli secara offline.",
                     color = SubLokaColors.TextSecondary,
                 )
             }
@@ -93,7 +95,7 @@ private fun ProjectCard(project: ProjectSummary, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(project.title, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "${project.sourceLanguage.label} → ${project.sourceLanguage.target.label}",
+                    "Bahasa audio: ${project.sourceLanguage.label}",
                     color = SubLokaColors.TextSecondary,
                     style = MaterialTheme.typography.bodySmall,
                 )

@@ -42,6 +42,8 @@ internal class AndroidPcmDecoder(
             throw error
         } catch (error: SecurityException) {
             throw MediaSourceException(MediaErrorCode.URI_PERMISSION_LOST, "Izin membaca audio hilang.", error)
+        } catch (error: kotlinx.coroutines.CancellationException) {
+            throw error
         } catch (error: Exception) {
             throw MediaSourceException(MediaErrorCode.DECODE_FAILURE, "Audio gagal didekode menjadi PCM.", error)
         } finally {
