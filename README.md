@@ -517,3 +517,7 @@ To regenerate existing automatic results, enable **Ganti juga hasil terjemahan o
 
 
 Code `3d7b4b3` passed [Android CI #209](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38992545226), including build, lint, unit and configured emulator tests. [Download 0.6.0 TranslateGemma APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38992545226/artifacts/12086270453). Extract the ZIP and install the APK without clearing app data. Open translation setup, review Gemma terms, explicitly prepare the model and try one caption offline. Enable the replacement checkbox to regenerate existing automatic translations; manual corrections remain protected. Native host testing completed60 authored fixtures; known meaning/context errors and Sony performance limits remain, so review results before export.
+
+
+### Translation recovery — 0.6.1 candidate
+When translation stops, reopen the project → translation setup → **Lanjutkan sisa terjemahan**. Completed captions and their checkpoint are saved together, including when replacing old automatic results, so completed work is not translated again. Resume uses the original model and skips manually corrected, changed or deleted captions. **Hapus antrean tertunda** clears only the remaining work after confirmation; saved captions remain. Keep the app foreground while running. This increment resumes translation only; ASR generation and MP4 rendering still need a new run if interrupted. Build/device status: `.agents/testing.md`.

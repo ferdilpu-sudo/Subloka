@@ -16,6 +16,7 @@ import app.subloka.core.designsystem.SecondaryAction
 
 @Composable
 fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: String?,
+                           recoveryCount: Int, hasRecovery: Boolean, onResume: () -> Unit, onDiscardRecovery: () -> Unit,
                            eligibleCount: Int, replaceableCount: Int, pairLabel: String,
                            useGemma: Boolean, termsAccepted: Boolean,
                            onModelSelected: (Boolean) -> Unit, onTermsAccepted: (Boolean) -> Unit,
@@ -25,10 +26,17 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                            modifier: Modifier = Modifier) {
     var wifiOnly by rememberSaveable { mutableStateOf(true) }
     var replaceMachine by rememberSaveable { mutableStateOf(false) }
+    var confirmDiscard by remember { mutableStateOf(false) }
     var showTerms by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val permitted = !useGemma || termsAccepted
     val count = if (replaceMachine) replaceableCount else eligibleCount
+    if (confirmDiscard) {
+        AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Hapus antrean tertunda?") },
+            text = { Text("Caption dan hasil terjemahan tetap tersimpan. Setelah ini kamu bisa memilih model atau membuat antrean baru.") },
+            confirmButton = { TextButton(onClick = { confirmDiscard = false; onDiscardRecovery() }) { Text("Hapus antrean") } },
+            dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Kembali") } })
+    }
     if (showTerms) {
         val terms by produceState("Memuat ketentuan…") {
             value = withContext(Dispatchers.IO) {
@@ -49,9 +57,9 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
         Text("$pairLabel • $count caption dapat diterjemahkan")
         Text("Teks asli dan timing tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy,
+            FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
                 label = { Text("TranslateGemma") })
-            FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy,
+            FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
                 label = { Text("ML Kit • ringan") })
         }
         if (useGemma) {
@@ -62,16 +70,17 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 Text("Saya telah membaca dan menyetujui ketentuan serta kebijakan Gemma.", Modifier.weight(1f).padding(top = 12.dp))
             }
         }
-        Row {
+        if (!hasRecovery) Row {
             Checkbox(replaceMachine, { replaceMachine = it }, enabled = !busy)
             Text("Ganti juga hasil terjemahan otomatis yang sudah ada", Modifier.weight(1f).padding(top = 12.dp))
         }
+        if (hasRecovery) Text("Ada pekerjaan terjemahan tertunda: $recoveryCount caption belum selesai. Lanjutkan dengan model yang sama; caption yang berubah atau dikoreksi manual akan dilewati.")
         Text(if (ready) "✓ Model siap di perangkat" else "Model terjemahan belum siap")
         if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         if (stage.isNotBlank()) Text(stage)
         if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
         if (busy) {
-            Text("Tetap buka aplikasi. Berpindah aplikasi menghentikan proses; hasil yang sudah tersimpan tetap tersedia.")
+            Text("Tetap buka aplikasi. Jika proses terhenti, buka proyek dan lanjutkan sisa terjemahan. Caption yang sudah tersimpan tidak diulang.")
             SecondaryAction("Hentikan", onCancel)
         } else {
             if (!ready) {
@@ -80,8 +89,10 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 PrimaryAction("Unduh model terjemahan", { onDownload(wifiOnly) }, enabled = permitted)
                 if (useGemma) SecondaryAction("Impor model GGUF", onImport, enabled = permitted)
             } else {
-                PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0)
+                if (hasRecovery) PrimaryAction("Lanjutkan sisa terjemahan", onResume, enabled = permitted)
+                else PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0)
             }
+            if (hasRecovery) SecondaryAction("Hapus antrean tertunda", { confirmDiscard = true })
             SecondaryAction("Periksa model kembali", onCheck)
             SecondaryAction("Kembali ke editor", onBack)
         }

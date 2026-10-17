@@ -16,6 +16,7 @@ import androidx.room.RoomDatabase
     exportSchema = true,
 )
 abstract class SubLokaDatabase : RoomDatabase() {
+    abstract fun processingJobDao(): ProcessingJobDao
     abstract fun projectDao(): ProjectDao
     abstract fun captionDao(): CaptionDao
     abstract fun captionStyleDao(): CaptionStyleDao

@@ -92,6 +92,8 @@ fun SubLokaApp(
             onOpenEditor = { route = "editor" }, onBack = ::back, modifier = modifier)
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
+                recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
+                onResume = persistence::resumeTranslation, onDiscardRecovery = persistence::discardTranslationRecovery,
                 eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
                 replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },
                 useGemma = translation.useGemma, termsAccepted = translation.termsAccepted,

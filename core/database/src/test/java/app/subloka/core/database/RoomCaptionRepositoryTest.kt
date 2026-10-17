@@ -2,6 +2,7 @@ package app.subloka.core.database
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import app.subloka.core.domain.CaptionProject
 import app.subloka.core.domain.CaptionSegment
@@ -16,6 +17,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -208,6 +210,81 @@ class RoomCaptionRepositoryTest {
         captionRepository.splitSegment(PROJECT_ID, snapshot.id, 500_000)
         assertEquals(null, captionRepository.applyMachineTranslation(PROJECT_ID, snapshot.id, snapshot.sourceRevision, "Late deleted result"))
         assertFalse(captionRepository.list(PROJECT_ID).any { it.translationText == "Late deleted result" })
+    }
+
+    @Test
+    fun interruptedReplacementResumesOnlyUncommittedCaptionAfterDatabaseReopen() = runBlocking {
+        seedProjectAndSegments()
+        val store = TranslationRecoveryStore(database)
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val first = store.begin(PROJECT_ID, "gemma:test", snapshot)
+        assertTrue(store.publish(first.id, snapshot[0], "Improved first"))
+        // Simulate death with a persisted RUNNING job, without graceful stop.
+        database.close(); openDatabase()
+        val reopened = TranslationRecoveryStore(database)
+        reopened.recoverInterrupted()
+        val pending = requireNotNull(reopened.pending(PROJECT_ID))
+        assertEquals(mapOf("segment-2" to 1L), pending.pending)
+        assertEquals("INTERRUPTED", database.processingJobDao().find(first.id)?.state)
+        val attempt = reopened.begin(PROJECT_ID, "gemma:test", captionRepository.list(PROJECT_ID), pending.id)
+        assertEquals(setOf("segment-2"), attempt.pending.keys)
+        assertEquals("CANCELLED", database.processingJobDao().find(first.id)?.state)
+        assertTrue(reopened.publish(attempt.id, snapshot[1], "Improved second"))
+        assertEquals(null, reopened.pending(PROJECT_ID))
+        assertEquals(listOf("Improved first", "Improved second"), captionRepository.list(PROJECT_ID).map { it.translationText })
+        assertEquals(snapshot.map { it.startUs to it.endUs }, captionRepository.list(PROJECT_ID).map { it.startUs to it.endUs })
+    }
+
+    @Test
+    fun recoveryResultAndCheckpointRollbackTogether() = runBlocking {
+        seedProjectAndSegments()
+        val store = TranslationRecoveryStore(database)
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val job = store.begin(PROJECT_ID, "gemma:test", snapshot)
+        try {
+            database.withTransaction {
+                store.publish(job.id, snapshot[0], "Must roll back")
+                error("injected interruption before transaction commit")
+            }
+        } catch (_: IllegalStateException) { }
+        assertEquals(snapshot, captionRepository.list(PROJECT_ID))
+        assertEquals(job.pending, store.pending(PROJECT_ID)?.pending)
+        store.stop(job.id, interrupted = true)
+        assertEquals("INTERRUPTED", database.processingJobDao().find(job.id)?.state)
+    }
+
+    @Test
+    fun resumeRejectsEngineChangeAndPrunesManualOrChangedSources() = runBlocking {
+        seedProjectAndSegments()
+        val store = TranslationRecoveryStore(database)
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val job = store.begin(PROJECT_ID, "gemma:test", snapshot)
+        store.stop(job.id, interrupted = false)
+        assertEquals("FAILED", database.processingJobDao().find(job.id)?.state)
+        try { store.begin(PROJECT_ID, "mlkit:test", snapshot, job.id); fail("Engine must remain bound") }
+        catch (_: IllegalStateException) { }
+        captionRepository.saveManualTranslation(PROJECT_ID, "segment-1", "Manual correction")
+        captionRepository.saveSourceText(PROJECT_ID, "segment-2", "Changed source")
+        val current = captionRepository.list(PROJECT_ID)
+        val resumed = store.begin(PROJECT_ID, "gemma:test", current, job.id)
+        assertTrue(resumed.pending.isEmpty())
+        assertEquals(current, captionRepository.list(PROJECT_ID))
+        assertEquals(null, store.pending(PROJECT_ID))
+    }
+
+    @Test
+    fun lateManualEditIsProtectedAndDiscardKeepsPublishedCaption() = runBlocking {
+        seedProjectAndSegments()
+        val store = TranslationRecoveryStore(database)
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val job = store.begin(PROJECT_ID, "gemma:test", snapshot)
+        captionRepository.saveManualTranslation(PROJECT_ID, "segment-1", "Manual wins")
+        assertFalse(store.publish(job.id, snapshot[0], "Late machine output"))
+        assertEquals(setOf("segment-2"), store.pending(PROJECT_ID)?.pending?.keys)
+        store.discard(PROJECT_ID)
+        assertEquals(null, store.pending(PROJECT_ID))
+        assertEquals("Manual wins", captionRepository.list(PROJECT_ID)[0].translationText)
+        assertEquals(snapshot[1].translationText, captionRepository.list(PROJECT_ID)[1].translationText)
     }
 
     private suspend fun seedProjectAndSegments() {

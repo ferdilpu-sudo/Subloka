@@ -1171,3 +1171,7 @@ Implementation 60ae291 includes pinned native model/install/UI, terms consent, e
 - Next ready action: update APK without clearing data, open existing project, choose TranslateGemma, review/accept terms, explicitly prepare2.49GB model. Disconnect network and try one caption. Enable replacement checkbox to regenerate existing automatic text; verify manual corrections and timestamps unchanged. Record elapsed time/RAM/thermals on Sony; select ML Kit explicitly if Gemma is too heavy.
 - Physical quality/performance remains IN_PROGRESS; CP4 BLOCKED, full T13/CP5/T14 acceptance unresolved. Do not repeat completed external30 ASR benchmark. User reports better Turbo transcription; this is not formal WER signoff.
 - Updated ADR-035, architecture/design/schema, README, testing/evidence/plan; PRD unchanged and Room v1 unchanged. Draft PR #1 retained. Follow-up commit records evidence only.
+
+
+## Active increment — T13 translation recovery / 2026-10-17
+IN_PROGRESS, authorized user "oke, lanjut" after recovery proposal. Scope first: durable translation job/resume after foreground interruption or process death, including replacement of existing machine text. Atomic result/checkpoint commits, original engine binding, manual/revision protection; tests reopen database and interrupted replacement. Full ASR chunk recovery/background execution/export recovery remain separate T13 increments. User reports good TranslateGemma output and sufficiently smooth Sony use: ~10min translation-only for a2min video, approximate self-report, not instrumented benchmark or CP4 pass.

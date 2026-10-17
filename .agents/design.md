@@ -739,3 +739,7 @@ Keep the existing setup screen; a two-option Turbo / Base • ringan segmented c
 
 ### Translation model upgrade (ADR-035)
 P1: users cannot improve existing current automatic output with a replacement engine. Keep contextual translation setup; choose TranslateGemma or lightweight ML Kit. Show 2.49 GB/RAM tradeoff, scrollable bundled terms/policy and unchecked explicit consent. Default Wi-Fi-only download plus local GGUF import; readiness disabled until consent/model verification. Unchecked replacement option includes existing automatic results while always skipping manual corrections. Busy locks choice/consent and offers cancel. Existing editor action remains accessible for current machine captions. Acceptance: no silent overwrite, no implicit download, no false-ready model choice, preserved original timing/text.
+
+
+### Resume translation (ADR-036)
+P1: after a ten-minute translation is interrupted, users cannot distinguish completed replacement work from still-pending old translations. Existing contextual setup shows pending count and locks engine selection. Once model ready, offer Lanjutkan sisa terjemahan; hide new replacement options until pending work is finished or explicitly discarded. Discard uses a confirmation explaining that caption results stay saved. Global editor action remains accessible even when all captions already CURRENT/MANUAL, so users can inspect/discard stale pending work. Foreground interruption copy explains reopening project and resuming. No new editor workspace or automatic background execution.

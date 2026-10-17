@@ -81,3 +81,7 @@ ManagedModelDescriptor adds optional positive expectedSizeBytes for exact model 
 
 ### TranslateGemma metadata (ADR-035)
 Room v1 unchanged. Terms acceptance is stored separately in application preferences keyed by Gemma terms version; default false. Translation model choice defaults to Gemma in session. Replacement of current automatic translations requires an explicit run flag; manual translations remain excluded in both eligibility and repository CAS. Source text, identity and timestamps are not modified.
+
+
+### Translation checkpoints (ADR-036)
+Room v1 table/column schema unchanged; add ProcessingJobDao. For TRANSLATE only, checkpoint_ref contains inline JSON {version:1,total:Int,pending:[{id:String,revision:Long}]} instead of a file path. No copied caption text. engine_version/model_version bind the inference configuration. States RUNNING → SUCCEEDED when pending empty; failed rows remain in FAILED; graceful interruption/startup recovery uses INTERRUPTED. Resume supersedes the prior attempt as CANCELLED/SUPERSEDED and creates a new UUID attempt from unchanged pending IDs/revisions. Discard marks CANCELLED/DISCARDED without caption mutation. Publication and checkpoint progress are one database transaction. Existing schema fixture must remain byte-for-byte unchanged; no destructive migration.

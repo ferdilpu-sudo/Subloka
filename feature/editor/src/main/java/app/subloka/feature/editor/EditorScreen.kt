@@ -179,8 +179,8 @@ fun EditorScreen(
 
             if (!demoMode && !keyboardLikelyVisible) {
                 val count = segments.count(TranslationEligibility::canGenerate)
-                app.subloka.core.designsystem.SecondaryAction("Terjemahkan / perbarui $count caption",
-                    { onRequestTranslation(null) }, enabled = segments.any { TranslationEligibility.canGenerate(it, true) }, modifier = Modifier.fillMaxWidth())
+                app.subloka.core.designsystem.SecondaryAction(if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
+                    { onRequestTranslation(null) }, enabled = segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
             }
 
             if (expanded) {

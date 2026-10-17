@@ -145,4 +145,4 @@ jobs:
           disable-animations: true
           script: |
             bash tools/run_media_device_tests.sh
-            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest,app.subloka.SrtDocumentWriterTest,app.subloka.EditorLayoutTest
+            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest,app.subloka.SrtDocumentWriterTest,app.subloka.EditorLayoutTest,app.subloka.TranslationRecoveryUiTest

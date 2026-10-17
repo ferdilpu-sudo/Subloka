@@ -27,12 +27,14 @@ data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false
     val stage: String = "", val error: String? = null, val completed: Boolean = false)
 
 data class TranslationUiState(val useGemma: Boolean = true, val termsAccepted: Boolean = false, val ready: Boolean = false, val stage: String = "",
+    val pendingId: String? = null, val pendingCount: Int = 0,
     val error: String? = null, val applied: Int = 0, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
     private val persistence = SubLokaDatabaseFactory.create(application)
     private val projectsRepo = persistence.projectRepository
     private val captionsRepo = persistence.captionRepository
+    private val recovery = persistence.translationRecovery
     private val media = AndroidMediaSource(application)
     private val models = WhisperModelStore(File(application.filesDir, "whisper-models"))
     private val queue = Channel<suspend () -> Unit>(Channel.UNLIMITED)
@@ -63,6 +65,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 try {
+                    recovery.recoverInterrupted()
                     if (projectsRepo.list().isEmpty()) {
                         projectsRepo.upsert(DemoData.persistentProject)
                         captionsRepo.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
@@ -87,6 +90,11 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _project.value = requireNotNull(projectsRepo.find(id))
         _segments.value = captionsRepo.list(id)
         _style.value = projectsRepo.getStyle(id)
+        val checkpoint = recovery.pending(id)
+        val useGemma = checkpoint?.engine?.startsWith("gemma:") ?: _translation.value.useGemma
+        _translation.value = _translation.value.copy(pendingId = checkpoint?.id,
+            pendingCount = checkpoint?.pending?.size ?: 0, useGemma = useGemma,
+            ready = _translation.value.ready && useGemma == _translation.value.useGemma)
     }
     fun openProject(id: String, onComplete: () -> Unit) {
         if (_asr.value.busy) return
@@ -227,7 +235,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     fun selectTranslationModel(useGemma: Boolean) {
-        if (_asr.value.busy) return
+        if (_asr.value.busy || _translation.value.pendingId != null) return
         _translation.value = _translation.value.copy(useGemma = useGemma, ready = false)
         checkTranslationModel()
     }
@@ -256,22 +264,51 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _translation.value = _translation.value.copy(ready = true, stage = "Model siap. Anda dapat mematikan koneksi sebelum menerjemahkan.")
     }
 
-    fun startTranslation(segmentId: String? = null, replaceCurrentMachine: Boolean = false) {
+    private fun translationEngineKey() = if (_translation.value.useGemma)
+        "gemma:${TranslateGemmaModel.descriptor.expectedSha256}:llama-2a667032:prompt1"
+        else "mlkit:17.0.3"
+
+    fun discardTranslationRecovery() {
+        if (_asr.value.busy) return
+        val id = _project.value?.id ?: return
+        translationOperation("Menghapus antrean tertunda…") {
+            recovery.discard(id)
+            _translation.value = _translation.value.copy(stage = "Antrean dihapus. Hasil caption tetap tersimpan.")
+        }
+    }
+
+    fun resumeTranslation() = startTranslation(resume = true)
+
+    fun startTranslation(segmentId: String? = null, replaceCurrentMachine: Boolean = false, resume: Boolean = false) {
         val selectedProject = _project.value ?: return
         if (!_translation.value.ready || selectedProject.id == DemoData.PROJECT_ID) return
+        val pendingCount = _translation.value.pendingCount
+        val pendingId = _translation.value.pendingId
+        if (resume != (pendingId != null)) return
+        val engine = translationEngineKey()
         translationOperation("Menyiapkan caption…") { translator ->
-            // Snapshot is read after the route's save barrier, with editor writes locked out.
-            val snapshot = captionsRepo.list(selectedProject.id).filter { segmentId == null || it.id == segmentId }
-            val result = CaptionTranslationPipeline(translator).run(snapshot, publish = { source, text ->
-                captionsRepo.applyMachineTranslation(selectedProject.id, source.id, source.sourceRevision,
-                    text, allowReplaceManual = false) != null
-            }, onProgress = { progress ->
-                _translation.value = _translation.value.copy(applied = progress.applied,
-                    stage = "Menerjemahkan ${progress.processed}/${progress.total} • ${progress.applied} tersimpan")
-            }, replaceCurrentMachine = replaceCurrentMachine)
-            _translation.value = _translation.value.copy(completed = true,
-                stage = "${result.applied} tersimpan • ${result.conflicted} dilewati karena berubah • ${result.failed} gagal.",
-                error = if (result.failed > 0) "Sebagian caption gagal. Coba lagi untuk caption yang belum selesai." else null)
+            check(translator.state() == ModelReadinessState.READY)
+            // Read after editor save barrier. Resume keeps only original IDs at unchanged source revisions.
+            val snapshot = captionsRepo.list(selectedProject.id).filter {
+                resume || ((segmentId == null || it.id == segmentId) && TranslationEligibility.canGenerate(it, replaceCurrentMachine))
+            }
+            val checkpoint = recovery.begin(selectedProject.id, engine, snapshot, if (resume) pendingId else null)
+            val work = snapshot.filter { checkpoint.pending[it.id] == it.sourceRevision }
+            try {
+                val result = CaptionTranslationPipeline(translator).run(work, publish = { source, text ->
+                    recovery.publish(checkpoint.id, source, text)
+                }, onProgress = { progress ->
+                    _translation.value = _translation.value.copy(applied = progress.applied,
+                        stage = "Menerjemahkan ${progress.processed}/${progress.total} • ${progress.applied} tersimpan")
+                }, replaceCurrentMachine = true)
+                recovery.stop(checkpoint.id, interrupted = false)
+                _translation.value = _translation.value.copy(completed = result.failed == 0,
+                    stage = "${result.applied} tersimpan • ${result.conflicted + if (resume) (pendingCount - work.size).coerceAtLeast(0) else 0} dilewati karena berubah • ${result.failed} belum selesai.",
+                    error = if (result.failed > 0) "Sisa caption dapat dilanjutkan. Untuk teks terlalu panjang, pecah caption lalu buat antrean baru." else null)
+            } finally {
+                // If process death skips this block, startup recovers the persisted RUNNING row.
+                withContext(NonCancellable) { recovery.stop(checkpoint.id, interrupted = true) }
+            }
         }
     }
 
@@ -289,7 +326,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
                     try { translator.use { action(it) } } finally { gemmaTranslator = null }
                 }
             } catch (cancel: CancellationException) {
-                _translation.value = _translation.value.copy(stage = "Dihentikan. Terjemahan yang sudah tersimpan tetap tersedia. Unduhan ML Kit yang sudah dimulai dapat berlanjut.")
+                _translation.value = _translation.value.copy(stage = "Dihentikan. Buka Terjemahan dan pilih Lanjutkan sisa terjemahan. Hasil yang sudah tersimpan tetap tersedia.")
             } catch (_: Exception) {
                 _translation.value = _translation.value.copy(error = "Proses terjemahan gagal. Periksa model dan coba lagi; hasil yang sudah tersimpan tetap tersedia.")
             } catch (_: LinkageError) {
