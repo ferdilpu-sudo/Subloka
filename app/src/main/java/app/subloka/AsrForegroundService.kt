@@ -1,5 +1,7 @@
 package app.subloka
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -52,6 +54,12 @@ class AsrForegroundService : Service() {
         if (request == null) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(startId); return START_NOT_STICKY }
         requestId = request.id
         operation = scope.launch {
+            val watchdog = scope.launch {
+                delay(MAX_RUNTIME)
+                stopMessage = "Batas waktu transkripsi tercapai. Coba video yang lebih pendek."
+                task?.cancel()
+                operation?.cancel()
+            }
             var error: String? = null
             var message = stopMessage
             try {
@@ -72,6 +80,7 @@ class AsrForegroundService : Service() {
             catch (failure: Exception) { error = failure.message ?: "Transkripsi gagal. Coba lagi." }
             catch (_: LinkageError) { error = "Engine tidak tersedia untuk perangkat ini." }
             finally {
+                watchdog.cancel()
                 val saved = task?.savedMessage
                 task = null
                 wakeLock?.let { if (it.isHeld) it.release() }; wakeLock = null
@@ -84,6 +93,7 @@ class AsrForegroundService : Service() {
     }
     private fun updateNotification(id: String, stage: String) {
         if (AsrSession.state.value?.let { it.running && it.request.id == id } != true) return
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION, notification(id, stage))
     }
     private fun notification(id: String, stage: String): Notification {
