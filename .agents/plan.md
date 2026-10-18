@@ -25,7 +25,7 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | BLOCKED |
 | T11 | Pipeline ASR produksi (prototipe terbatas diotorisasi ADR-029) | T10, CP4; pengecualian prototipe ADR-029 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | IN_PROGRESS |
 | T12 | Pipeline translation (prototipe ADR-030) | T11; pengecualian prototipe ADR-030 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | IN_PROGRESS |
-| T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
+| T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | IN_PROGRESS — translation recovery CI verified; physical/full recovery pending |
 | T14 | Renderer dan ekspor MP4/SRT | T13, CP5; bounded SRT exception ADR-031 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | IN_PROGRESS — SRT prototype only |
 | T15 | Integrasi dan hardening end-to-end | T14 | Seluruh FR/NFR ditelusuri; mode pesawat, adaptive/keyboard/accessibility, kualitas, lifecycle/perangkat PASS; CP6 lulus | TODO |
 | T16 | Paket rilis dan handoff | T15, CP6 | Build kandidat, checksum, petunjuk instalasi/model, known limits, sumber/lisensi, docs final; CP7 ditinjau | TODO |
@@ -1175,3 +1175,11 @@ Implementation 60ae291 includes pinned native model/install/UI, terms consent, e
 
 ## Active increment — T13 translation recovery / 2026-10-17
 IN_PROGRESS, authorized user "oke, lanjut" after recovery proposal. Scope first: durable translation job/resume after foreground interruption or process death, including replacement of existing machine text. Atomic result/checkpoint commits, original engine binding, manual/revision protection; tests reopen database and interrupted replacement. Full ASR chunk recovery/background execution/export recovery remain separate T13 increments. User reports good TranslateGemma output and sufficiently smooth Sony use: ~10min translation-only for a2min video, approximate self-report, not instrumented benchmark or CP4 pass.
+
+
+### Latest handoff — translation recovery / 2026-10-18
+- Implemented and CI verified: 0.6.1-translation-recovery, tested code debe00ed5bf2657041ceb1a2c5bb55186b91bbad. Durable pending translation queue, atomic caption/checkpoint commit, original-engine binding, resume and confirmed discard; manual/source revision protection. Engines unchanged.
+- RECOVERY-TRANSLATION-002 PASS: CI #211 run39022946570 build and Android11 emulator, including Room recovery cases and TranslationRecoveryUiTest. Artifact12097721367. No local Android build claim; prior local Gradle limitation recorded.
+- Physical Sony stop/process-kill/reopen continuation remains unverified. Next ready action: install updated APK without clearing data, interrupt after saved translations, reopen translation setup and resume; verify completed captions are not repeated. Existing models reused.
+- Translation implementation/configured CI complete; full T13 remains IN_PROGRESS, CP5 pending, CP4 BLOCKED. ASR/MP4 resume/background execution not added. No merge/release; draft PR1 retained.
+- Updated testing/plan/README with final evidence; ADR-036, architecture/schema/design updated with implementation. PRD unchanged, Room v1 schema unchanged. User reports good translation and about10min translation-only for2min video, not an instrumented performance/quality pass.
