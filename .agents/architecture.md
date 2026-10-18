@@ -114,3 +114,7 @@ engine:translation owns pinned GGUF install, JNI and dedicated llama.cpp CPU run
 
 ### Translation recovery (ADR-036)
 TranslationRecoveryStore reuses processing_jobs and owns atomic nested Room transactions with RoomCaptionRepository. Each accepted caption and removal from pending commit together. ViewModel writes a checkpoint before inference, loads pending work on project open, binds the original engine, and recovers orphan RUNNING attempts on startup. Resume creates a new attempt with validated pending identities; stale/deleted/manual rows are pruned. Completed current replacement rows are excluded durably. Cancel retains pending work; explicit discard preserves captions. No continuous background service, ASR chunk resume or MP4 checkpoint yet.
+
+
+### Prototype delivery signing (ADR-037)
+Android CI build/emulator remain independent of production secrets. A manual, prototype-branch-only dependent job downloads that run's tested APK, invokes tools/prototype_signing.py with owner-held secret, verifies its signer fingerprint and publishes only the signed APK plus verification text. Temporary key material exists only inside a temporary directory. Owner setup reuses a validated private bundle and sends it to gh secret set over stdin. Engine/model/Room paths and processing lifecycle are unchanged.

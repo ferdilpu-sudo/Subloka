@@ -523,3 +523,17 @@ Code `3d7b4b3` passed [Android CI #209](https://github.com/ferdilpu-sudo/Subloka
 When translation stops, reopen the project → translation setup → **Lanjutkan sisa terjemahan**. Completed captions and their checkpoint are saved together, including when replacing old automatic results, so completed work is not translated again. Resume uses the original model and skips manually corrected, changed or deleted captions. **Hapus antrean tertunda** clears only the remaining work after confirmation; saved captions remain. Keep the app foreground while running. This increment resumes translation only; ASR generation and MP4 rendering still need a new run if interrupted. Build/device status: `.agents/testing.md`.
 
 Code `debe00e` passed [Android CI #211](https://github.com/ferdilpu-sudo/Subloka/actions/runs/39022946570): build, lint, unit/Room recovery tests and configured Android11 emulator tests including recovery controls. [Download 0.6.1 APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/39022946570/artifacts/12097721367). Extract and install the APK without clearing app data; existing models are reused. Physical Sony interruption/reopen/resume testing remains pending.
+
+
+### Stable prototype updates — 0.6.2 setup
+Older CI APKs used temporary debug certificates and may require reinstalling when signatures differ. Do not uninstall before protecting projects/model files. A new key cannot reproduce the old signature; the first transition may still require backup/reinstall. Future updates must use the same private signing bundle and application ID. This remains a debug prototype, not a production release.
+
+Owner setup on Windows (Python, JDK/keytool or Android Studio JBR, GitHub CLI required):
+```powershell
+gh auth login
+python tools/prototype_signing.py setup --upload
+gh workflow run android-ci.yml --ref codex/t11-offline-asr-prototype
+```
+The setup creates/reuses `%USERPROFILE%\.subloka-signing\prototype-signing.json` and uploads it through stdin to the encrypted repository Actions secret `SUBLOKA_PROTOTYPE_SIGNING`. Keep a separate private backup of that file; never post it in chat or git. Setup refuses creating a new local key if an existing remote secret is detected. Do not replace/delete the key for later APKs.
+Only manual Android CI on the prototype branch produces **subloka-stable-prototype-apk**, after build and emulator jobs pass. Install that artifact's `subloka-prototype.apk`; **subloka-ci-test-only-and-reports** uses a temporary key and is not the update channel. Missing signing secret fails explicitly. A verification text records certificate and APK SHA256; compare certificate across updates. CI versionCode follows Android CI run_number; local builds default to2 and are not the update channel. Do not reset this workflow's numbering without planning versionCode continuity.
+First stable-key migration is not yet device-tested. Preserve the existing app until backup/migration is arranged. Subsequent verification: install an older stable-key APK, keep project/model data, install a newer stable-key APK with `adb install -r`, reopen projects and use models without download. App URI grants may require relinking after any uninstall.

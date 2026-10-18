@@ -11,3 +11,9 @@ captures/
 /t10-dataset.json
 /t10-audio/
 /.t10-fleurs-cache/
+
+# Private signing material must never be committed.
+*.jks
+*.keystore
+*.p12
+prototype-signing.json

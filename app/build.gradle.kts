@@ -11,8 +11,8 @@ android {
         applicationId = "app.subloka.caption"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.6.1-translation-recovery"
+        versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
+        versionName = "0.6.2-stable-update"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

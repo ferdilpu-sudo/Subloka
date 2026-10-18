@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      SUBLOKA_VERSION_CODE: ${{ github.run_number }}
 
     steps:
       - name: Checkout
@@ -97,7 +99,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: subloka-prototype-debug-and-reports
+          name: subloka-ci-test-only-and-reports
           path: |
             app/build/outputs/apk/debug/*.apk
             **/build/reports/tests/
@@ -146,3 +148,36 @@ jobs:
           script: |
             bash tools/run_media_device_tests.sh
             ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest,app.subloka.SrtDocumentWriterTest,app.subloka.EditorLayoutTest,app.subloka.TranslationRecoveryUiTest
+
+  stable-prototype-apk:
+    # Never expose the signing secret to pull_request runs, including same-repo PRs.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/t11-offline-asr-prototype'
+    needs: [build, media-device]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/download-artifact@v4
+        with:
+          name: subloka-ci-test-only-and-reports
+          path: unsigned-input
+      - name: Sign and verify owner-key APK
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          "$SDKMANAGER" "build-tools;37.0.0"
+          APK="$(find unsigned-input -name app-debug.apk -type f)"
+          test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output stable-apk/subloka-prototype.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subloka-stable-prototype-apk
+          path: stable-apk/
+          if-no-files-found: error
