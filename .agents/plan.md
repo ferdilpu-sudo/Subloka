@@ -1214,3 +1214,7 @@ IN_PROGRESS, user authorized lanjut after stable-key migration and video permiss
 
 ## 2026-10-18 ASR cancellation follow-up / IN_PROGRESS
 User reports background completion PASS but notification Hentikan has no visible response. Inspect cancellation acknowledgement, native cleanup and error classification; preserve busy state until worker exits. No release or checkpoint closure.
+
+
+## 2026-10-18 native ASR cancellation / IN_PROGRESS
+Previous acknowledgement build5a85a9b/manual run39128241166 build, emulator and stable signing SUCCESS, verified via connector. User reports acknowledgement now visible but2–3 minute wait during transcription. Root source inspection identifies missing forwarding of abort callback into scheduled CPU graphs. Added exact-source guarded CMake patch (ADR-039); host native build/Android CI/device timing must be recorded before claiming resolved. Model/key/schema unchanged; do not uninstall.

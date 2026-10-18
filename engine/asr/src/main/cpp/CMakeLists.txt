@@ -22,6 +22,8 @@ FetchContent_Declare(whisper
     GIT_TAG 927cfce34f31707e17f2bff35c349632fb9e2c3a
     GIT_PROGRESS TRUE)
 FetchContent_MakeAvailable(whisper)
+set(WHISPER_SOURCE "${whisper_SOURCE_DIR}/src/whisper.cpp")
+include("${CMAKE_CURRENT_LIST_DIR}/patch_whisper_cancel.cmake")
 add_library(subloka_asr SHARED whisper_jni.cpp)
 target_compile_features(subloka_asr PRIVATE cxx_std_17)
 target_link_options(subloka_asr PRIVATE "-Wl,--exclude-libs,ALL")
