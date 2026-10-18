@@ -1191,3 +1191,11 @@ IN_PROGRESS, user authorized lanjut after upgrade failure and successful transla
 
 ### Latest handoff — stable signing / 2026-10-18
 IMPLEMENTED; SIGNING-001 local checks PASS, Android CI pending, signed APK/physical upgrade pending owner secret provisioning. Added tools/prototype_signing.py (setup/reuse/upload/sign/verify), manual gated signing job, test-only artifact label, CI run_number versionCode and private-key ignore rules. Existing package identity/model files unchanged. User-reported translation resume recorded RECOVERY-TRANSLATION-DEVICE-001; full process death/CP5 not inferred. Connector lacks secret-write capability; prepared owner command in README is final missing setup, not a request to share credentials. First stable-key migration may need backup/reinstall; do not advise uninstall before protecting project/model data. PRD/schema/design unchanged; architecture/ADR037/README/testing/plan updated. CP4 BLOCKED, fullT13 IN_PROGRESS. Next: owner setup + manual gated build, two stable-key APK upgrade test; ASR foreground-service increment thereafter. No merge/release.
+
+
+## Signing verifier repair / 2026-10-18
+IN_PROGRESS. Manual run39093334123 build/emulator PASS, signing fails at textual signer comparison after apksigner verify succeeds. Investigate Build Tools37 output labels; retain strict fingerprint checking and existing owner key. No need to regenerate secret.
+
+
+### Latest handoff — signer label repair / 2026-10-18
+Implemented repair to tools/prototype_signing.py plus tools/test_prototype_signing.py in CI; SIGNING-002 local reproduction and actual fixed APK signing PASS. Existing keytool bundle validation and apksigner cryptographic verify remain required; all recognized signer certificate digests must equal pinned bundle fingerprint. Build Tools37 uses V3.0 Signer: label; original parser assumed Signer #1. Source APK from owner manual run39093334123, throwaway local signing key only. Build/emulator of prior code PASS; owner-key signing failed historically and remains pending fresh manual workflow at new head. Rerun old workflow reuses old commit and is insufficient. No owner key rotation or app reinstall now. PRD/schema/design/architecture unchanged; documentation/test evidence updated. Full T13/CP5 pending; ASR background not added; no merge/release.

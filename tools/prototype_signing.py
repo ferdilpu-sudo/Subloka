@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -86,6 +87,16 @@ def setup(args):
     print('Never commit/share this file or replace this key for future updates.')
 
 
+def verify_signer_fingerprint(output, expected):
+    # Build Tools 37 labels scheme-specific signers (e.g. V3.0 Signer:),
+    # whereas older tools print Signer #1. Never match public-key/stamp hashes.
+    digests = re.findall(
+        r'^(?:V[1-4](?:\.\d+)? )?Signer\b[^\r\n]* certificate SHA-256 digest: ([0-9a-fA-F]{64})\s*$',
+        output, re.MULTILINE)
+    if not digests or {value.lower() for value in digests} != {expected.lower()}:
+        raise RuntimeError('Signed APK certificate mismatch or missing signer digest; no artifact published.')
+
+
 def sign(args):
     raw = os.environ.get(SECRET)
     if not raw:
@@ -104,9 +115,7 @@ def sign(args):
              '--out', str(candidate), str(args.apk)], env=env)
         result = run([args.apksigner, 'verify', '--verbose', '--print-certs', str(candidate)],
                      stdout=subprocess.PIPE, text=True)
-        expected = 'Signer #1 certificate SHA-256 digest: ' + bundle['certificate_sha256']
-        if expected not in result.stdout:
-            raise RuntimeError('Signed APK certificate mismatch; no artifact published.')
+        verify_signer_fingerprint(result.stdout, bundle['certificate_sha256'])
         shutil.copyfile(candidate, args.output)
         digest = hashlib.sha256(args.output.read_bytes()).hexdigest()
         args.output.with_suffix('.verification.txt').write_text(

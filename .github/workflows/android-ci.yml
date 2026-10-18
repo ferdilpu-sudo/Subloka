@@ -59,6 +59,9 @@ jobs:
       - name: Validate project guardrails
         run: python3 tools/validate_project.py
 
+      - name: Signing verifier regression tests
+        run: python3 tools/test_prototype_signing.py
+
       - name: Domain unit tests
         run: ./gradlew --stacktrace :core:domain:testDebugUnitTest
 
