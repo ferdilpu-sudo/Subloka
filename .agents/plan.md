@@ -1210,3 +1210,7 @@ IN_PROGRESS, user authorized lanjut after stable-key migration and video permiss
 - ASR-SERVICE-002 PASS: final #217 run39103441312 build117604224251 and media-device117604224152; initial #216 also PASS. Controlled-worker instrumentation covers Activity stop/destruction/reopen, notification cancel, late cancellation after saved result. Models and database schema unchanged.
 - Next required action: owner runs gh workflow run android-ci.yml --ref codex/t11-offline-asr-prototype; use subloka-stable-prototype-apk and adb install -r. Signed job intentionally skipped for PR. Do not uninstall or regenerate signing key. Then Sony short new-project test: start ASR, Home, screen off briefly, reopen via notification, confirm saved captions; separately cancel. Real-weight background/thermal and modern API behavior pending.
 - Process death/force-stop still needs a new ASR run; no chunk resume/autorestart. T13 remains IN_PROGRESS, CP5 unresolved, CP4 BLOCKED. No merge/release. Architecture/design/ADR038/README/testing updated; PRD and Room schema unchanged. Stable-key migration and video permission workaround USER_REPORTED_SUCCESS recorded SIGNING-003; not proof of future in-place upgrade yet.
+
+
+## 2026-10-18 ASR cancellation follow-up / IN_PROGRESS
+User reports background completion PASS but notification Hentikan has no visible response. Inspect cancellation acknowledgement, native cleanup and error classification; preserve busy state until worker exits. No release or checkpoint closure.

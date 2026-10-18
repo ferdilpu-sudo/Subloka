@@ -31,7 +31,16 @@ class AsrForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val id = intent?.getStringExtra(JOB)
         if (intent?.action == CANCEL) {
-            if (id == requestId) { task?.cancel(); operation?.cancel() }
+            if (id != null && id == requestId) {
+                AsrSession.stopping(id)
+                updateNotification(id, AsrSession.state.value!!.stage)
+                // Native cleanup can hold the pipeline lock. Never wait for it on Main.
+                val worker = task
+                val running = operation
+                scope.launch(Dispatchers.IO) {
+                    try { worker?.cancel() } finally { running?.cancel() }
+                }
+            }
             else if (operation == null) {
                 // A cancel may reach the service before its start command.
                 if (id != null) AsrSession.finish(id, stopMessage, false)
@@ -77,7 +86,11 @@ class AsrForegroundService : Service() {
                 task?.cancel()
                 message = "Batas waktu transkripsi tercapai. Coba video yang lebih pendek."
             } catch (_: CancellationException) { message = stopMessage }
-            catch (failure: Exception) { error = failure.message ?: "Transkripsi gagal. Coba lagi." }
+            catch (failure: Exception) {
+                if (AsrSession.state.value?.let { it.request.id == request.id && it.stopping } == true) {
+                    message = stopMessage
+                } else error = failure.message ?: "Transkripsi gagal. Coba lagi."
+            }
             catch (_: LinkageError) { error = "Engine tidak tersedia untuk perangkat ini." }
             finally {
                 watchdog.cancel()
@@ -94,7 +107,7 @@ class AsrForegroundService : Service() {
     private fun updateNotification(id: String, stage: String) {
         if (AsrSession.state.value?.let { it.running && it.request.id == id } != true) return
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        getSystemService(NotificationManager::class.java).notify(NOTIFICATION, notification(id, stage))
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION, notification(id, AsrSession.state.value?.takeIf { it.request.id == id && it.stopping }?.stage ?: stage))
     }
     private fun notification(id: String, stage: String): Notification {
         val open = PendingIntent.getActivity(this, 0,

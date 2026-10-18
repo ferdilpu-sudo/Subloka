@@ -24,15 +24,23 @@ class AsrForegroundServiceTest {
     private var scenario: ActivityScenario<MainActivity>? = null
     private val originalFactory = AsrForegroundService.taskFactory
 
-    private class ControlledTask : AsrTask {
+    private class ControlledTask(val delayCancellation: Boolean = false) : AsrTask {
         val entered = CompletableDeferred<Unit>()
         val finish = CompletableDeferred<Unit>()
+        val releaseCancellation = CompletableDeferred<Unit>()
         @Volatile var cancelled = false
         @Volatile override var savedMessage: String? = null
         override suspend fun run(request: AsrRequest, onStage: (String) -> Unit) {
             onStage("Transkripsi uji sedang berjalan")
             entered.complete(Unit)
-            finish.await()
+            try { finish.await() }
+            catch (cancel: CancellationException) {
+                if (delayCancellation) withContext(NonCancellable) {
+                    onStage("Late progress must not replace stopping")
+                    releaseCancellation.await()
+                }
+                throw cancel
+            }
             savedMessage = "Caption uji tersimpan"
         }
         override fun cancel() { cancelled = true }
@@ -90,6 +98,28 @@ class AsrForegroundServiceTest {
         assertTrue(worker.cancelled)
         assertFalse(terminal.completed)
         assertNull(worker.savedMessage)
+    }
+
+    @Test fun cancellationAcknowledgedWhileWorkerIsStillStopping() = runBlocking {
+        val worker = ControlledTask(delayCancellation = true)
+        val request = start(worker)
+        try {
+            manager.activeNotifications.first { it.id == AsrForegroundService.NOTIFICATION }
+                .notification.actions.first().actionIntent.send()
+            val stopping = withTimeout(5_000) {
+                AsrSession.state.filterNotNull().first { it.request.id == request.id && it.stopping }
+            }
+            assertTrue(stopping.running)
+            assertTrue(stopping.stage.startsWith("Menghentikan"))
+            assertNull(AsrSession.reserve(request.project, true))
+            withTimeout(5_000) { while (!worker.cancelled) delay(25) }
+            assertTrue(AsrSession.state.value!!.stage.startsWith("Menghentikan"))
+        } finally { worker.releaseCancellation.complete(Unit) }
+        val terminal = withTimeout(15_000) {
+            AsrSession.state.filterNotNull().first { it.request.id == request.id && !it.running }
+        }
+        assertFalse(terminal.completed)
+        assertNull(terminal.error)
     }
 
     @Test fun cancellationAfterCommitStillReportsSavedResult() = runBlocking {
