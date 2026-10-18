@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.2-stable-update"
+        versionName = "0.6.3-background-asr"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

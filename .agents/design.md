@@ -743,3 +743,7 @@ P1: users cannot improve existing current automatic output with a replacement en
 
 ### Resume translation (ADR-036)
 P1: after a ten-minute translation is interrupted, users cannot distinguish completed replacement work from still-pending old translations. Existing contextual setup shows pending count and locks engine selection. Once model ready, offer Lanjutkan sisa terjemahan; hide new replacement options until pending work is finished or explicitly discarded. Discard uses a confirmation explaining that caption results stay saved. Global editor action remains accessible even when all captions already CURRENT/MANUAL, so users can inspect/discard stale pending work. Foreground interruption copy explains reopening project and resuming. No new editor workspace or automatic background execution.
+
+
+### ASR continuation outside Activity / 2026-10-18
+P1: user backgrounds ASR, inference appears to continue then ends interrupted. Service owns transcribing; processing copy explains background/screen-off capability and process-death limitation. Ask notification permission on API33+ at explicit Start action; denial does not imply permission to skip foreground notification. Ongoing notification contains generic stage (no project/transcript text), Open and Hentikan. UI returns to current processing job after Activity recreation; cancel remains explicit via processing Back/Cancel or notification. Translation/MP4 interaction unchanged. No promise of chunk resume or completion after force-stop.

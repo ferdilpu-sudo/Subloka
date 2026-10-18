@@ -12,7 +12,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         if (!isChangingConfigurations) {
             androidx.lifecycle.ViewModelProvider(this)[VideoExportViewModel::class.java].cancelRender()
-            androidx.lifecycle.ViewModelProvider(this)[SubLokaViewModel::class.java].cancelOperation()
+            androidx.lifecycle.ViewModelProvider(this)[SubLokaViewModel::class.java].cancelForegroundOnlyOperation()
         }
         super.onStop()
     }

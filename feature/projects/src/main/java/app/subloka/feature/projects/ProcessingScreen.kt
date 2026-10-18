@@ -19,7 +19,7 @@ fun ProcessingScreen(
 ) {
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text("Caption di perangkat", style = MaterialTheme.typography.headlineSmall)
-        Text("Tetap buka aplikasi selama proses. Berpindah aplikasi atau mengunci layar menghentikan proses; Anda dapat mencoba lagi.")
+        Text("Transkripsi dapat berjalan saat pindah aplikasi atau layar mati. Pantau progres dan hentikan melalui notifikasi. Jika proses aplikasi dimatikan Android, transkripsi perlu dimulai ulang.")
         if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         Text(stage)
         if (error != null) Text(error, color = MaterialTheme.colorScheme.error)

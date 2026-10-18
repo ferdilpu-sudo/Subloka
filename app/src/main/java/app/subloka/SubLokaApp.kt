@@ -1,5 +1,9 @@
 package app.subloka
 
+import android.Manifest
+import android.os.Build
+import android.content.pm.PackageManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +33,15 @@ fun SubLokaApp(
     val project by persistence.project.collectAsState()
     val projects by persistence.projects.collectAsState()
     val asr by persistence.asr.collectAsState()
+    val context = LocalContext.current
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
+        // Notification permission is optional for starting a foreground service.
+        persistence.startTranscription()
+        route = "processing"
+    }
+    LaunchedEffect(asr.serviceJobId) {
+        if (asr.serviceJobId != null) route = "processing"
+    }
     val translation by persistence.translation.collectAsState()
     var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
     val videoExportState by videoExporter.state.collectAsState()
@@ -85,7 +98,11 @@ fun SubLokaApp(
             useTurbo = asr.useTurbo, onModelSelected = persistence::selectCaptionModel,
             onImport = { importVad = false; modelPicker.launch(arrayOf("*/*")) },
             onImportVad = { importVad = true; modelPicker.launch(arrayOf("*/*")) }, onDownload = { persistence.prepareModel() },
-            onReady = { persistence.startTranscription(); route = "processing" },
+            onReady = {
+                if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else { persistence.startTranscription(); route = "processing" }
+            },
             onBack = ::back, onCancel = persistence::cancelOperation, modifier = modifier)
         "processing" -> ProcessingScreen(asr.busy, asr.stage, asr.error, asr.completed,
             onCancel = persistence::cancelOperation, onRetry = { route = "model" },

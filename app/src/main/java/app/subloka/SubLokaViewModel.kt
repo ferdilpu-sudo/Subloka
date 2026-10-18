@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.subloka.core.database.SubLokaDatabaseFactory
 import app.subloka.core.domain.*
-import app.subloka.core.media.AndroidMediaSource
 import app.subloka.demo.DemoData
 import app.subloka.engine.translation.TranslateGemmaOfflineTranslator
 import app.subloka.engine.translation.TranslateGemmaModel
@@ -14,17 +13,17 @@ import app.subloka.engine.translation.MlKitOfflineTranslator
 import app.subloka.engine.translation.CaptionTranslationPipeline
 import app.subloka.engine.asr.WhisperModelCatalog
 import app.subloka.engine.asr.WhisperModelStore
-import app.subloka.engine.asr.WhisperTranscriptionPipeline
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
 data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false, val useTurbo: Boolean = true,
-    val stage: String = "", val error: String? = null, val completed: Boolean = false)
+    val stage: String = "", val error: String? = null, val completed: Boolean = false, val serviceJobId: String? = null)
 
 data class TranslationUiState(val useGemma: Boolean = true, val termsAccepted: Boolean = false, val ready: Boolean = false, val stage: String = "",
     val pendingId: String? = null, val pendingCount: Int = 0,
@@ -35,12 +34,10 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     private val projectsRepo = persistence.projectRepository
     private val captionsRepo = persistence.captionRepository
     private val recovery = persistence.translationRecovery
-    private val media = AndroidMediaSource(application)
     private val models = WhisperModelStore(File(application.filesDir, "whisper-models"))
     private val queue = Channel<suspend () -> Unit>(Channel.UNLIMITED)
     private var writeFailed = false
     private var operation: Job? = null
-    private var pipeline: WhisperTranscriptionPipeline? = null
     private val _segments = MutableStateFlow<List<CaptionSegment>>(emptyList())
     val segments = _segments.asStateFlow()
     private val _style = MutableStateFlow(CaptionStyle())
@@ -51,7 +48,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val project = _project.asStateFlow()
     private val _projects = MutableStateFlow<List<CaptionProject>>(emptyList())
     val projects = _projects.asStateFlow()
-    private val _asr = MutableStateFlow(AsrUiState())
+    private val _asr = MutableStateFlow(AsrUiState(busy = AsrSession.state.value?.running == true))
     val asr = _asr.asStateFlow()
     private val translationPrefs = application.getSharedPreferences("translation-model", 0)
     private val termsKey = "gemma-terms-${TranslateGemmaModel.TERMS_VERSION}"
@@ -82,6 +79,18 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
                     catch (_: Exception) { writeFailed = true; _saveState.value = PersistenceSaveState.FAILED }
                 }
             } finally { persistence.close() }
+        }
+        viewModelScope.launch {
+            AsrSession.state.collect { state ->
+                if (state != null) queue.trySend {
+                    if (state.running || _project.value?.id == state.request.project.id || _project.value == null) {
+                        if (_project.value?.id != state.request.project.id || !state.running) load(state.request.project.id)
+                        _asr.value = _asr.value.copy(busy = state.running, useTurbo = state.request.useTurbo,
+                            stage = state.stage, error = state.error, completed = state.completed, serviceJobId = state.request.id)
+                        if (!state.running) { refreshProjects(); refreshCaptionReadiness() }
+                    }
+                }
+            }
         }
         refreshCaptionReadiness()
     }
@@ -195,44 +204,11 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     fun startTranscription() {
         val snapshot = _project.value ?: return
         if (_asr.value.busy || !_asr.value.modelReady || _segments.value.isNotEmpty()) return
-        val selected = _asr.value.useTurbo
+        val request = AsrSession.reserve(snapshot, _asr.value.useTurbo) ?: return
         ++readinessGeneration
-        _asr.value = _asr.value.copy(busy = true, error = null, completed = false, stage = "Memeriksa video…")
-        operation = viewModelScope.launch {
-            try {
-                check(captionModelsReady(selected)) { "Model tidak tersedia. Siapkan kembali model." }
-                val descriptor = media.inspect(snapshot.sourceUri)
-                check(descriptor.fingerprintSha256 == snapshot.sourceFingerprint) { "Video berubah. Buat proyek baru dari video ini." }
-                val worker = WhisperTranscriptionPipeline(media, File(getApplication<Application>().cacheDir, "asr"))
-                pipeline = worker
-                val result = worker.transcribe(descriptor, snapshot.sourceLanguage, models.targetFile(WhisperModelCatalog.captionModel(selected)),
-                    models.targetFile(WhisperModelCatalog.vad)) { stage ->
-                    _asr.value = _asr.value.copy(stage = stage)
-                }
-                val jobContext = currentCoroutineContext()
-                jobContext.ensureActive()
-                _asr.value = _asr.value.copy(stage = "Menyimpan caption…")
-                val completion = CompletableDeferred<Boolean>()
-                queue.send {
-                    try {
-                        withContext(jobContext) {
-                            val published = captionsRepo.publishGenerated(snapshot.id, snapshot.contentRevision, result)
-                            if (published) { load(snapshot.id); refreshProjects(); _saveState.value = PersistenceSaveState.SAVED }
-                            completion.complete(published)
-                        }
-                    } catch (error: Exception) { completion.completeExceptionally(error) }
-                }
-                check(completion.await()) { "Proyek berubah. Hasil tidak mengganti caption yang sudah ada." }
-                _asr.value = _asr.value.copy(busy = false, completed = true,
-                    stage = if (result.isEmpty()) "Tidak ada ucapan yang terdeteksi." else "Caption tersimpan. Periksa teks dan waktunya.")
-            } catch (cancel: CancellationException) {
-                _asr.value = _asr.value.copy(busy = false, stage = "Transkripsi dihentikan. Buka proyek untuk memeriksa hasil yang sudah tersimpan.")
-            } catch (error: Exception) {
-                _asr.value = _asr.value.copy(busy = false, error = error.message ?: "Transkripsi gagal. Coba lagi.")
-            } catch (_: LinkageError) {
-                _asr.value = _asr.value.copy(busy = false, error = "Engine tidak tersedia untuk perangkat ini.")
-            } finally { pipeline = null }
-        }
+        _asr.value = _asr.value.copy(busy = true, error = null, completed = false,
+            serviceJobId = request.id, stage = "Memulai layanan transkripsi…")
+        AsrForegroundService.start(getApplication(), request)
     }
     fun selectTranslationModel(useGemma: Boolean) {
         if (_asr.value.busy || _translation.value.pendingId != null) return
@@ -346,6 +322,15 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun cancelOperation() { pipeline?.cancel(); gemmaTranslator?.cancel(); operation?.cancel() }
-    override fun onCleared() { cleared = true; cancelOperation(); queue.close(); super.onCleared() }
+    fun cancelOperation() {
+        AsrForegroundService.cancel(getApplication())
+        cancelForegroundOnlyOperation()
+    }
+    fun cancelForegroundOnlyOperation() { gemmaTranslator?.cancel(); operation?.cancel() }
+    override fun onCleared() {
+        cleared = true
+        cancelForegroundOnlyOperation()
+        queue.close()
+        super.onCleared()
+    }
 }

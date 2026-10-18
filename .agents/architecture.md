@@ -118,3 +118,7 @@ TranslationRecoveryStore reuses processing_jobs and owns atomic nested Room tran
 
 ### Prototype delivery signing (ADR-037)
 Android CI build/emulator remain independent of production secrets. A manual, prototype-branch-only dependent job downloads that run's tested APK, invokes tools/prototype_signing.py with owner-held secret, verifies its signer fingerprint and publishes only the signed APK plus verification text. Temporary key material exists only inside a temporary directory. Owner setup reuses a validated private bundle and sends it to gh secret set over stdin. Engine/model/Room paths and processing lifecycle are unchanged.
+
+
+### ASR foreground service (ADR-038)
+AsrForegroundService owns the coroutine, LocalAsrTask native pipeline, bounded partial wake lock and ongoing cancel/open notification. AsrSession is process-local observable job identity/state, not a durable checkpoint. SubLokaViewModel observes and reloads Room results, survives Activity recreation via service reattachment, and does not cancel ASR on stop/clear. LocalAsrTask checks model readiness and source fingerprint, transcribes into memory, then atomically publishes via a separate Room connection using project revision CAS. Cancellation before publication leaves old captions unchanged; noncancellable commit records savedMessage so cancellation during dispatcher return cannot mislabel committed output. Translation/model setup/MP4 remain foreground-only. Service START_NOT_STICKY never restarts orphan inference after process death.
