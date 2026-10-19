@@ -43,6 +43,7 @@ fun SubLokaApp(
         if (asr.serviceJobId != null) route = "processing"
     }
     val translation by persistence.translation.collectAsState()
+    val translationSession by TranslationSession.state.collectAsState()
     LaunchedEffect(translation.serviceJobId) {
         if (translation.serviceJobId != null) route = "translation"
     }
@@ -127,7 +128,7 @@ fun SubLokaApp(
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
                 recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
-                backgroundRunning = TranslationSession.state.value?.running == true,
+                backgroundRunning = translationSession?.running == true,
                 onResume = { beginTranslation(true) }, onDiscardRecovery = persistence::discardTranslationRecovery,
                 eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
                 replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },
