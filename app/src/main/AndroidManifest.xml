@@ -18,6 +18,8 @@
             android:foregroundServiceType="dataSync|mediaProcessing" />
         <service android:name=".TranslationForegroundService" android:exported="false"
             android:stopWithTask="false" android:foregroundServiceType="dataSync|mediaProcessing" />
+        <service android:name=".RenderForegroundService" android:exported="false"
+            android:stopWithTask="false" android:foregroundServiceType="dataSync|mediaProcessing" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

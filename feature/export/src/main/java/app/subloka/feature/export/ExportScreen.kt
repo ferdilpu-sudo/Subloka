@@ -57,7 +57,7 @@ fun ExportScreen(
         PrimaryAction("Siapkan SRT", { onPrepare(mode) }, enabled = !locked && !blocked && segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
         HorizontalDivider()
         Text("Video MP4", style = MaterialTheme.typography.titleMedium)
-        Text("SDR · sisi terpanjang maksimal 1280 piksel · style dari editor. Tetap buka aplikasi selama render.")
+        Text("SDR · sisi terpanjang maksimal 1280 piksel · style dari editor. Render tetap berjalan saat berpindah aplikasi atau layar mati. Setelah selesai, buka aplikasi untuk memilih lokasi simpan.")
         SecondaryAction("Render MP4", { onRender(mode) }, enabled = !demoMode && !locked && !blocked && segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
         if (videoRendering) {
             Text(videoProgress?.let { "Render $it%" } ?: "Render sedang berjalan…")

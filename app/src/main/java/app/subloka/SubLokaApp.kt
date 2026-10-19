@@ -63,6 +63,17 @@ fun SubLokaApp(
         else persistence.startTranslation(translationTarget, replace)
     }
     val videoExportState by videoExporter.state.collectAsState()
+    LaunchedEffect(videoExportState.serviceJobId, project?.id) {
+        if (videoExportState.serviceJobId != null && project?.id == RenderSession.state.value?.request?.project?.id) route = "export"
+    }
+    var pendingRender by remember { mutableStateOf<Triple<app.subloka.core.domain.CaptionProject,
+        List<app.subloka.core.domain.CaptionSegment>, app.subloka.core.domain.CaptionStyle>?>(null) }
+    val renderNotificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
+        pendingRender?.let { (p, captions, captionStyle) ->
+            if (!asr.busy) videoExporter.render(p, captions, captionStyle)
+        }
+        pendingRender = null
+    }
     val mp4Picker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("video/mp4")) {
         videoExporter.save(it)
     }
@@ -181,11 +192,15 @@ fun SubLokaApp(
                 videoMessage = videoExportState.message, videoProgress = videoExportState.progress,
                 onRender = { mode ->
                     if (!asr.busy && !exportState.busy && exportState.pending == null) {
-                        videoExporter.render(p, segments, style.copy(displayMode = when (mode) {
+                        val renderStyle = style.copy(displayMode = when (mode) {
                             app.subloka.core.domain.SrtExportMode.SOURCE -> app.subloka.core.domain.CaptionDisplayMode.ORIGINAL
                             app.subloka.core.domain.SrtExportMode.TRANSLATION -> app.subloka.core.domain.CaptionDisplayMode.TRANSLATION
                             app.subloka.core.domain.SrtExportMode.BOTH -> app.subloka.core.domain.CaptionDisplayMode.DUAL
-                        }))
+                        })
+                        if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            pendingRender = Triple(p, segments.toList(), renderStyle)
+                            renderNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else videoExporter.render(p, segments, renderStyle)
                     }
                 },
                 onSaveVideo = { videoExporter.select()?.let { name ->

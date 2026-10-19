@@ -48,7 +48,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val project = _project.asStateFlow()
     private val _projects = MutableStateFlow<List<CaptionProject>>(emptyList())
     val projects = _projects.asStateFlow()
-    private val _asr = MutableStateFlow(AsrUiState(busy = AsrSession.state.value?.running == true || TranslationSession.state.value?.running == true))
+    private val _asr = MutableStateFlow(AsrUiState(busy = AsrSession.state.value?.running == true || TranslationSession.state.value?.running == true || RenderSession.state.value?.running == true))
     val asr = _asr.asStateFlow()
     private val translationPrefs = application.getSharedPreferences("translation-model", 0)
     private val termsKey = "gemma-terms-${TranslateGemmaModel.TERMS_VERSION}"
@@ -82,7 +82,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch {
             AsrSession.state.collect { state ->
-                if (state != null && TranslationSession.state.value?.running != true) queue.trySend {
+                if (state != null && RenderSession.state.value?.running != true && TranslationSession.state.value?.running != true) queue.trySend {
                     if (state.running || _project.value?.id == state.request.project.id || _project.value == null) {
                         if (_project.value?.id != state.request.project.id || !state.running) load(state.request.project.id)
                         _asr.value = _asr.value.copy(busy = state.running, useTurbo = state.request.useTurbo,
@@ -94,7 +94,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch {
             TranslationSession.state.collect { state ->
-                if (state != null && AsrSession.state.value?.running != true) queue.trySend {
+                if (state != null && RenderSession.state.value?.running != true && AsrSession.state.value?.running != true) queue.trySend {
                     if (state.running || _project.value?.id == state.request.project.id || _project.value == null) {
                         if (_project.value?.id != state.request.project.id || !state.running) load(state.request.project.id)
                         _translation.value = _translation.value.copy(useGemma = state.request.useGemma,
@@ -103,6 +103,14 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
                         _asr.value = _asr.value.copy(busy = state.running)
                         if (!state.running) refreshProjects()
                     }
+                }
+            }
+        }
+        viewModelScope.launch {
+            RenderSession.state.collect { state ->
+                if (state != null && AsrSession.state.value?.running != true && TranslationSession.state.value?.running != true) queue.trySend {
+                    if (_project.value?.id != state.request.project.id) load(state.request.project.id)
+                    _asr.value = _asr.value.copy(busy = state.running)
                 }
             }
         }

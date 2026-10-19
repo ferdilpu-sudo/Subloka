@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.4-background-translation"
+        versionName = "0.6.5-background-mp4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
