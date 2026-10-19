@@ -747,3 +747,7 @@ P1: after a ten-minute translation is interrupted, users cannot distinguish comp
 
 ### ASR continuation outside Activity / 2026-10-18
 P1: user backgrounds ASR, inference appears to continue then ends interrupted. Service owns transcribing; processing copy explains background/screen-off capability and process-death limitation. Ask notification permission on API33+ at explicit Start action; denial does not imply permission to skip foreground notification. Ongoing notification contains generic stage (no project/transcript text), Open and Hentikan. UI returns to current processing job after Activity recreation; cancel remains explicit via processing Back/Cancel or notification. Translation/MP4 interaction unchanged. No promise of chunk resume or completion after force-stop.
+
+
+### Background translation0.6.4
+Starting/resuming caption translation may ask notification permission; denial does not block service start. While translating, explain screen-off/app-switch support and explicit resume after process termination. Notification shows generic progress without private text, opens translation workspace and provides Hentikan. Stopping state remains busy until native work/cleanup exits. Model setup still instructs staying in app. Editing and project switching remain locked during translation.

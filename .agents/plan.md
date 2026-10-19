@@ -1218,3 +1218,8 @@ User reports background completion PASS but notification Hentikan has no visible
 
 ## 2026-10-18 native ASR cancellation / IN_PROGRESS
 Previous acknowledgement build5a85a9b/manual run39128241166 build, emulator and stable signing SUCCESS, verified via connector. User reports acknowledgement now visible but2–3 minute wait during transcription. Root source inspection identifies missing forwarding of abort callback into scheduled CPU graphs. Added exact-source guarded CMake patch (ADR-039); host native build/Android CI/device timing must be recorded before claiming resolved. Model/key/schema unchanged; do not uninstall.
+
+
+## 2026-10-19 background translation / IN_PROGRESS
+Prior ASR code281bbf1: manual39138025048 build/media/stable-signing verified SUCCESS. User confirmed immediate stop on18Oct and cancel/restart through saved captions on19Oct; bounded Sony user-reported acceptance, not full CP4/CP5.
+Implement0.6.4-background-translation per ADR-040: independent service/task/session, foreground model setup unchanged, notification permission at explicit start/resume, same atomic Room checkpoint/CAS. Tests cover Activity stop/destruction/recreation, live checkpoint still publishable after recreation, notification cancel, delayed cleanup and commit/cancel race. Guardrails/diff PASS. Android CI and real Gemma background/cancel/resume pending. PRD/schema unchanged; architecture/design updated. Next: CI then stable-key manual build and Sony translation background trial; no uninstall/model download required.

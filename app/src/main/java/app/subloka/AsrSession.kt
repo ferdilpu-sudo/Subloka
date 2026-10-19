@@ -14,7 +14,7 @@ internal object AsrSession {
     private val mutable = MutableStateFlow<AsrSessionState?>(null)
     val state = mutable.asStateFlow()
     @Synchronized fun reserve(project: CaptionProject, useTurbo: Boolean): AsrRequest? {
-        if (mutable.value?.running == true) return null
+        if (mutable.value?.running == true || TranslationSession.state.value?.running == true) return null
         return AsrRequest(UUID.randomUUID().toString(), project, useTurbo).also { mutable.value = AsrSessionState(it) }
     }
     @Synchronized fun stage(id: String, stage: String) {

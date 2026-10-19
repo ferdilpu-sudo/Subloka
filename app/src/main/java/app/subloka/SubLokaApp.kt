@@ -43,7 +43,24 @@ fun SubLokaApp(
         if (asr.serviceJobId != null) route = "processing"
     }
     val translation by persistence.translation.collectAsState()
+    LaunchedEffect(translation.serviceJobId) {
+        if (translation.serviceJobId != null) route = "translation"
+    }
+    var pendingTranslationResume by rememberSaveable { mutableStateOf(false) }
+    var pendingTranslationReplace by rememberSaveable { mutableStateOf(false) }
     var translationTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    val translationNotificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
+        if (pendingTranslationResume) persistence.resumeTranslation()
+        else persistence.startTranslation(translationTarget, pendingTranslationReplace)
+    }
+    fun beginTranslation(resume: Boolean, replace: Boolean = false) {
+        pendingTranslationResume = resume
+        pendingTranslationReplace = replace
+        if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            translationNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else if (resume) persistence.resumeTranslation()
+        else persistence.startTranslation(translationTarget, replace)
+    }
     val videoExportState by videoExporter.state.collectAsState()
     val mp4Picker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("video/mp4")) {
         videoExporter.save(it)
@@ -110,7 +127,8 @@ fun SubLokaApp(
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
                 recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
-                onResume = persistence::resumeTranslation, onDiscardRecovery = persistence::discardTranslationRecovery,
+                backgroundRunning = TranslationSession.state.value?.running == true,
+                onResume = { beginTranslation(true) }, onDiscardRecovery = persistence::discardTranslationRecovery,
                 eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
                 replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },
                 useGemma = translation.useGemma, termsAccepted = translation.termsAccepted,
@@ -119,7 +137,7 @@ fun SubLokaApp(
                 pairLabel = "${p.sourceLanguage.label} → ${p.targetLanguage.label}",
                 onCheck = persistence::checkTranslationModel,
                 onDownload = persistence::prepareTranslationModel,
-                onTranslate = { replace -> persistence.startTranslation(translationTarget, replace) },
+                onTranslate = { replace -> beginTranslation(false, replace) },
                 onCancel = persistence::cancelOperation, onBack = ::back, modifier = modifier)
         }
         "editor" -> project?.let { p ->

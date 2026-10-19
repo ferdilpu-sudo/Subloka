@@ -23,7 +23,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                            onImport: () -> Unit,
                            onCheck: () -> Unit, onDownload: (Boolean) -> Unit,
                            onTranslate: (Boolean) -> Unit, onCancel: () -> Unit, onBack: () -> Unit,
-                           modifier: Modifier = Modifier) {
+                           backgroundRunning: Boolean = false, modifier: Modifier = Modifier) {
     var wifiOnly by rememberSaveable { mutableStateOf(true) }
     var replaceMachine by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -80,7 +80,8 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
         if (stage.isNotBlank()) Text(stage)
         if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
         if (busy) {
-            Text("Tetap buka aplikasi. Jika proses terhenti, buka proyek dan lanjutkan sisa terjemahan. Caption yang sudah tersimpan tidak diulang.")
+            Text(if (backgroundRunning) "Terjemahan tetap berjalan saat berpindah aplikasi atau layar mati. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
+                else "Tetap buka aplikasi selama penyiapan model.")
             SecondaryAction("Hentikan", onCancel)
         } else {
             if (!ready) {

@@ -26,7 +26,7 @@ data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false
     val stage: String = "", val error: String? = null, val completed: Boolean = false, val serviceJobId: String? = null)
 
 data class TranslationUiState(val useGemma: Boolean = true, val termsAccepted: Boolean = false, val ready: Boolean = false, val stage: String = "",
-    val pendingId: String? = null, val pendingCount: Int = 0,
+    val pendingId: String? = null, val pendingCount: Int = 0, val serviceJobId: String? = null,
     val error: String? = null, val applied: Int = 0, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
@@ -48,7 +48,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val project = _project.asStateFlow()
     private val _projects = MutableStateFlow<List<CaptionProject>>(emptyList())
     val projects = _projects.asStateFlow()
-    private val _asr = MutableStateFlow(AsrUiState(busy = AsrSession.state.value?.running == true))
+    private val _asr = MutableStateFlow(AsrUiState(busy = AsrSession.state.value?.running == true || TranslationSession.state.value?.running == true))
     val asr = _asr.asStateFlow()
     private val translationPrefs = application.getSharedPreferences("translation-model", 0)
     private val termsKey = "gemma-terms-${TranslateGemmaModel.TERMS_VERSION}"
@@ -62,7 +62,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 try {
-                    recovery.recoverInterrupted()
+                    if (TranslationSession.state.value?.running != true) recovery.recoverInterrupted()
                     if (projectsRepo.list().isEmpty()) {
                         projectsRepo.upsert(DemoData.persistentProject)
                         captionsRepo.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
@@ -82,12 +82,26 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch {
             AsrSession.state.collect { state ->
-                if (state != null) queue.trySend {
+                if (state != null && TranslationSession.state.value?.running != true) queue.trySend {
                     if (state.running || _project.value?.id == state.request.project.id || _project.value == null) {
                         if (_project.value?.id != state.request.project.id || !state.running) load(state.request.project.id)
                         _asr.value = _asr.value.copy(busy = state.running, useTurbo = state.request.useTurbo,
                             stage = state.stage, error = state.error, completed = state.completed, serviceJobId = state.request.id)
                         if (!state.running) { refreshProjects(); refreshCaptionReadiness() }
+                    }
+                }
+            }
+        }
+        viewModelScope.launch {
+            TranslationSession.state.collect { state ->
+                if (state != null && AsrSession.state.value?.running != true) queue.trySend {
+                    if (state.running || _project.value?.id == state.request.project.id || _project.value == null) {
+                        if (_project.value?.id != state.request.project.id || !state.running) load(state.request.project.id)
+                        _translation.value = _translation.value.copy(useGemma = state.request.useGemma,
+                            stage = state.stage, error = state.error, completed = state.completed,
+                            serviceJobId = state.request.id)
+                        _asr.value = _asr.value.copy(busy = state.running)
+                        if (!state.running) refreshProjects()
                     }
                 }
             }
@@ -258,34 +272,13 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     fun startTranslation(segmentId: String? = null, replaceCurrentMachine: Boolean = false, resume: Boolean = false) {
         val selectedProject = _project.value ?: return
         if (!_translation.value.ready || selectedProject.id == DemoData.PROJECT_ID) return
-        val pendingCount = _translation.value.pendingCount
-        val pendingId = _translation.value.pendingId
-        if (resume != (pendingId != null)) return
-        val engine = translationEngineKey()
-        translationOperation("Menyiapkan caption…") { translator ->
-            check(translator.state() == ModelReadinessState.READY)
-            // Read after editor save barrier. Resume keeps only original IDs at unchanged source revisions.
-            val snapshot = captionsRepo.list(selectedProject.id).filter {
-                resume || ((segmentId == null || it.id == segmentId) && TranslationEligibility.canGenerate(it, replaceCurrentMachine))
-            }
-            val checkpoint = recovery.begin(selectedProject.id, engine, snapshot, if (resume) pendingId else null)
-            val work = snapshot.filter { checkpoint.pending[it.id] == it.sourceRevision }
-            try {
-                val result = CaptionTranslationPipeline(translator).run(work, publish = { source, text ->
-                    recovery.publish(checkpoint.id, source, text)
-                }, onProgress = { progress ->
-                    _translation.value = _translation.value.copy(applied = progress.applied,
-                        stage = "Menerjemahkan ${progress.processed}/${progress.total} • ${progress.applied} tersimpan")
-                }, replaceCurrentMachine = true)
-                recovery.stop(checkpoint.id, interrupted = false)
-                _translation.value = _translation.value.copy(completed = result.failed == 0,
-                    stage = "${result.applied} tersimpan • ${result.conflicted + if (resume) (pendingCount - work.size).coerceAtLeast(0) else 0} dilewati karena berubah • ${result.failed} belum selesai.",
-                    error = if (result.failed > 0) "Sisa caption dapat dilanjutkan. Untuk teks terlalu panjang, pecah caption lalu buat antrean baru." else null)
-            } finally {
-                // If process death skips this block, startup recovers the persisted RUNNING row.
-                withContext(NonCancellable) { recovery.stop(checkpoint.id, interrupted = true) }
-            }
-        }
+        if (_asr.value.busy || resume != (_translation.value.pendingId != null)) return
+        val request = TranslationSession.reserve(selectedProject, _translation.value, translationEngineKey(),
+            segmentId, replaceCurrentMachine, resume) ?: return
+        _asr.value = _asr.value.copy(busy = true)
+        _translation.value = _translation.value.copy(serviceJobId = request.id, completed = false,
+            error = null, stage = "Memulai layanan terjemahan…")
+        TranslationForegroundService.start(getApplication(), request)
     }
 
     private fun translationOperation(stage: String, action: suspend (OfflineTranslator) -> Unit) {
@@ -324,6 +317,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
 
     fun cancelOperation() {
         AsrForegroundService.cancel(getApplication())
+        TranslationForegroundService.cancel(getApplication())
         cancelForegroundOnlyOperation()
     }
     fun cancelForegroundOnlyOperation() { gemmaTranslator?.cancel(); operation?.cancel() }
