@@ -102,11 +102,11 @@ class RenderForegroundService : Service() {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 if (saved != null && (Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)) {
                     getSystemService(NotificationManager::class.java).notify(NOTIFICATION,
-                        NotificationCompat.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_save)
+                        NotificationCompat.Builder(this@RenderForegroundService, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_save)
                             .setContentTitle("SubLoka • MP4 siap disimpan")
                             .setContentText("Buka aplikasi untuk memilih lokasi simpan.")
-                            .setContentIntent(PendingIntent.getActivity(this, 0,
-                                Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                            .setContentIntent(PendingIntent.getActivity(this@RenderForegroundService, 0,
+                                Intent(this@RenderForegroundService, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
                                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
                             .setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build())
                 }

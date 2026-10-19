@@ -13,3 +13,6 @@ Local project guardrails and diff checks PASS. Added controlled-worker instrumen
 
 ## Next steps
 Run Android CI, repair any failures, then build the stable-key artifact with workflow_dispatch. Install in place. Render a short video, switch Home and turn screen off, reopen completion notification, save and play output checking subtitle/audio/duration. Separately cancel while rendering and retry. Do not uninstall or re-download caption models.
+
+## CI compilation repair (2026-10-19)
+Run 39278053473 failed in both build and media-device at :app:compileDebugKotlin. In the completion notification inside scope.launch, bare this resolved to CoroutineScope instead of Android Context. Qualified the three notification/intent context arguments with this@RenderForegroundService. No render behavior, engine, schema or signing changes. Stable APK job was skipped. Guardrail and whitespace validation must pass locally; Android compile/lint and instrumentation remain pending on the repair revision. Physical MP4 background tests remain NOT_RUN.
