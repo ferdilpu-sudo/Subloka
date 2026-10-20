@@ -39,6 +39,7 @@ fun VideoPreview(
     videoWidth: Int = 16,
     videoHeight: Int = 9,
     segments: List<CaptionSegment> = listOfNotNull(segment),
+    onVideoError: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val maxHeight = if (compactHeight) 112.dp else 248.dp
@@ -63,8 +64,14 @@ fun VideoPreview(
     val renderError = remember(painter, videoWidth, videoHeight) {
         runCatching { painter.validate(videoWidth, videoHeight) }.exceptionOrNull()?.message
     }
+    val latestVideoError by rememberUpdatedState(onVideoError)
     DisposableEffect(controller) {
-        onDispose { controller?.close() }
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) { latestVideoError() }
+        }
+        controller?.player?.addListener(listener)
+        if (controller?.player?.playerError != null) latestVideoError()
+        onDispose { controller?.player?.removeListener(listener); controller?.close() }
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {

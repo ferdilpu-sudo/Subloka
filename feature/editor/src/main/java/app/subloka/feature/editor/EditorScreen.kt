@@ -55,12 +55,19 @@ fun EditorScreen(
     durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
     videoWidth: Int = 16,
     videoHeight: Int = 9,
+    sourceUnavailable: Boolean = false,
+    onRelink: () -> Unit = {},
+    onVideoError: () -> Unit = {},
     onGenerate: () -> Unit = {},
     onRequestTranslation: (String?) -> Unit = {},
 ) {
     if (initialSegments.isEmpty()) {
         Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(projectTitle, style = MaterialTheme.typography.headlineSmall)
+            if (!demoMode) {
+                if (sourceUnavailable) Text("Video sumber tidak dapat diakses. Caption tetap tersimpan.")
+                app.subloka.core.designsystem.SecondaryAction("Tautkan ulang video", onRelink)
+            }
             Text("Belum ada caption. Audio hening juga dapat menghasilkan daftar kosong.")
             app.subloka.core.designsystem.PrimaryAction("Buat caption", onGenerate)
             app.subloka.core.designsystem.SecondaryAction("Kembali", onBack)
@@ -173,6 +180,13 @@ fun EditorScreen(
                 title = projectTitle,
                 exportAvailable = !saveFailed,
             )
+            if (!demoMode && sourceUnavailable) {
+                Text("Video tidak dapat dibuka. Tautkan file asli untuk memulihkan pemutaran.",
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            if (!demoMode && sourceUnavailable) {
+                androidx.compose.material3.TextButton(onClick = onRelink) { Text("Tautkan ulang video") }
+            }
             if (hasPreviewSpace) {
                 if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
             }
@@ -189,7 +203,7 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = false)
+                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = false)
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
@@ -215,7 +229,7 @@ fun EditorScreen(
                         Text(if (previewRequested) "Sembunyikan preview" else "Tampilkan preview")
                     }
                 }
-                if (showPreview) VideoPreview(segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
+                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
                     demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,

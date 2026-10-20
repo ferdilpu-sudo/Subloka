@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+data class SourceRelinkState(val busy: Boolean = false, val unavailable: Boolean = false,
+    val message: String? = null, val epoch: Int = 0)
+
 enum class PersistenceSaveState { LOADING, SAVING, SAVED, FAILED }
 data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false, val useTurbo: Boolean = true,
     val stage: String = "", val error: String? = null, val completed: Boolean = false, val serviceJobId: String? = null)
@@ -57,6 +60,75 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     val translation = _translation.asStateFlow()
     private var readinessGeneration = 0L
     private var cleared = false
+    private val _sourceRelink = MutableStateFlow(SourceRelinkState())
+    val sourceRelink = _sourceRelink.asStateFlow()
+    private var sourceCheckGeneration = 0L
+
+    fun checkSource() {
+        val project = _project.value ?: return
+        if (_sourceRelink.value.busy || project.sourceUri.startsWith("demo://")) return
+        val generation = ++sourceCheckGeneration
+        viewModelScope.launch {
+            val readable = withContext(Dispatchers.IO) {
+                try {
+                    getApplication<Application>().contentResolver.openAssetFileDescriptor(Uri.parse(project.sourceUri), "r")
+                        ?.use { true } ?: false
+                } catch (_: Exception) { false }
+            }
+            if (generation == sourceCheckGeneration && _project.value?.id == project.id &&
+                _project.value?.sourceUri == project.sourceUri && !_sourceRelink.value.busy) {
+                _sourceRelink.value = _sourceRelink.value.copy(unavailable = !readable)
+            }
+        }
+    }
+
+    fun sourcePlaybackFailed() {
+        _sourceRelink.value = _sourceRelink.value.copy(unavailable = true)
+    }
+
+    fun relinkPickerFailed() {
+        _sourceRelink.value = _sourceRelink.value.copy(message = "Pemilih video tidak dapat dibuka. Coba lagi.")
+    }
+
+    fun relinkSource(expectedProjectId: String, uri: Uri, onComplete: () -> Unit) {
+        val original = _project.value?.takeIf { it.id == expectedProjectId } ?: return
+        if (_asr.value.busy || _sourceRelink.value.busy) return
+        ++sourceCheckGeneration
+        _sourceRelink.value = _sourceRelink.value.copy(busy = true, message = "Memeriksa video asli…")
+        queue.trySend {
+            try {
+                check(_project.value?.id == original.id && !_asr.value.busy) { "Proyek berubah. Buka kembali proyek yang ingin ditautkan." }
+                check(original.sourceFingerprint?.matches(Regex("[0-9a-fA-F]{64}")) == true) {
+                    "Identitas video lama tidak tersedia. Penautan ulang aman tidak dapat dilakukan."
+                }
+                val candidate = app.subloka.core.media.AndroidMediaSource(getApplication()).inspect(uri.toString())
+                currentCoroutineContext().ensureActive()
+                check(original.sourceFingerprint.equals(candidate.fingerprintSha256, ignoreCase = true) &&
+                    original.durationUs == candidate.durationUs && original.widthPx == candidate.widthPx &&
+                    original.heightPx == candidate.heightPx && original.rotationDegrees == candidate.rotationDegrees &&
+                    (original.sourceSizeBytes == null || candidate.sizeBytes == null || original.sourceSizeBytes == candidate.sizeBytes)) {
+                    "Video berbeda dari sumber asli. Pilih file asli yang sama; caption tidak diubah."
+                }
+                check(app.subloka.core.media.MediaDocumentAccess(getApplication()).persistReadPermission(uri)) {
+                    "Izin video tidak dapat disimpan. Pilih file dari penyimpanan perangkat."
+                }
+                val updated = projectsRepo.relinkSource(original.id, original.sourceUri, original.sourceFingerprint, candidate)
+                check(updated != null) { "Sumber proyek berubah. Coba tautkan ulang kembali." }
+                _project.value = updated
+                refreshProjects()
+                _sourceRelink.value = SourceRelinkState(message = "Video berhasil ditautkan ulang.",
+                    epoch = _sourceRelink.value.epoch + 1)
+                onComplete()
+            } catch (error: CancellationException) { throw error }
+            catch (error: Exception) {
+                _sourceRelink.value = _sourceRelink.value.copy(busy = false,
+                    message = error.message ?: "Video tidak dapat ditautkan. Caption tetap tersimpan.")
+            } finally {
+                _sourceRelink.value = _sourceRelink.value.copy(busy = false)
+            }
+        }
+    }
+
 
     init {
         viewModelScope.launch {
@@ -118,7 +190,10 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     }
     private suspend fun refreshProjects() { _projects.value = projectsRepo.list() }
     private suspend fun load(id: String) {
+        val previous = _project.value
         _project.value = requireNotNull(projectsRepo.find(id))
+        if (previous?.id != id) _sourceRelink.value = SourceRelinkState()
+        checkSource()
         _segments.value = captionsRepo.list(id)
         _style.value = projectsRepo.getStyle(id)
         val checkpoint = recovery.pending(id)

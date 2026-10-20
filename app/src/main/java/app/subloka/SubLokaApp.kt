@@ -32,6 +32,21 @@ fun SubLokaApp(
     val saveState by persistence.saveState.collectAsState()
     val project by persistence.project.collectAsState()
     val projects by persistence.projects.collectAsState()
+    val relink by persistence.sourceRelink.collectAsState()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, project?.id) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) persistence.checkSource()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    var relinkProjectId by rememberSaveable { mutableStateOf<String?>(null) }
+    val relinkPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val id = relinkProjectId
+        relinkProjectId = null
+        if (uri != null && id != null) persistence.relinkSource(id, uri) { route = "editor" }
+    }
     val asr by persistence.asr.collectAsState()
     val context = LocalContext.current
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
@@ -97,10 +112,11 @@ fun SubLokaApp(
         if (project == null && route !in listOf("projects", "new")) route = "projects"
     }
     fun back() {
+        if (route == "relink" && relink.busy) return
         if (route == "export" && videoExportState.rendering) { videoExporter.cancelRender(); return }
         if (route == "export" && (exportState.busy || exportState.pending != null || videoExportState.busy || videoExportState.pending)) return
         if (asr.busy) persistence.cancelOperation()
-        else persistence.flush { success -> if (success) route = if (route in listOf("translation", "export")) "editor" else "projects" }
+        else persistence.flush { success -> if (success) route = if (route in listOf("translation", "export", "relink")) "editor" else "projects" }
     }
     BackHandler(route != "projects") { back() }
     when (route) {
@@ -153,8 +169,13 @@ fun SubLokaApp(
                 onCancel = persistence::cancelOperation, onBack = ::back, modifier = modifier)
         }
         "editor" -> project?.let { p ->
-            key(p.id) {
+            key(p.id, p.sourceUri, relink.epoch) {
                 EditorScreen(initialSegments = segments, initialStyle = style,
+                    sourceUnavailable = relink.unavailable,
+                    onVideoError = persistence::sourcePlaybackFailed,
+                    onRelink = {
+                        persistence.flush { success -> if (success && !asr.busy) route = "relink" }
+                    },
                     mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
                     projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
                     videoWidth = if (p.rotationDegrees in setOf(90, 270)) p.heightPx else p.widthPx,
@@ -178,6 +199,14 @@ fun SubLokaApp(
                         }
                     }, modifier = modifier)
             }
+        }
+        "relink" -> project?.let { p ->
+            RelinkVideoScreen(p.sourceDisplayName, relink.busy, relink.message,
+                onPick = {
+                    relinkProjectId = p.id
+                    try { relinkPicker.launch(arrayOf("video/*")) }
+                    catch (_: Exception) { relinkProjectId = null; persistence.relinkPickerFailed() }
+                }, onBack = ::back, modifier = modifier)
         }
         "export" -> project?.let { p ->
             ExportScreen(segments, p.sourceLanguage,

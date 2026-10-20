@@ -311,6 +311,62 @@ class RoomCaptionRepositoryTest {
         assertEquals(1L, mutation.contentRevision)
     }
 
+    @Test
+    fun relinkPreservesManualCaptionsStyleAndCheckpointAcrossReopen() = runBlocking {
+        seedProjectAndSegments()
+        val original = requireNotNull(projectRepository.find(PROJECT_ID)).copy(sourceFingerprint = "a".repeat(64))
+        projectRepository.upsert(original)
+        captionRepository.saveSourceText(PROJECT_ID, "segment-1", "Manual source")
+        captionRepository.saveManualTranslation(PROJECT_ID, "segment-1", "Terjemahan manual")
+        val style = CaptionStyle()
+        projectRepository.saveStyle(PROJECT_ID, style)
+        val before = requireNotNull(projectRepository.find(PROJECT_ID))
+        val captions = captionRepository.list(PROJECT_ID)
+        val recovery = TranslationRecoveryStore(database)
+        val checkpoint = recovery.begin(PROJECT_ID, "gemma:test", captions)
+        recovery.stop(checkpoint.id, true)
+        val pending = recovery.pending(PROJECT_ID)
+        val candidate = relinkCandidate(before)
+
+        val result = projectRepository.relinkSource(PROJECT_ID, before.sourceUri, before.sourceFingerprint, candidate)
+        assertNotNull(result)
+        assertEquals(before.contentRevision, result!!.contentRevision)
+        assertEquals(before.title, result.title)
+        database.close()
+        openDatabase()
+        assertEquals(candidate.uri, projectRepository.find(PROJECT_ID)!!.sourceUri)
+        assertEquals(captions, captionRepository.list(PROJECT_ID))
+        assertEquals(style, projectRepository.getStyle(PROJECT_ID))
+        assertEquals(pending, TranslationRecoveryStore(database).pending(PROJECT_ID))
+    }
+
+    @Test
+    fun relinkRejectsChangedFileMetadataMissingFingerprintAndStaleSource() = runBlocking {
+        seedProjectAndSegments()
+        val original = requireNotNull(projectRepository.find(PROJECT_ID)).copy(sourceFingerprint = "a".repeat(64))
+        projectRepository.upsert(original)
+        val captions = captionRepository.list(PROJECT_ID)
+        val candidate = relinkCandidate(original)
+        for (bad in listOf(candidate.copy(fingerprintSha256 = "b".repeat(64)),
+            candidate.copy(durationUs = candidate.durationUs + 1),
+            candidate.copy(widthPx = candidate.widthPx + 1),
+            candidate.copy(rotationDegrees = 90), candidate.copy(sizeBytes = 999))) {
+            assertEquals(null, projectRepository.relinkSource(PROJECT_ID, original.sourceUri, original.sourceFingerprint, bad))
+            assertEquals(original, projectRepository.find(PROJECT_ID))
+        }
+        assertEquals(null, projectRepository.relinkSource(PROJECT_ID, "content://stale", original.sourceFingerprint, candidate))
+        projectRepository.upsert(original.copy(sourceFingerprint = null))
+        assertEquals(null, projectRepository.relinkSource(PROJECT_ID, original.sourceUri, null, candidate))
+        assertEquals(captions, captionRepository.list(PROJECT_ID))
+    }
+
+    private fun relinkCandidate(project: CaptionProject) = app.subloka.core.domain.MediaDescriptor(
+        uri = "content://replacement/original.mp4", displayName = "original-copy.mp4",
+        sizeBytes = project.sourceSizeBytes, fingerprintSha256 = requireNotNull(project.sourceFingerprint),
+        durationUs = project.durationUs, widthPx = project.widthPx, heightPx = project.heightPx,
+        rotationDegrees = project.rotationDegrees,
+        audioTracks = listOf(app.subloka.core.domain.AudioTrackDescriptor(1, "audio/mp4a-latm", 48000, 2, null)))
+
     private fun openDatabase() {
         database = Room.databaseBuilder(context, SubLokaDatabase::class.java, databaseName)
             .allowMainThreadQueries()

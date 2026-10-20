@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.5-background-mp4"
+        versionName = "0.6.6-source-relink"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
