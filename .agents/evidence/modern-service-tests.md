@@ -33,3 +33,11 @@ Manual run 39415253072 independently verified successful for all four jobs, incl
 User reports PASS after update: an existing project's video, corrections and prepared models remain available. This is bounded update/data-retention acceptance, not physical Android15 compatibility or a new full inference benchmark.
 No repeat main-flow smoke is required. User subsequently reports PASS for maximum system font, caption editing with keyboard open, reachable/non-overlapping Caption/Timing/Style and export controls, and correction retention after reopening. This is the selected physical smoke scenario; exact font scale was not measured and it is not a full accessibility audit. TalkBack, physical modern-device coverage and quantitative quality/resource gates remain open.
 No public release or merge approved by this closure.
+
+## Adaptive follow-up: short landscape
+User rotation smoke retained corrections and returned to portrait successfully, but video remained absent in landscape even after keyboard dismissal. Rotation acceptance is PARTIAL/FAIL for the landscape preview, not a full PASS. TalkBack is NOT_RUN because the user could not locate the service.
+Source cause: compact preview required height >=600dp while two-pane mode required width >=840dp AND height >=480dp. Typical landscape phones satisfied neither.
+Version0.6.8-landscape-editor selects two panes for wide landscape bounds >=600dp, uses a compact video in short windows, and places translation actions in the scrollable preview column instead of consuming the full-width editor height.
+Existing EditorLayoutTest now checks a synthetic 640x320dp viewport for visible preview beside caption, reachable Timing/Style tools and export. It uses no private video and does not prove actual video decoding or keyboard-vendor behavior. Existing large-font portrait regression remains.
+Keyboard fullscreen was also reported; Compose's TextInputServiceAndroid requests IME_FLAG_NO_FULLSCREEN already. No vendor-specific keyboard override is introduced. Physical landscape/keyboard retest remains required.
+Status: implemented; local checks and Android CI validation pending. No schema/model/signing change.

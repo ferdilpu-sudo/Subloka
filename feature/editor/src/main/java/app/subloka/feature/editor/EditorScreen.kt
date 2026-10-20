@@ -164,7 +164,9 @@ fun EditorScreen(
 
     var previewRequested by remember { mutableStateOf(true) }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val expanded = maxWidth >= 840.dp && maxHeight >= 480.dp
+        // Short landscape phones still need video context; height must not force
+        // them into the portrait path that intentionally hides the preview.
+        val expanded = maxWidth >= 600.dp && (maxWidth > maxHeight || maxWidth >= 840.dp)
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
         val hasPreviewSpace = !keyboardLikelyVisible && maxHeight >= 600.dp
@@ -191,7 +193,7 @@ fun EditorScreen(
                 if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
             }
 
-            if (!demoMode && !keyboardLikelyVisible) {
+            if (!demoMode && !keyboardLikelyVisible && !expanded) {
                 val count = segments.count(TranslationEligibility::canGenerate)
                 app.subloka.core.designsystem.SecondaryAction(if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
                     { onRequestTranslation(null) }, enabled = segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
@@ -203,7 +205,14 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = false)
+                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = maxHeight < 480.dp)
+                        if (!demoMode && !keyboardLikelyVisible) {
+                            val count = segments.count(TranslationEligibility::canGenerate)
+                            app.subloka.core.designsystem.SecondaryAction(
+                                if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
+                                { onRequestTranslation(null) }, enabled = segments.isNotEmpty(),
+                                modifier = Modifier.fillMaxWidth())
+                        }
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(

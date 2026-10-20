@@ -19,6 +19,36 @@ import org.junit.Assert.assertTrue
 class EditorLayoutTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun shortLandscapeShowsPreviewAlongsideReachableCaptionAndTools() {
+        var exported = false
+        val caption = CaptionSegment("landscape", 0, 2_000_000, SourceLanguage.INDONESIA,
+            "Caption landscape", "", TranslationStatus.MISSING)
+        compose.setContent {
+            val density = LocalDensity.current
+            // Fit a landscape-sized layout inside the portrait test host without clipping.
+            CompositionLocalProvider(LocalDensity provides Density(density.density * 0.5f, 1f)) {
+                MaterialTheme {
+                    Box(Modifier.size(640.dp, 320.dp)) {
+                        EditorScreen(listOf(caption), CaptionStyle(), null, "Tersimpan", false,
+                            {}, {}, {}, { exported = true }, demoMode = false)
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").assertIsDisplayed()
+        compose.onNodeWithText("Teks asli").assertIsDisplayed()
+        val preview = compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").fetchSemanticsNode().boundsInRoot
+        val field = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
+        assertTrue("Landscape video and caption must be side by side", preview.right <= field.left)
+        compose.onNodeWithText("Timing").performScrollTo().performClick()
+        compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Style").performClick()
+        compose.onNodeWithText("Preview dan MP4", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Ekspor").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertTrue(exported) }
+    }
+
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {
         var exported = false
         val caption = CaptionSegment("one", 0, 2_000_000, SourceLanguage.INDONESIA,
