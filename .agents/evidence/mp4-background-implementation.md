@@ -71,3 +71,11 @@ Read VideoExportViewModel.kt, RenderTask.kt, RenderForegroundServiceTest.kt, Srt
 3. Continue remaining release evidence: modern API/device behavior, accessibility/adaptive cases, current-model quantitative quality/resource and provider/storage matrix.
 
 Audit outcome: documentation and gap review complete. No application code changed and no new automated test execution is claimed. Main-flow user PASS results remain accepted; full CP4/CP5/CP6/CP7 remain open. No additional manual test is requested in this handoff.
+
+
+## MP4 destination failure coverage / 2026-10-20
+Status: IMPLEMENTED; Android compile and emulator execution pending.
+Added Mp4Destination/AndroidMp4Destination as a per-ViewModel test seam for the existing ContentResolver openOutputStream(uri, "wt") and DocumentsContract.deleteDocument calls. Existing save lifecycle, cancellation, staging retention and UI messages remain unchanged.
+VideoExportSaveTest exercises the real ViewModel with synthetic 150000-byte source data: null/open failure; failure on second write after partial output; flush/close failure; delete returning false or throwing; byte-exact retry using retained staging; blocked close preventing premature success; ViewModelStore.clear during blocked copy followed by NonCancellable cleanup. No actual codec, physical full-disk or external document-provider claim.
+Configured the new class in the existing CI emulator class list. Local tools/validate_project.py and git diff --check PASS. No local Android SDK/Gradle distribution available; do not mark new tests PASS until CI confirms.
+No new user device test requested. Application version name/model/database/signing unchanged. Next: inspect automatic PR CI, repair failures if any; stable manual APK is only needed if a subsequent behavior fix requires device verification.

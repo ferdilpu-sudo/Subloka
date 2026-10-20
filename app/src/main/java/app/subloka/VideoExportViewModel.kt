@@ -2,13 +2,10 @@ package app.subloka
 
 import android.app.Application
 import android.net.Uri
-import android.provider.DocumentsContract
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.subloka.core.domain.*
-import app.subloka.core.media.CaptionVideoExporter
 import java.io.File
-import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +19,7 @@ class VideoExportViewModel(application: Application) : AndroidViewModel(applicat
     private val directory = File(application.filesDir, "mp4-staging")
     private var output: File? = null
     private var name = "subtitle.mp4"
+    internal var destination: Mp4Destination = AndroidMp4Destination(application.contentResolver)
     private var operation: Job? = null
     init {
         operation = viewModelScope.launch {
@@ -78,8 +76,7 @@ class VideoExportViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 check(file != null && file.isFile) { "Hasil render terputus. Render ulang proyek." }
                 withContext(Dispatchers.IO) {
-                    val resolver = getApplication<Application>().contentResolver
-                    requireNotNull(resolver.openOutputStream(uri, "wt")).use { target ->
+                    requireNotNull(destination.open(uri)).use { target ->
                         file.inputStream().use { input ->
                             val buffer = ByteArray(64 * 1024)
                             while (true) {
@@ -95,7 +92,7 @@ class VideoExportViewModel(application: Application) : AndroidViewModel(applicat
                 _state.value = _state.value.copy(busy = false, message = "MP4 tersimpan. Buka video hasil untuk memeriksa subtitle dan audio.")
             } catch (error: Exception) {
                 val removed = withContext(NonCancellable + Dispatchers.IO) {
-                    try { DocumentsContract.deleteDocument(getApplication<Application>().contentResolver, uri) }
+                    try { destination.delete(uri) }
                     catch (_: Exception) { false }
                 }
                 _state.value = _state.value.copy(busy = false, message = "Simpan gagal. Coba lokasi lain." +
