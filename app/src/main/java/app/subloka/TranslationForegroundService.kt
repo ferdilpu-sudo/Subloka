@@ -52,9 +52,14 @@ class TranslationForegroundService : Service() {
         val request = TranslationSession.state.value?.takeIf { it.running && it.request.id == id }?.request
         // A stale start still needs foreground promotion to satisfy startForegroundService's deadline.
         try {
-            ServiceCompat.startForeground(this, NOTIFICATION, notification(id ?: "", "Memulai terjemahan…"),
-                if (Build.VERSION.SDK_INT >= 35) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING
-                else if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC else 0)
+            val ongoing = notification(id ?: "", "Memulai terjemahan…")
+            if (Build.VERSION.SDK_INT >= 35) {
+                // Core 1.19.1 ServiceCompat masks out MEDIA_PROCESSING; use the platform API.
+                startForeground(NOTIFICATION, ongoing, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROCESSING)
+            } else {
+                ServiceCompat.startForeground(this, NOTIFICATION, ongoing,
+                    if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC else 0)
+            }
         } catch (_: Exception) {
             if (id != null) TranslationSession.finish(id, "", false, "Layanan terjemahan tidak dapat dimulai. Buka aplikasi dan coba lagi.")
             stopSelf(startId)

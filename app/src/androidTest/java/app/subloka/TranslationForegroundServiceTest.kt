@@ -58,7 +58,14 @@ class TranslationForegroundServiceTest {
             request = requireNotNull(TranslationSession.reserve(project, TranslationUiState(), "fixture", null, false, false))
             TranslationForegroundService.start(it, request)
         }
-        withTimeout(15_000) { worker.entered.await() }
+        withTimeout(15_000) {
+            while (!worker.entered.isCompleted) {
+                val state = TranslationSession.state.value
+                check(state?.running == true) { "Service stopped before worker entry: $state" }
+                delay(25)
+            }
+            worker.entered.await()
+        }
         return request
     }
 

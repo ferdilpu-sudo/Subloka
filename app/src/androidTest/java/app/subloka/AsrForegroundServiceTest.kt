@@ -56,7 +56,14 @@ class AsrForegroundServiceTest {
             request = requireNotNull(AsrSession.reserve(project, true))
             AsrForegroundService.start(it, request)
         }
-        withTimeout(15_000) { worker.entered.await() }
+        withTimeout(15_000) {
+            while (!worker.entered.isCompleted) {
+                val state = AsrSession.state.value
+                check(state?.running == true) { "Service stopped before worker entry: $state" }
+                delay(25)
+            }
+            worker.entered.await()
+        }
         return request
     }
 

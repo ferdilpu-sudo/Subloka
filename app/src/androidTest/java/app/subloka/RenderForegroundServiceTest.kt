@@ -57,7 +57,14 @@ class RenderForegroundServiceTest {
             request = requireNotNull(RenderSession.reserve(project, emptyList(), app.subloka.core.domain.CaptionStyle()))
             RenderForegroundService.start(it, request)
         }
-        withTimeout(15_000) { worker.entered.await() }
+        withTimeout(15_000) {
+            while (!worker.entered.isCompleted) {
+                val state = RenderSession.state.value
+                check(state?.running == true) { "Service stopped before worker entry: $state" }
+                delay(25)
+            }
+            worker.entered.await()
+        }
         return request
     }
 

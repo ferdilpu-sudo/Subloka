@@ -1,6 +1,6 @@
 # Modern Android service/notification coverage
 
-Status: IMPLEMENTED; Android CI execution pending. Test-only increment, application version remains 0.6.6-source-relink.
+Status: FIX IMPLEMENTED; Android CI revalidation pending. Application version 0.6.7-modern-services.
 
 ## Scope
 Keep the existing API30 media/app gate. Add a separate API35 (Android15) modern-services gate for service-owned ASR, translation and MP4 lifecycle tests. Stable prototype signing depends on build, media-device and modern-services.
@@ -19,4 +19,10 @@ Local parser regression tests cover accepted output, missing/empty/truncated com
 - https://developer.android.com/develop/ui/compose/notifications/notification-permission
 - https://developer.android.com/studio/test/command-line
 
-No app behavior/model/schema/signing-identity change; no physical support claim or release approval.
+## API35 startup correction
+The first API35 execution failed: all 13 granted-phase cases timed out before worker entry; denied phase did not execute. Build/lint and API30 passed.
+Inspection of the exact Core 1.19.1 source artifact confirms ServiceCompat.Api34Impl masks foregroundServiceType against an allowlist that omits MEDIA_PROCESSING. Passing only that flag becomes NONE, forbidden for the target SDK.
+All three services now call platform startForeground directly on API35+, retaining the existing compatibility path below API35. No timeout extension or gate removal.
+Tests now surface terminal session state before worker entry instead of hiding early startup failures behind a timeout. The runner uses am instrument -r so the verifier receives raw completion codes, requires exactly 13 granted and 3 denied tests, and retains emulator logcat on failure.
+Source checked: https://dl.google.com/dl/android/maven2/androidx/core/core/1.19.1/core-1.19.1-sources.jar (androidx/core/app/ServiceCompat.java).
+No model/schema/signing-identity change; no physical support claim or release approval.
