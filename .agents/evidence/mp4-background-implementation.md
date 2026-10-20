@@ -9,7 +9,7 @@ RenderForegroundService owns the Media3 coroutine, bounded partial wake lock, pr
 VideoExportViewModel observes the session and does not clean live/ready staging on recreation. Fresh process without a session cleans orphan staging; there is no process-death resume guarantee. Final copying to a selected document remains UI-owned and retains existing cancellation/partial-document cleanup. MP4 encoding settings and source/translation/manual-edit rules are unchanged.
 
 ## Verification
-Local project guardrails and diff checks PASS. Added controlled-worker instrumentation for Activity stop/destruction/reopen, notification cancellation, delayed cancellation acknowledgement, commit/cancel ordering and ready-output survival across recreation. Synthetic output in ownership test is explicitly not codec evidence. Existing real media exporter tests remain configured in CI. New revision Android compile/lint/emulator results and real-device screen-off render/cancel/save must be recorded before declaring completion.
+Local project guardrails and diff checks PASS. Added controlled-worker instrumentation for Activity stop/destruction/reopen, notification cancellation, delayed cancellation acknowledgement, commit/cancel ordering and ready-output survival across recreation. Synthetic output in ownership test is explicitly not codec evidence. Existing real media exporter tests remain configured in CI. Compile/lint/emulator and user-reported background/cancel acceptance are recorded below; remaining release coverage is separate.
 
 ## Next steps
 Use the acceptance and release-gap review below. Do not repeat the accepted basic background/cancel or full-flow smoke without a concrete regression. Keep the existing stable-key installation and prepared models.
@@ -35,7 +35,7 @@ This is a review of existing PRD/testing requirements, not new product scope or 
 
 | Priority / requirement | Remaining evidence or behavior | Next bounded action |
 |---|---|---|
-| First / FR12, FR05 | Explicit airplane-mode E2E with prepared models, including both EN-to-ID and ID-to-EN. General E2E PASS does not establish network state or both directions. | Start with one short English-source clip in airplane mode, translate to Indonesian, export and reopen; then cover the other direction if not explicitly documented. |
+| Accepted smoke / FR12, FR05 | Explicit airplane-mode E2E in both directions now user-reported PASS; see OFFLINE-E2E-002/003 below. | Do not repeat without regression. Traffic audit and quantitative quality remain separate. |
 | High / FR11, NFR01 | Saved edits and translation checkpoint after OS process death; safe interrupted ASR/render and retry. Home/screen-off is not process death. | Use a disposable test project; preserve saved edits, interrupt the process, reopen and inspect results before retry. ASR/render currently restart from the beginning; no chunk resume claim. |
 | High / FR01, FR09, FR11 | Low-storage and document-provider write failures, partial-output cleanup, failed model setup/retry. | Controlled test fixture or emulator fault injection before physical destructive storage scenarios. Do not fill the user's phone or remove prepared models. |
 | High / FR03 | Lost source URI recovery usability. Earlier permission workaround is not acceptance of a discoverable relink flow. | Inspect current UI and repository relink wiring, then test with a disposable source. |
@@ -43,4 +43,31 @@ This is a review of existing PRD/testing requirements, not new product scope or 
 | Required / NFR05, CP6 | Keyboard/font scale/TalkBack/adaptive layout and additional supported device/API coverage. | Targeted remaining cases; existing main-flow PASS remains valid within its scope. |
 | Delivery / T16, CP7 | Candidate checksums, licenses/model terms, installation/known limits, supported format/device scope and final approval. | Prepare after technical gates; no merge, tag or public release now. |
 
-CP4 remains BLOCKED; full T13/CP5, T15/CP6 and T16/CP7 are not closed by these smoke results. Bounded background MP4 acceptance is complete. Next user-facing test is explicit offline English-to-Indonesian E2E; no APK rebuild is required for this documentation-only update.
+CP4 remains BLOCKED; full T13/CP5, T15/CP6 and T16/CP7 are not closed by these smoke results. Bounded background MP4 acceptance is complete. Latest follow-up below supersedes the earlier next-test proposal; no APK rebuild is required for documentation-only updates.
+
+
+## Follow-up acceptance and source/test audit — 2026-10-20
+Application baseline remains 1a8ef2f38be7ca601c0b0c895d1c10cf6539bb5b; no newer APK was requested between these reports. Installed revision was not independently read from the device.
+
+| Evidence | Reported result | Scope and limits |
+|---|---|---|
+| OFFLINE-E2E-002 | PASS for the selected airplane-mode, Wi-Fi-off English-source transcription, Indonesian translation, SRT/MP4 export, close/reopen and saved-correction check. | User-reported functional offline smoke; not a packet capture or quantitative quality benchmark. |
+| OFFLINE-E2E-003 | PASS for Indonesian-to-English following the instruction to repeat the same offline flow. | User-reported second-direction smoke in the conversation context; no separate output artifacts or resource metrics supplied. |
+| RECOVERY-DEVICE-002 | PASS for the selected force-stop recovery test using a disposable project. | Exact interruption stage and stop method were not provided. This supports bounded user acceptance, not every OS kill, active copy, ASR, render or durable checkpoint scenario. |
+| MP4-SAVE-DEVICE-002 | PASS for render complete, open save picker, Back/cancel, then save again. | User-reported cancel/retry flow; it does not exercise a provider write/close/delete failure or full disk. |
+
+### Source and configured-test audit
+Read VideoExportViewModel.kt, RenderTask.kt, RenderForegroundServiceTest.kt, SrtDocumentWriterTest.kt, TranslationRecoveryUiTest.kt, translation recovery startup and the explicit Android CI instrumentation class list.
+
+- MP4 picker cancellation preserves the rendered source and clears pending; a later save copies from staging. RenderForegroundServiceTest also covers ready output across Activity recreation and save(null). The new physical report covers the requested picker cancel/retry flow.
+- MP4 copying catches errors, attempts destination deletion under NonCancellable IO and warns when cleanup cannot be confirmed. This is source inspection only. No dedicated MP4 destination failure tests were found in the configured app suite. SRT tests cover null stream, write and close failure but do not prove the MP4 ViewModel path.
+- RenderTask checks a 64 MiB initial free-space floor and deletes unpublished staging in finally. This is not a full output-size reservation or evidence that disk exhaustion during encoding/copy is handled on all providers.
+- Translation startup calls recoverInterrupted only when no live TranslationSession is running. Existing UI test checks resume and explicit discard controls; it does not itself terminate an Android process.
+- MediaRelinkVerifier and AndroidMediaSource.verifyRelink exist in core/media. No relink reference/action was found in app/src/main/java. Existing domain/media verification must not be described as a complete discoverable application relink flow.
+
+### Prioritized next implementation
+1. Add controlled MP4 destination failure coverage (null/open/write/flush/close failures; delete success/failure; cancellation during copy; retained staging and successful retry). Use synthetic files and a test provider or injected destination adapter; never fill the user's device.
+2. Wire a source-missing/relink action after inspecting the existing repository contract. Validate the chosen replacement before updating the source; keep caption edits and refuse incompatible media. This remains a separate scoped code increment.
+3. Continue remaining release evidence: modern API/device behavior, accessibility/adaptive cases, current-model quantitative quality/resource and provider/storage matrix.
+
+Audit outcome: documentation and gap review complete. No application code changed and no new automated test execution is claimed. Main-flow user PASS results remain accepted; full CP4/CP5/CP6/CP7 remain open. No additional manual test is requested in this handoff.
