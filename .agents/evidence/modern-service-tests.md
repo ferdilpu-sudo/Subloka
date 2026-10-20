@@ -41,3 +41,5 @@ Version0.6.8-landscape-editor selects two panes for wide landscape bounds >=600d
 Existing EditorLayoutTest now checks a synthetic 640x320dp viewport for visible preview beside caption, reachable Timing/Style tools and export. It uses no private video and does not prove actual video decoding or keyboard-vendor behavior. Existing large-font portrait regression remains.
 Keyboard fullscreen was also reported; Compose's TextInputServiceAndroid requests IME_FLAG_NO_FULLSCREEN already. No vendor-specific keyboard override is introduced. Physical landscape/keyboard retest remains required.
 Status: implemented; local checks and Android CI validation pending. No schema/model/signing change.
+
+Landscape compile follow-up: initial CI failed before instrumentation because maxHeight was read through an implicit BoxWithConstraints receiver inside a nested layout scope. Capture compactLandscapePreview in the outer constraints scope and pass the Boolean to VideoPreview. Runtime layout acceptance remains pending; no successful APK from the failed run.
