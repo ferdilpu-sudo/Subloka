@@ -79,3 +79,12 @@ Added Mp4Destination/AndroidMp4Destination as a per-ViewModel test seam for the 
 VideoExportSaveTest exercises the real ViewModel with synthetic 150000-byte source data: null/open failure; failure on second write after partial output; flush/close failure; delete returning false or throwing; byte-exact retry using retained staging; blocked close preventing premature success; ViewModelStore.clear during blocked copy followed by NonCancellable cleanup. No actual codec, physical full-disk or external document-provider claim.
 Configured the new class in the existing CI emulator class list. Local tools/validate_project.py and git diff --check PASS. No local Android SDK/Gradle distribution available; do not mark new tests PASS until CI confirms.
 No new user device test requested. Application version name/model/database/signing unchanged. Next: inspect automatic PR CI, repair failures if any; stable manual APK is only needed if a subsequent behavior fix requires device verification.
+
+
+## MP4-SAVE-CI-001 — verification and closure / 2026-10-20
+Tested revision: 667a7452a138ac75283210afdb9ca1494d7a1ede.
+Run39355767643 verified through GitHub jobs API: build118410061915 SUCCESS (including compilation, unit suites, schema fixture and lint); media-device118410062222 SUCCESS. Emulator log explicitly invokes VideoExportSaveTest alongside existing app suites and reports BUILD SUCCESSFUL. Stable-prototype-apk was correctly skipped for this PR-triggered run; no owner-signed installation artifact is claimed.
+Result: PASS for configured Android11 emulator failure-injection suite. Bounded MP4 destination failure coverage increment DONE. The earlier IMPLEMENTED/pending status is superseded by this result.
+This covers synthetic stream open/write/flush/close/delete errors, retained staging/byte-exact retry, delayed close and ViewModel destruction cancellation. It does not prove every external document provider, real full-disk behavior or arbitrary OS process termination.
+Documentation/guardrail checks PASS. Application behavior, models, schema and signing identity remain unchanged. No new physical test or APK update is required for the test seam. No merge/release performed.
+Next ready scoped increment: missing-source UI and verified relink, preserving saved captions and refusing incompatible replacements. Full CP4/CP5/CP6/CP7 remain open.
