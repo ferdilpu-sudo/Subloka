@@ -38,7 +38,7 @@ This is a review of existing PRD/testing requirements, not new product scope or 
 | Accepted smoke / FR12, FR05 | Explicit airplane-mode E2E in both directions now user-reported PASS; see OFFLINE-E2E-002/003 below. | Do not repeat without regression. Traffic audit and quantitative quality remain separate. |
 | High / FR11, NFR01 | Saved edits and translation checkpoint after OS process death; safe interrupted ASR/render and retry. Home/screen-off is not process death. | Use a disposable test project; preserve saved edits, interrupt the process, reopen and inspect results before retry. ASR/render currently restart from the beginning; no chunk resume claim. |
 | High / FR01, FR09, FR11 | Low-storage and document-provider write failures, partial-output cleanup, failed model setup/retry. | Controlled test fixture or emulator fault injection before physical destructive storage scenarios. Do not fill the user's phone or remove prepared models. |
-| High / FR03 | Lost source URI recovery usability. Earlier permission workaround is not acceptance of a discoverable relink flow. | Inspect current UI and repository relink wiring, then test with a disposable source. |
+| Accepted / FR03 | Verified same-file relink UI implemented, CI PASS and physical flow user-reported PASS. | See source-relink-implementation.md, RELINK-CI-001 and RELINK-DEVICE-001. No repeat required without regression. |
 | Required / NFR03, CP4 | Current Turbo/Gemma quantitative quality/timing and resource gates remain unclosed. Historical Base/older-translation failures are not measurements of the current models. | Define model-specific evidence gaps; retain completed external-30 evidence, do not rerun it automatically or lower thresholds. |
 | Required / NFR05, CP6 | Keyboard/font scale/TalkBack/adaptive layout and additional supported device/API coverage. | Targeted remaining cases; existing main-flow PASS remains valid within its scope. |
 | Delivery / T16, CP7 | Candidate checksums, licenses/model terms, installation/known limits, supported format/device scope and final approval. | Prepare after technical gates; no merge, tag or public release now. |
@@ -88,3 +88,7 @@ Result: PASS for configured Android11 emulator failure-injection suite. Bounded 
 This covers synthetic stream open/write/flush/close/delete errors, retained staging/byte-exact retry, delayed close and ViewModel destruction cancellation. It does not prove every external document provider, real full-disk behavior or arbitrary OS process termination.
 Documentation/guardrail checks PASS. Application behavior, models, schema and signing identity remain unchanged. No new physical test or APK update is required for the test seam. No merge/release performed.
 Next ready scoped increment: missing-source UI and verified relink, preserving saved captions and refusing incompatible replacements. Full CP4/CP5/CP6/CP7 remain open.
+
+
+## Source recovery closure / 2026-10-20
+The earlier missing-app-relink finding is resolved by d393b63. [Source relink implementation and acceptance](source-relink-implementation.md) records CI and physical PASS. Remaining release scope is modern API/device and accessibility/resource/provider coverage, not repetition of accepted main-flow smoke.
