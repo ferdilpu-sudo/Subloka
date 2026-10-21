@@ -36,7 +36,7 @@ class EditorLayoutTest {
             }
         }
         compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").assertIsDisplayed()
-        compose.onNodeWithText("Teks asli").assertIsDisplayed()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertIsDisplayed()
         val preview = compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").fetchSemanticsNode().boundsInRoot
         val field = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
         assertTrue("Landscape video and caption must be side by side", preview.right <= field.left)
@@ -130,7 +130,7 @@ class EditorLayoutTest {
         assertTrue("Title must not overlap export", titleBounds.right <= exportBounds.left)
         compose.onNodeWithContentDescription("Kembali").assertIsDisplayed()
         compose.onNodeWithText("Teks").assertIsSelected()
-        compose.onNodeWithText("Teks asli").assertIsDisplayed()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Gabung berikutnya").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Waktu").performClick()
         compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
