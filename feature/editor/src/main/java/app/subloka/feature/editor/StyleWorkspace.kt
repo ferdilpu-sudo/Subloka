@@ -34,13 +34,17 @@ fun StyleWorkspace(
 ) {
     Surface(modifier = modifier, color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Display", style = MaterialTheme.typography.titleSmall)
+            Text("Tampilan subtitle", style = MaterialTheme.typography.titleSmall)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CaptionDisplayMode.entries.forEach { mode ->
                     FilterChip(
                         selected = style.displayMode == mode,
                         onClick = { onStyleChange(style.copy(displayMode = mode)) },
-                        label = { Text(mode.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                        label = { Text(when (mode) {
+                            CaptionDisplayMode.DUAL -> "Dua bahasa"
+                            CaptionDisplayMode.ORIGINAL -> "Teks asli"
+                            CaptionDisplayMode.TRANSLATION -> "Terjemahan"
+                        }) },
                     )
                 }
             }
@@ -48,24 +52,24 @@ fun StyleWorkspace(
             ToggleRow("Terjemahan di atas", style.order == CaptionOrder.TRANSLATION_FIRST) {
                 onStyleChange(style.copy(order = if (it) CaptionOrder.TRANSLATION_FIRST else CaptionOrder.SOURCE_FIRST))
             }
-            Text("Original size · ${style.sourceSizePercent}%")
+            Text("Ukuran teks asli · ${style.sourceSizePercent}%")
             Slider(
                 value = style.sourceSizePercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(sourceSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
             )
 
-            Text("Translation size · ${style.translationSizePercent}%")
+            Text("Ukuran terjemahan · ${style.translationSizePercent}%")
             Slider(
                 value = style.translationSizePercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(translationSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
             )
 
-            ToggleRow("Outline", style.outlineEnabled) { onStyleChange(style.copy(outlineEnabled = it)) }
-            ToggleRow("Background", style.backgroundEnabled) { onStyleChange(style.copy(backgroundEnabled = it)) }
+            ToggleRow("Garis tepi", style.outlineEnabled) { onStyleChange(style.copy(outlineEnabled = it)) }
+            ToggleRow("Latar subtitle", style.backgroundEnabled) { onStyleChange(style.copy(backgroundEnabled = it)) }
 
-            Text("Position · bottom ${style.bottomPositionPercent}%")
+            Text("Jarak dari bawah · ${style.bottomPositionPercent}%")
             Slider(
                 value = style.bottomPositionPercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(bottomPositionPercent = it.toInt())) },

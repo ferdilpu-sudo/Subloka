@@ -40,13 +40,69 @@ class EditorLayoutTest {
         val preview = compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").fetchSemanticsNode().boundsInRoot
         val field = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
         assertTrue("Landscape video and caption must be side by side", preview.right <= field.left)
-        compose.onNodeWithText("Timing").performScrollTo().performClick()
+        compose.onNodeWithText("Waktu").performScrollTo().performClick()
         compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Style").performClick()
+        compose.onNodeWithText("Gaya").performClick()
         compose.onNodeWithText("Preview dan MP4", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ekspor").assertIsDisplayed().performClick()
         compose.runOnIdle { assertTrue(exported) }
+    }
+
+    @Test fun correctionNavigationPreservesEditsAndProtectsBoundaryActions() {
+        val first = CaptionSegment("first", 0, 2_000_000, SourceLanguage.INDONESIA,
+            "Kalimat pertama", "First sentence", TranslationStatus.CURRENT)
+        val second = first.copy(id = "second", startUs = 2_000_000, endUs = 4_000_000,
+            sourceText = "Kalimat kedua")
+        var saved = listOf(first, second)
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 640.dp)) {
+                    EditorScreen(saved, CaptionStyle(), null, "Tersimpan", false,
+                        { saved = it }, {}, {}, {}, demoMode = false)
+                }
+            }
+        }
+        compose.onNodeWithContentDescription("Caption sebelumnya").assertIsNotEnabled()
+        compose.onNodeWithText("Teks asli").performScrollTo().performTextReplacement("Koreksi pertama")
+        compose.onNodeWithContentDescription("Caption berikutnya").performScrollTo().performClick()
+        compose.onNodeWithText("Caption 2 dari 2").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Caption berikutnya").assertIsNotEnabled()
+        compose.onNodeWithText("Gabung berikutnya").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithContentDescription("Caption sebelumnya").performScrollTo().performClick()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Koreksi pertama")
+        compose.runOnIdle {
+            assertTrue(saved.first().sourceText == "Koreksi pertama")
+            assertTrue(saved.first().translationText == "First sentence")
+            assertTrue(saved.first().translationStatus == TranslationStatus.STALE)
+        }
+        compose.onNodeWithText("! Perlu diperbarui").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Buka terjemahan", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Terjemahan", substring = false).performScrollTo().assertTextContains("First sentence")
+        compose.onNodeWithText("Waktu").performClick()
+        compose.onAllNodesWithText("-10 ms")[0].performScrollTo().assertIsNotEnabled()
+        compose.onAllNodesWithText("+10 ms")[1].performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test fun captionListRetainsPositionAfterSelectingAndCorrecting() {
+        val captions = (1..40).map { index ->
+            CaptionSegment("caption-$index", (index - 1) * 2_000_000L, index * 2_000_000L,
+                SourceLanguage.INDONESIA, "Kalimat nomor $index", "", TranslationStatus.MISSING)
+        }
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 480.dp)) {
+                    EditorScreen(captions, CaptionStyle(), null, "Tersimpan", false,
+                        {}, {}, {}, {}, demoMode = false)
+                }
+            }
+        }
+        compose.onNodeWithText("Daftar caption (40)").performClick()
+        compose.onNodeWithTag("caption-list").performScrollToIndex(25)
+        compose.onNodeWithText("Kalimat nomor 26").performClick()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Kalimat nomor 26")
+        compose.onNodeWithText("Daftar caption (40)").performClick()
+        compose.onNodeWithText("Kalimat nomor 26").assertIsDisplayed()
     }
 
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {
@@ -73,13 +129,13 @@ class EditorLayoutTest {
         val exportBounds = compose.onNodeWithText("Ekspor").fetchSemanticsNode().boundsInRoot
         assertTrue("Title must not overlap export", titleBounds.right <= exportBounds.left)
         compose.onNodeWithContentDescription("Kembali").assertIsDisplayed()
-        compose.onNodeWithText("Caption").assertIsSelected()
+        compose.onNodeWithText("Teks").assertIsSelected()
         compose.onNodeWithText("Teks asli").assertIsDisplayed()
-        compose.onNodeWithText("Merge next").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Timing").performClick()
+        compose.onNodeWithText("Gabung berikutnya").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Waktu").performClick()
         compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Style").performClick()
-        compose.onNodeWithText("Translation", substring = false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Gaya").performClick()
+        compose.onNodeWithText("Terjemahan", substring = false).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Preview dan MP4", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ekspor").assertIsDisplayed()
     }

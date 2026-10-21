@@ -3,6 +3,7 @@ package app.subloka.feature.editor
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Tab
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
@@ -170,7 +171,7 @@ fun EditorScreen(
         val compactLandscapePreview = maxHeight < 480.dp
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
-        val hasPreviewSpace = !keyboardLikelyVisible && maxHeight >= 600.dp
+        val hasPreviewSpace = maxHeight >= if (keyboardLikelyVisible) 560.dp else 600.dp
         val showPreview = previewRequested && hasPreviewSpace
         val selected = segments.first { it.id == selectedId }
 
@@ -190,7 +191,7 @@ fun EditorScreen(
             if (!demoMode && sourceUnavailable) {
                 androidx.compose.material3.TextButton(onClick = onRelink) { Text("Tautkan ulang video") }
             }
-            if (hasPreviewSpace) {
+            if (hasPreviewSpace && !keyboardLikelyVisible) {
                 if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
             }
 
@@ -234,9 +235,9 @@ fun EditorScreen(
                     )
                 }
             } else {
-                if (hasPreviewSpace) {
+                if (hasPreviewSpace && !keyboardLikelyVisible) {
                     TextButton(onClick = { previewRequested = !previewRequested }) {
-                        Text(if (previewRequested) "Sembunyikan preview" else "Tampilkan preview")
+                        Text(if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau")
                     }
                 }
                 if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
@@ -285,7 +286,7 @@ private fun ProjectTopBar(
                 color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
                 style = MaterialTheme.typography.labelSmall)
         }
-        TextButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
+        FilledTonalButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
     }
 }
 
@@ -295,7 +296,11 @@ private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (Ed
         EditorWorkspace.entries.forEach { item ->
             Tab(selected = workspace == item, onClick = { onWorkspaceChange(item) },
                 modifier = Modifier.weight(1f),
-                text = { Text(item.name.lowercase().replaceFirstChar { it.uppercase() }) })
+                text = { Text(when (item) {
+                    EditorWorkspace.CAPTION -> "Teks"
+                    EditorWorkspace.TIMING -> "Waktu"
+                    EditorWorkspace.STYLE -> "Gaya"
+                }) })
         }
     }
 }
@@ -370,6 +375,7 @@ private fun WorkspacePanel(
             modifier = modifier,
         )
         EditorWorkspace.TIMING -> TimingWorkspace(segment = selected,
+            navigation = { CaptionNavigation(segments, selectedId, onSelect) },
             minimumStartUs = segments.getOrNull(selectedIndex - 1)?.endUs ?: 0L,
             maximumEndUs = segments.getOrNull(selectedIndex + 1)?.startUs ?: durationUs,
             onChange = { start, end ->
