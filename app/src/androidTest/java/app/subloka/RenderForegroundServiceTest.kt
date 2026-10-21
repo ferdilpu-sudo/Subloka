@@ -81,6 +81,7 @@ class RenderForegroundServiceTest {
     @Test fun continuesAfterActivityStopAndDestructionAndReattaches() = runBlocking {
         val worker = ControlledTask()
         val request = start(worker)
+        manager.awaitStopAction(RenderForegroundService.NOTIFICATION)
         scenario!!.moveToState(Lifecycle.State.CREATED)
         assertTrue(RenderSession.state.value!!.running)
         assertFalse(worker.cancelled)
@@ -101,8 +102,7 @@ class RenderForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         scenario!!.moveToState(Lifecycle.State.CREATED)
-        val notification = manager.activeNotifications.first { it.id == RenderForegroundService.NOTIFICATION }.notification
-        notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(RenderForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { RenderSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(worker.cancelled)
         assertFalse(terminal.completed)
@@ -113,8 +113,7 @@ class RenderForegroundServiceTest {
         val worker = ControlledTask(delayCancellation = true)
         val request = start(worker)
         try {
-            manager.activeNotifications.first { it.id == RenderForegroundService.NOTIFICATION }
-                .notification.actions.first().actionIntent.send()
+            manager.awaitStopAction(RenderForegroundService.NOTIFICATION).actionIntent.send()
             val stopping = withTimeout(5_000) {
                 RenderSession.state.filterNotNull().first { it.request.id == request.id && it.stopping }
             }
@@ -156,7 +155,7 @@ class RenderForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         worker.savedMessage = "Caption sudah disimpan sebelum pembatalan"
-        manager.activeNotifications.first { it.id == RenderForegroundService.NOTIFICATION }.notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(RenderForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { RenderSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(terminal.completed)
         assertEquals(worker.savedMessage, terminal.stage)

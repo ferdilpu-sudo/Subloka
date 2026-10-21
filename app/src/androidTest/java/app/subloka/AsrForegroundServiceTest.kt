@@ -79,6 +79,7 @@ class AsrForegroundServiceTest {
     @Test fun continuesAfterActivityStopAndDestructionAndReattaches() = runBlocking {
         val worker = ControlledTask()
         val request = start(worker)
+        manager.awaitStopAction(AsrForegroundService.NOTIFICATION)
         scenario!!.moveToState(Lifecycle.State.CREATED)
         assertTrue(AsrSession.state.value!!.running)
         assertFalse(worker.cancelled)
@@ -99,8 +100,7 @@ class AsrForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         scenario!!.moveToState(Lifecycle.State.CREATED)
-        val notification = manager.activeNotifications.first { it.id == AsrForegroundService.NOTIFICATION }.notification
-        notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(AsrForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { AsrSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(worker.cancelled)
         assertFalse(terminal.completed)
@@ -111,8 +111,7 @@ class AsrForegroundServiceTest {
         val worker = ControlledTask(delayCancellation = true)
         val request = start(worker)
         try {
-            manager.activeNotifications.first { it.id == AsrForegroundService.NOTIFICATION }
-                .notification.actions.first().actionIntent.send()
+            manager.awaitStopAction(AsrForegroundService.NOTIFICATION).actionIntent.send()
             val stopping = withTimeout(5_000) {
                 AsrSession.state.filterNotNull().first { it.request.id == request.id && it.stopping }
             }
@@ -133,7 +132,7 @@ class AsrForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         worker.savedMessage = "Caption sudah disimpan sebelum pembatalan"
-        manager.activeNotifications.first { it.id == AsrForegroundService.NOTIFICATION }.notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(AsrForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { AsrSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(terminal.completed)
         assertEquals(worker.savedMessage, terminal.stage)

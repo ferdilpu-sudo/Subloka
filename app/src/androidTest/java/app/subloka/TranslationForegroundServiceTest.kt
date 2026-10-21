@@ -81,6 +81,7 @@ class TranslationForegroundServiceTest {
     @Test fun continuesAfterActivityStopAndDestructionAndReattaches() = runBlocking {
         val worker = ControlledTask()
         val request = start(worker)
+        manager.awaitStopAction(TranslationForegroundService.NOTIFICATION)
         val source = DemoData.segments.first().copy(id = UUID.randomUUID().toString())
         val checkpoint = withContext(Dispatchers.IO) {
             SubLokaDatabaseFactory.create(context).use {
@@ -120,8 +121,7 @@ class TranslationForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         scenario!!.moveToState(Lifecycle.State.CREATED)
-        val notification = manager.activeNotifications.first { it.id == TranslationForegroundService.NOTIFICATION }.notification
-        notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(TranslationForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { TranslationSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(worker.cancelled)
         assertFalse(terminal.completed)
@@ -132,8 +132,7 @@ class TranslationForegroundServiceTest {
         val worker = ControlledTask(delayCancellation = true)
         val request = start(worker)
         try {
-            manager.activeNotifications.first { it.id == TranslationForegroundService.NOTIFICATION }
-                .notification.actions.first().actionIntent.send()
+            manager.awaitStopAction(TranslationForegroundService.NOTIFICATION).actionIntent.send()
             val stopping = withTimeout(5_000) {
                 TranslationSession.state.filterNotNull().first { it.request.id == request.id && it.stopping }
             }
@@ -154,7 +153,7 @@ class TranslationForegroundServiceTest {
         val worker = ControlledTask()
         val request = start(worker)
         worker.savedMessage = "Caption sudah disimpan sebelum pembatalan"
-        manager.activeNotifications.first { it.id == TranslationForegroundService.NOTIFICATION }.notification.actions.first().actionIntent.send()
+        manager.awaitStopAction(TranslationForegroundService.NOTIFICATION).actionIntent.send()
         val terminal = withTimeout(15_000) { TranslationSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(terminal.completed)
         assertEquals(worker.savedMessage, terminal.stage)

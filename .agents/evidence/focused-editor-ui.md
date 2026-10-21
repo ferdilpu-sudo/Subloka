@@ -25,3 +25,8 @@ Local guardrail and diff checks passed. Checked opaque UI text/background token 
 
 ## Status / next step
 IMPLEMENTED, validation incomplete. Investigate the two Android 15 service-test failures and rerun the required CI gate before producing the stable-key update. Physical portrait/landscape/keyboard usability and correction/reopen acceptance for this version remain NOT_RUN. No release-readiness claim.
+
+
+## Notification synchronization follow-up / 2026-10-21
+Inspection found notification-action tests read activeNotifications immediately after controlled worker entry. Worker entry is not notification-publication synchronization; the failing calls use first(predicate), which throws when the ID is absent. Test fixtures now await the expected notification ID and Hentikan action with a 15-second deadline and diagnostic failure, then send the actual PendingIntent. The same unsafe reads in render tests are covered. Existing stopping, single-job ownership, cancellation and post-commit assertions remain unchanged. Permission-denied tests are separate and unchanged. No production service or engine changes.
+Local guardrails/diff checks and all four instrumentation-log verifier regressions PASS. Android build and both permission phases require fresh CI; no claim yet that this fixes every Android 15 failure. Physical editor acceptance remains pending.
