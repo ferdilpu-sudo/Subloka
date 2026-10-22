@@ -9,3 +9,8 @@ Model setup uses actual ready/busy flags: download when unavailable, start when 
 ## Validation
 Local guardrails (115 Kotlin files) and diff check PASS. Added ProjectSetupUiTest to Android11 CI selection: initial pick, Indonesian selection, retry after save failure, duration rejection/change video, portrait native vertical metadata, large-font reachability, download/start/busy/cancel action gating. Tests authored, not locally executed: Android SDK/Gradle distribution unavailable locally as recorded in earlier increments.
 No database migration, engine/signing/model file change. IN_PROGRESS until CI and physical acceptance. Next: verify CI, create stable-key update, test short-video import/language/model reuse/transcription and Back/Ganti video at large font.
+
+## CI follow-up / 2026-10-22
+Run 39716946870 at 73bfc0985217f7947961f6d3c57e8dda0ef1e694: build and Android11 media/UI job PASS; Android15 service suite FAIL (13 tests, one failure). RenderForegroundServiceTest line 98 read activeNotifications immediately after terminal state. Service publishes terminal state before removing the foreground notification and posting its ready replacement, so that assertion races publication and can also accept the old ongoing notification.
+
+Fix: bounded 15-second polling for the exact ready title; assert reopen intent exists and stop actions are absent. No service behavior change or test removed. Local guardrails and whitespace check PASS; Android instrumentation rerun pending, notification-denied suite was not reached in the failed run. Physical project-setup acceptance remains pending.

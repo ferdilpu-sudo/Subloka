@@ -95,7 +95,9 @@ class RenderForegroundServiceTest {
         val terminal = withTimeout(15_000) { RenderSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(terminal.completed)
         assertNull(terminal.error)
-        assertTrue(manager.activeNotifications.any { it.id == RenderForegroundService.NOTIFICATION })
+        val ready = manager.awaitNotificationTitle(RenderForegroundService.NOTIFICATION, "SubLoka • MP4 siap disimpan")
+        assertNotNull("Ready notification must reopen the app", ready.contentIntent)
+        assertTrue("Ready notification must not retain the stop action", ready.actions.isNullOrEmpty())
     }
 
     @Test fun notificationCancelStopsWorkerWithoutFalseSuccess() = runBlocking {

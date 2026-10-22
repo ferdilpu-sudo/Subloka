@@ -21,3 +21,20 @@ internal suspend fun NotificationManager.awaitStopAction(notificationId: Int): N
             activeNotifications.joinToString { it.id.toString() },
     )
 }
+
+/** Terminal session state can arrive before Android publishes its replacement notification. */
+internal suspend fun NotificationManager.awaitNotificationTitle(notificationId: Int, title: String): Notification {
+    check(areNotificationsEnabled()) { "Notification permission must be granted for notification tests" }
+    return withTimeoutOrNull(15_000) {
+        var result: Notification? = null
+        while (result == null) {
+            result = activeNotifications.firstOrNull { it.id == notificationId }?.notification
+                ?.takeIf { it.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() == title }
+            if (result == null) delay(25)
+        }
+        result
+    } ?: throw AssertionError(
+        "Notification $notificationId did not publish title '$title' within 15 seconds; active titles=" +
+            activeNotifications.joinToString { "${it.id}:${it.notification.extras.getCharSequence(Notification.EXTRA_TITLE)}" },
+    )
+}
