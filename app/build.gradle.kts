@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.9-focused-editor"
+        versionName = "0.6.10-projects-home"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -32,6 +32,8 @@ fun SubLokaApp(
     val saveState by persistence.saveState.collectAsState()
     val project by persistence.project.collectAsState()
     val projects by persistence.projects.collectAsState()
+    val homeAsrSession by AsrSession.state.collectAsState()
+    val homeRenderSession by RenderSession.state.collectAsState()
     val relink by persistence.sourceRelink.collectAsState()
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, project?.id) {
@@ -123,7 +125,18 @@ fun SubLokaApp(
         "projects" -> ProjectsScreen(
             projects = projects.map { p -> ProjectSummary(p.id, p.title, p.sourceDisplayName, p.sourceLanguage,
                 "%02d:%02d".format(p.durationUs / 60_000_000, p.durationUs / 1_000_000 % 60),
-                "${p.widthPx} × ${p.heightPx}", "Tersimpan lokal") },
+                "${p.widthPx} × ${p.heightPx}",
+                "Diperbarui " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT)
+                    .format(java.util.Date(p.updatedAtMs)),
+                statusLabel = when {
+                    homeAsrSession?.let { it.running && it.request.project.id == p.id } == true ->
+                        if (homeAsrSession?.stopping == true) "Menghentikan transkripsi…" else "Transkripsi berjalan"
+                    translationSession?.let { it.running && it.request.project.id == p.id } == true ->
+                        if (translationSession?.stopping == true) "Menghentikan terjemahan…" else "Terjemahan berjalan"
+                    homeRenderSession?.let { it.running && it.request.project.id == p.id } == true ->
+                        if (homeRenderSession?.stopping == true) "Menghentikan render…" else "Render berjalan"
+                    else -> "Tersimpan di perangkat"
+                }) },
             onNewProject = { media.clear(); route = "new" },
             onOpenProject = { p -> persistence.openProject(p.id) { route = "editor" } }, modifier = modifier,
         )
