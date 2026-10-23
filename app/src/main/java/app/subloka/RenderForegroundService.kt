@@ -104,8 +104,12 @@ class RenderForegroundService : Service() {
                 task = null
                 wakeLock?.let { if (it.isHeld) it.release() }; wakeLock = null
                 RenderSession.finish(request.id, saved ?: message, saved != null, if (saved != null) null else error, output)
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                if (saved != null && (Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)) {
+                val showReady = saved != null && (Build.VERSION.SDK_INT < 33 ||
+                    checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+                // Preserve the notification slot on success. REMOVE queues cancellation of
+                // this same ID and can race the ready notification posted immediately below.
+                stopForeground(if (showReady) STOP_FOREGROUND_DETACH else STOP_FOREGROUND_REMOVE)
+                if (showReady) {
                     getSystemService(NotificationManager::class.java).notify(NOTIFICATION,
                         NotificationCompat.Builder(this@RenderForegroundService, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_save)
                             .setContentTitle("SubLoka • MP4 siap disimpan")
