@@ -15,19 +15,33 @@ import app.subloka.core.designsystem.SecondaryAction
 fun ProcessingScreen(
     busy: Boolean, stage: String, error: String?, completed: Boolean,
     onCancel: () -> Unit, onRetry: () -> Unit, onOpenEditor: () -> Unit,
-    onBack: () -> Unit, modifier: Modifier = Modifier,
+    onBack: () -> Unit, modifier: Modifier = Modifier, stopping: Boolean = false,
 ) {
-    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        Text("Caption di perangkat", style = MaterialTheme.typography.headlineSmall)
-        Text("Transkripsi dapat berjalan saat pindah aplikasi atau layar mati. Pantau progres dan hentikan melalui notifikasi. Jika proses aplikasi dimatikan Android, transkripsi perlu dimulai ulang.")
-        if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        Text(stage)
-        if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
-        if (busy) SecondaryAction("Batalkan", onCancel)
-        else {
-            if (completed) PrimaryAction("Buka editor", onOpenEditor)
-            else SecondaryAction("Coba lagi", onRetry)
-            SecondaryAction("Kembali ke proyek", onBack)
+    Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Transkripsi", style = MaterialTheme.typography.headlineSmall)
+            Text(when {
+                busy && stopping -> "Menghentikan transkripsi…"
+                busy -> "Transkripsi sedang berjalan"
+                error != null -> "Transkripsi belum selesai"
+                completed -> "Caption siap diperiksa"
+                else -> "Transkripsi tidak berjalan"
+            }, style = MaterialTheme.typography.titleMedium)
+            if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (stage.isNotBlank()) Text(stage)
+            if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
+            Text(when {
+                busy && stopping -> "Tunggu engine berhenti sebelum memulai lagi."
+                busy -> "Boleh berpindah aplikasi atau mematikan layar. Pantau proses lewat notifikasi jika izin notifikasi aktif."
+                completed -> "Buka editor untuk memeriksa kata dan timing caption."
+                else -> "Tekan Coba lagi untuk memeriksa kesiapan model dan memulai ulang transkripsi."
+            })
+            if (busy && !stopping) Text("Jika proses aplikasi dihentikan Android, transkripsi perlu dimulai ulang.", style = MaterialTheme.typography.bodySmall)
+            if (!busy) SecondaryAction("Kembali ke proyek", onBack)
         }
+        if (busy) SecondaryAction(if (stopping) "Menghentikan…" else "Hentikan", onCancel,
+            enabled = !stopping, modifier = Modifier.fillMaxWidth())
+        else PrimaryAction(if (completed && error == null) "Buka editor" else "Coba lagi",
+            if (completed && error == null) onOpenEditor else onRetry, modifier = Modifier.fillMaxWidth())
     }
 }

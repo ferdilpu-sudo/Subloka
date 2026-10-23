@@ -164,11 +164,13 @@ fun SubLokaApp(
             onBack = ::back, onCancel = persistence::cancelOperation, modifier = modifier)
         "processing" -> ProcessingScreen(asr.busy, asr.stage, asr.error, asr.completed,
             onCancel = persistence::cancelOperation, onRetry = { route = "model" },
-            onOpenEditor = { route = "editor" }, onBack = ::back, modifier = modifier)
+            onOpenEditor = { route = "editor" }, onBack = ::back, modifier = modifier,
+            stopping = homeAsrSession?.stopping == true)
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
                 recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
                 backgroundRunning = translationSession?.running == true,
+                stopping = translationSession?.stopping == true,
                 onResume = { beginTranslation(true) }, onDiscardRecovery = persistence::discardTranslationRecovery,
                 eligibleCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it) },
                 replaceableCount = segments.count { (translationTarget == null || it.id == translationTarget) && TranslationEligibility.canGenerate(it, true) },

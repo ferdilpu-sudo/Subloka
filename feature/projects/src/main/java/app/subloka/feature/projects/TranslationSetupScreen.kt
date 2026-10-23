@@ -23,7 +23,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                            onImport: () -> Unit,
                            onCheck: () -> Unit, onDownload: (Boolean) -> Unit,
                            onTranslate: (Boolean) -> Unit, onCancel: () -> Unit, onBack: () -> Unit,
-                           backgroundRunning: Boolean = false, modifier: Modifier = Modifier) {
+                           backgroundRunning: Boolean = false, modifier: Modifier = Modifier, stopping: Boolean = false) {
     var wifiOnly by rememberSaveable { mutableStateOf(true) }
     var replaceMachine by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -51,51 +51,64 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
             text = { Text(terms, modifier = Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) },
             confirmButton = { TextButton(onClick = { showTerms = false }) { Text("Tutup") } })
     }
-    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Terjemahan offline", style = MaterialTheme.typography.headlineSmall)
-        Text("$pairLabel • $count caption dapat diterjemahkan")
-        Text("Teks asli dan timing tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
-                label = { Text("TranslateGemma") })
-            FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
-                label = { Text("ML Kit • ringan") })
-        }
-        if (useGemma) {
-            Text("TranslateGemma 4B • unduhan 2,49 GB. Membutuhkan banyak RAM dan dapat lambat. Coba satu caption dahulu; performa Sony belum terverifikasi.")
-            SecondaryAction("Baca ketentuan dan kebijakan Gemma", { showTerms = true })
-            Row {
-                Checkbox(termsAccepted, onTermsAccepted, enabled = !busy)
-                Text("Saya telah membaca dan menyetujui ketentuan serta kebijakan Gemma.", Modifier.weight(1f).padding(top = 12.dp))
-            }
-        }
-        if (!hasRecovery) Row {
-            Checkbox(replaceMachine, { replaceMachine = it }, enabled = !busy)
-            Text("Ganti juga hasil terjemahan otomatis yang sudah ada", Modifier.weight(1f).padding(top = 12.dp))
-        }
-        if (hasRecovery) Text("Ada pekerjaan terjemahan tertunda: $recoveryCount caption belum selesai. Lanjutkan dengan model yang sama; caption yang berubah atau dikoreksi manual akan dilewati.")
-        Text(if (ready) "✓ Model siap di perangkat" else "Model terjemahan belum siap")
-        if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        if (stage.isNotBlank()) Text(stage)
-        if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
-        if (busy) {
-            Text(if (backgroundRunning) "Terjemahan tetap berjalan saat berpindah aplikasi atau layar mati. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
+    Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text("Terjemahan offline", style = MaterialTheme.typography.headlineSmall)
+            Text("$pairLabel • $count caption dapat diterjemahkan")
+            Text(when {
+                busy && stopping -> "Menghentikan terjemahan…"
+                busy && backgroundRunning -> "Terjemahan sedang berjalan"
+                busy -> "Menyiapkan model terjemahan"
+                error != null -> "Perlu ditindaklanjuti"
+                hasRecovery -> "Terjemahan dapat dilanjutkan"
+                ready && count == 0 -> "Tidak ada caption yang perlu diterjemahkan"
+                ready -> "Siap menerjemahkan"
+                else -> "Siapkan model terlebih dahulu"
+            }, style = MaterialTheme.typography.titleMedium)
+            if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (stage.isNotBlank()) Text(stage)
+            if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
+            if (busy) Text(if (stopping) "Tunggu engine berhenti. Hasil yang sudah tersimpan tetap tersedia."
+                else if (backgroundRunning) "Boleh berpindah aplikasi atau mematikan layar. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
                 else "Tetap buka aplikasi selama penyiapan model.")
-            SecondaryAction("Hentikan", onCancel)
-        } else {
-            if (!ready) {
-                Text("Unduh model sekali dengan internet. Setelah siap, terjemahan diproses di perangkat tanpa koneksi. Model ini terpisah dari Whisper.")
-                Row { Checkbox(wifiOnly, { wifiOnly = it }); Text("Unduh hanya melalui Wi-Fi", modifier = Modifier.padding(top = 12.dp)) }
-                PrimaryAction("Unduh model terjemahan", { onDownload(wifiOnly) }, enabled = permitted)
-                if (useGemma) SecondaryAction("Impor model GGUF", onImport, enabled = permitted)
-            } else {
-                if (hasRecovery) PrimaryAction("Lanjutkan sisa terjemahan", onResume, enabled = permitted)
-                else PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0)
+            Text("Teks asli dan timing tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
+                    label = { Text("TranslateGemma") })
+                FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
+                    label = { Text("ML Kit • ringan") })
             }
-            if (hasRecovery) SecondaryAction("Hapus antrean tertunda", { confirmDiscard = true })
-            SecondaryAction("Periksa model kembali", onCheck)
-            SecondaryAction("Kembali ke editor", onBack)
+            if (useGemma) {
+                Text("TranslateGemma 4B • unduhan 2,49 GB. Membutuhkan banyak RAM dan dapat lambat. Kecepatan bergantung pada perangkat dan panjang caption.")
+                SecondaryAction("Baca ketentuan dan kebijakan Gemma", { showTerms = true })
+                Row {
+                    Checkbox(termsAccepted, onTermsAccepted, enabled = !busy)
+                    Text("Saya telah membaca dan menyetujui ketentuan serta kebijakan Gemma.", Modifier.weight(1f).padding(top = 12.dp))
+                }
+            }
+            if (!hasRecovery) Row {
+                Checkbox(replaceMachine, { replaceMachine = it }, enabled = !busy)
+                Text("Ganti juga hasil terjemahan otomatis yang sudah ada", Modifier.weight(1f).padding(top = 12.dp))
+            }
+            if (hasRecovery) Text("Ada pekerjaan terjemahan tertunda: $recoveryCount caption belum selesai. Lanjutkan dengan model yang sama; caption yang berubah atau dikoreksi manual akan dilewati.")
+            Text(if (ready) "✓ Model siap di perangkat" else "Model terjemahan belum siap")
+            if (!busy) {
+                if (!ready) {
+                    Text("Unduh model sekali dengan internet. Setelah siap, terjemahan diproses di perangkat tanpa koneksi. Model ini terpisah dari Whisper.")
+                    Row { Checkbox(wifiOnly, { wifiOnly = it }); Text("Unduh hanya melalui Wi-Fi", modifier = Modifier.padding(top = 12.dp)) }
+                    if (useGemma) SecondaryAction("Impor model GGUF", onImport, enabled = permitted)
+                }
+                if (hasRecovery) SecondaryAction("Hapus antrean tertunda", { confirmDiscard = true })
+                SecondaryAction("Periksa model kembali", onCheck)
+                SecondaryAction("Kembali ke editor", onBack)
+            }
+        }
+        when {
+            busy -> SecondaryAction(if (stopping) "Menghentikan…" else "Hentikan", onCancel,
+                enabled = !stopping, modifier = Modifier.fillMaxWidth())
+            !ready -> PrimaryAction("Unduh model terjemahan", { onDownload(wifiOnly) }, enabled = permitted, modifier = Modifier.fillMaxWidth())
+            hasRecovery -> PrimaryAction("Lanjutkan sisa terjemahan", onResume, enabled = permitted, modifier = Modifier.fillMaxWidth())
+            else -> PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0, modifier = Modifier.fillMaxWidth())
         }
     }
 }
