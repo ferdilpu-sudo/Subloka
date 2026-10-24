@@ -27,7 +27,7 @@ class VideoExportViewModel(application: Application) : AndroidViewModel(applicat
                 val leftovers = withContext(Dispatchers.IO) {
                     check(directory.isDirectory || directory.mkdirs())
                     if (RenderSession.state.value == null) {
-                        getApplication<Application>().getSystemService(android.app.NotificationManager::class.java).cancel(RenderForegroundService.NOTIFICATION)
+                        getApplication<Application>().getSystemService(android.app.NotificationManager::class.java).cancel(RenderForegroundService.READY_NOTIFICATION)
                         directory.listFiles().orEmpty().also { files -> files.forEach { check(it.delete()) } }.isNotEmpty()
                     } else false
                 }
@@ -49,7 +49,7 @@ class VideoExportViewModel(application: Application) : AndroidViewModel(applicat
         if (_state.value.busy || _state.value.pending) return
         val old = output; output = null
         RenderSession.clear()
-        getApplication<Application>().getSystemService(android.app.NotificationManager::class.java).cancel(RenderForegroundService.NOTIFICATION)
+        getApplication<Application>().getSystemService(android.app.NotificationManager::class.java).cancel(RenderForegroundService.READY_NOTIFICATION)
         viewModelScope.launch(Dispatchers.IO) { old?.delete() }
         _state.value = State(busy = false)
     }

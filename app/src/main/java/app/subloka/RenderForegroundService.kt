@@ -66,6 +66,7 @@ class RenderForegroundService : Service() {
             return START_NOT_STICKY
         }
         if (request == null) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(startId); return START_NOT_STICKY }
+        getSystemService(NotificationManager::class.java).cancel(READY_NOTIFICATION)
         requestId = request.id
         operation = scope.launch {
             val watchdog = scope.launch {
@@ -106,11 +107,11 @@ class RenderForegroundService : Service() {
                 RenderSession.finish(request.id, saved ?: message, saved != null, if (saved != null) null else error, output)
                 val showReady = saved != null && (Build.VERSION.SDK_INT < 33 ||
                     checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
-                // Preserve the notification slot on success. REMOVE queues cancellation of
-                // this same ID and can race the ready notification posted immediately below.
-                stopForeground(if (showReady) STOP_FOREGROUND_DETACH else STOP_FOREGROUND_REMOVE)
+                // The result has its own ID: foreground teardown must never cancel or
+                // overwrite the ready notification, including delayed platform updates.
+                stopForeground(STOP_FOREGROUND_REMOVE)
                 if (showReady) {
-                    getSystemService(NotificationManager::class.java).notify(NOTIFICATION,
+                    getSystemService(NotificationManager::class.java).notify(READY_NOTIFICATION,
                         NotificationCompat.Builder(this@RenderForegroundService, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_save)
                             .setContentTitle("SubLoka • MP4 siap disimpan")
                             .setContentText("Buka aplikasi untuk memilih lokasi simpan.")
@@ -156,6 +157,7 @@ class RenderForegroundService : Service() {
     companion object {
         private const val CHANNEL = "render-processing"
         internal const val NOTIFICATION = 4003
+        internal const val READY_NOTIFICATION = 4004
         private const val JOB = "job"
         private const val CANCEL = "app.subloka.CANCEL_RENDER"
         private const val MAX_RUNTIME = 6 * 60 * 60 * 1000L

@@ -76,6 +76,7 @@ class RenderForegroundServiceTest {
         scenario?.close()
         RenderForegroundService.taskFactory = originalFactory
         manager.cancel(RenderForegroundService.NOTIFICATION)
+        manager.cancel(RenderForegroundService.READY_NOTIFICATION)
     }
 
     @Test fun continuesAfterActivityStopAndDestructionAndReattaches() = runBlocking {
@@ -95,7 +96,10 @@ class RenderForegroundServiceTest {
         val terminal = withTimeout(15_000) { RenderSession.state.filterNotNull().first { it.request.id == request.id && !it.running } }
         assertTrue(terminal.completed)
         assertNull(terminal.error)
-        val ready = manager.awaitNotificationTitle(RenderForegroundService.NOTIFICATION, "SubLoka • MP4 siap disimpan")
+        val ready = manager.awaitNotificationTitle(RenderForegroundService.READY_NOTIFICATION, "SubLoka • MP4 siap disimpan")
+        withTimeout(15_000) {
+            while (manager.activeNotifications.any { it.id == RenderForegroundService.NOTIFICATION }) delay(25)
+        }
         assertNotNull("Ready notification must reopen the app", ready.contentIntent)
         assertTrue("Ready notification must not retain the stop action", ready.actions.isNullOrEmpty())
     }
