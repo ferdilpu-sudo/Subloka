@@ -43,12 +43,21 @@ public:
         model = llama_model_load_from_file(path, mp);
         if (!model) throw std::runtime_error("MODEL_FAILURE");
         auto cp = llama_context_default_params();
-        cp.n_ctx = 1024; cp.n_batch = 128; cp.n_ubatch = 128;
+        // Bound physical prefill workspace without reducing caption/context limits.
+        // llama.cpp splits the logical batch internally; generation still decodes one token.
+        cp.n_ctx = 1024; cp.n_batch = 128; cp.n_ubatch = 32;
         cp.n_threads = 4; cp.n_threads_batch = 4;
         cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_DISABLED;
         cp.abort_callback = abortDecode; cp.abort_callback_data = this; cp.no_perf = true;
         ctx = llama_init_from_model(model, cp);
         if (!ctx) { llama_model_free(model); model = nullptr; throw std::runtime_error("MODEL_FAILURE"); }
+#ifdef __ANDROID__
+        __android_log_print(ANDROID_LOG_INFO, "SubLokaTranslation",
+            "context_tokens=%u logical_batch=%u physical_batch=%u",
+            static_cast<unsigned>(llama_n_ctx(ctx)),
+            static_cast<unsigned>(llama_n_batch(ctx)),
+            static_cast<unsigned>(llama_n_ubatch(ctx)));
+#endif
     }
     ~GemmaSession() { if (ctx) llama_free(ctx); if (model) llama_model_free(model); }
     GemmaSession(const GemmaSession &) = delete;
