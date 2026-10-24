@@ -1,6 +1,7 @@
 #pragma once
 #include "llama.h"
 #include "gemma_timing.h"
+#include "gemma_load_probe.h"
 #include <algorithm>
 #include <atomic>
 #include <mutex>
@@ -30,6 +31,15 @@ public:
         static std::once_flag init;
         std::call_once(init, [] { llama_log_set([](ggml_log_level, const char *, void *) {}, nullptr); llama_backend_init(); });
         auto mp = llama_model_default_params(); mp.n_gpu_layers = 0; mp.use_extra_bufts = false;
+        const bool readProbe = gemmaReadLoadProbe(path);
+        if (readProbe) {
+            mp.load_mode = LLAMA_LOAD_MODE_NONE;
+            mp.lazy_mode = LLAMA_LAZY_MODE_OFF;
+        }
+#ifdef __ANDROID__
+        __android_log_print(ANDROID_LOG_INFO, "SubLokaTranslation",
+            "model_load_policy=%s", readProbe ? "read_probe" : "default");
+#endif
         model = llama_model_load_from_file(path, mp);
         if (!model) throw std::runtime_error("MODEL_FAILURE");
         auto cp = llama_context_default_params();

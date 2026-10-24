@@ -61,6 +61,8 @@ jobs:
 
       - name: Signing verifier regression tests
         run: python3 tools/test_prototype_signing.py
+      - name: Translation memory probe policy tests
+        run: python3 tools/test_gemma_load_probe.py
 
       - name: Instrumentation log verifier regression tests
         run: python3 tools/test_instrumentation_result.py
