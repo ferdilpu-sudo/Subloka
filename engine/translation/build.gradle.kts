@@ -5,11 +5,16 @@ plugins {
 android {
     namespace = "app.subloka.engine.translation"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         minSdk = 26
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

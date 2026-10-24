@@ -11,8 +11,8 @@ android {
         applicationId = "app.subloka.caption"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0-demo"
+        versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
+        versionName = "0.6.19-render-notification"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,6 +29,8 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:database"))
     implementation(project(":core:media"))
+    implementation(project(":engine:asr"))
+    implementation(project(":engine:translation"))
     implementation(project(":feature:projects"))
     implementation(project(":feature:editor"))
     implementation(project(":feature:export"))
@@ -42,6 +44,10 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
+
+    androidTestImplementation(composeBom)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // T10 real-video app APK instrumentation: media stage only, not T11-T14 E2E.
     androidTestImplementation("androidx.test.ext:junit:1.3.0")

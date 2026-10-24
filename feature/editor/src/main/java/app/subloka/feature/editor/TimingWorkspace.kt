@@ -1,61 +1,46 @@
 package app.subloka.feature.editor
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.subloka.core.designsystem.SecondaryAction
-import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.CaptionSegment
 
 @Composable
-fun TimingWorkspace(segment: CaptionSegment, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Surface(color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text("Timeline · contextual", style = MaterialTheme.typography.titleSmall)
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(54.dp).background(SubLokaColors.SurfaceHigh),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("─────────│────────────────", color = SubLokaColors.Primary)
-                }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TimeField("Start", formatTime(segment.startUs))
-                    TimeField("End", formatTime(segment.endUs))
-                }
-                Text("Nudge start/end", color = SubLokaColors.TextSecondary, style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("-100 ms", "-10 ms", "+10 ms", "+100 ms").forEach { label ->
-                        SecondaryAction(label, onClick = {}, modifier = Modifier.weight(1f))
-                    }
-                }
-                Text(
-                    "Drag bukan satu-satunya kontrol. Input waktu dan nudge tetap tersedia.",
-                    color = SubLokaColors.TextSecondary,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
+fun TimingWorkspace(segment: CaptionSegment, minimumStartUs: Long, maximumEndUs: Long,
+                    onChange: (Long, Long) -> Unit, modifier: Modifier = Modifier,
+                    navigation: @Composable () -> Unit = {}) {
+    Column(modifier.verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        navigation()
+        Text(segment.sourceText, style = MaterialTheme.typography.bodyMedium)
+        Text("Waktu caption", style = MaterialTheme.typography.titleMedium)
+        Text("Awal: ${formatTime(segment.startUs)}")
+        NudgeButtons(canNudge = { delta -> segment.startUs + delta >= minimumStartUs && segment.startUs + delta < segment.endUs }) { delta ->
+            val start = segment.startUs + delta
+            if (start >= minimumStartUs && start < segment.endUs) onChange(start, segment.endUs)
         }
+        Text("Akhir: ${formatTime(segment.endUs)}")
+        NudgeButtons(canNudge = { delta -> segment.endUs + delta > segment.startUs && segment.endUs + delta <= maximumEndUs }) { delta ->
+            val end = segment.endUs + delta
+            if (end > segment.startUs && end <= maximumEndUs) onChange(segment.startUs, end)
+        }
+        Text("Perubahan berhenti pada batas video dan caption tetangga. Pilih caption untuk memutar dari awalnya.")
     }
 }
 
 @Composable
-private fun TimeField(label: String, value: String) {
-    Column {
-        Text(label, color = SubLokaColors.TextSecondary, style = MaterialTheme.typography.labelSmall)
-        Text(value, style = MaterialTheme.typography.titleMedium)
+private fun NudgeButtons(canNudge: (Long) -> Boolean, onNudge: (Long) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(listOf(-100L, -10L), listOf(10L, 100L)).forEach { values ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                values.forEach { ms ->
+                    SecondaryAction("${if (ms > 0) "+" else ""}$ms ms", { onNudge(ms * 1000) }, enabled = canNudge(ms * 1000), modifier = Modifier.weight(1f))
+                }
+            }
+        }
     }
 }

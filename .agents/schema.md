@@ -57,3 +57,31 @@ Readability/overflow warning dihitung dari teks, timing, style, dan ukuran frame
 ## Migrasi dan backup
 
 Schema version 1 sudah aktif dan export Room disimpan di version control. Karena v1 adalah versi pertama, tidak ada migration v0→v1. Setiap perubahan menuju version 2+ wajib memiliki migration path dari fixture lama dan tes tidak kehilangan bilingual text/style. Destructive migration dilarang untuk data pengguna. Tidak ada cloud backup pada MVP; backup Android untuk database/media/transkrip dinonaktifkan melalui konfigurasi yang diuji. Ekspor proyek sebagai arsip merupakan fitur masa depan, berbeda dengan SRT.
+
+
+## T11 publication contract (2026-10-13)
+Room schema remains v1; no table/column migration. `CaptionRepository.publishGenerated(projectId, expectedRevision, segments)` checks the project revision and an empty caption list within the same transaction, validates the timeline, inserts the complete staged result and increments revision. Conflict returns false without mutation. Empty speech output is valid and also increments revision. Source-only captions use MISSING/NONE and empty translation text. A new media import gets a new project UUID rather than mutating the demo project.
+
+
+## T12 translation persistence (2026-10-13)
+No schema migration: Room v1 and the existing `applyMachineTranslation` transaction remain unchanged. Successful generated translations carry MACHINE/CURRENT with translation_source_revision equal to the accepted source_revision. The prototype never passes allowReplaceManual=true. Manual translations, including stale manual ones, are skipped. Missing/stale machine rows remain retryable after engine failure; no persistent PENDING marker is written. Per-segment commits are intentional: cancellation keeps successful translations, unlike ASR's all-or-nothing first generation.
+
+
+## SRT snapshot contract (2026-10-13)
+Room v1 unchanged; no export_records/job rows written for this bounded prototype. Each prepared snapshot is a list of immutable name/text pairs. SRT floors both microsecond endpoints to milliseconds and rejects zero-length intervals after conversion. UTF-8, CRLF, sequential indices after sorting, original and target in separate files. Blank lines inside text are removed to preserve cue structure; invalid control characters/timestamp arrows rejected. Each external file has independent success state; process death clears in-memory status, never fabricates completion.
+
+
+## MP4 prototype data contract (2026-10-13)
+Room v1 unchanged. Immutable project/caption/style snapshot after editor flush; export mode overrides only snapshot displayMode. No caption mutations by renderer. Private UUID output files under filesDir/mp4-staging; external URI requested only after completed render validation. No export_records or durable job rows added. In-memory ready state is cleared after process death and old staging deleted at next ViewModel initialization; no resume/completion claim. Original/translated share [startUs,endUs); blank/stale translation blocks modes needing translation. Font sizes 70..140%, bottom 8..35%, max 4 lines per language and combined subtitle block <=50% of frame. Font is device sans-serif bold, not a downloadable font. Colors fixed white/source, warm yellow/translation with existing background/outline controls.
+
+
+### ADR-034 provisioning metadata
+ManagedModelDescriptor adds optional positive expectedSizeBytes for exact model installation limits. This is in-memory catalog metadata, not persisted project data. Room schema remains v1; caption timestamps/identity/translation state and existing projects are unchanged.
+
+
+### TranslateGemma metadata (ADR-035)
+Room v1 unchanged. Terms acceptance is stored separately in application preferences keyed by Gemma terms version; default false. Translation model choice defaults to Gemma in session. Replacement of current automatic translations requires an explicit run flag; manual translations remain excluded in both eligibility and repository CAS. Source text, identity and timestamps are not modified.
+
+
+### Translation checkpoints (ADR-036)
+Room v1 table/column schema unchanged; add ProcessingJobDao. For TRANSLATE only, checkpoint_ref contains inline JSON {version:1,total:Int,pending:[{id:String,revision:Long}]} instead of a file path. No copied caption text. engine_version/model_version bind the inference configuration. States RUNNING → SUCCEEDED when pending empty; failed rows remain in FAILED; graceful interruption/startup recovery uses INTERRUPTED. Resume supersedes the prior attempt as CANCELLED/SUPERSEDED and creates a new UUID attempt from unchanged pending IDs/revisions. Discard marks CANCELLED/DISCARDED without caption mutation. Publication and checkpoint progress are one database transaction. Existing schema fixture must remain byte-for-byte unchanged; no destructive migration.

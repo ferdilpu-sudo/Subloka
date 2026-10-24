@@ -24,7 +24,9 @@ class MlKitOfflineTranslator(
     override suspend fun state(): ModelReadinessState =
         try {
             if (modelsReady()) ModelReadinessState.READY else ModelReadinessState.NOT_READY
-        } catch (_: Throwable) {
+        } catch (cancel: kotlinx.coroutines.CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
             ModelReadinessState.FAILED
         }
 

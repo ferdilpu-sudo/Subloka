@@ -1,0 +1,64 @@
+# Processing status UI — 0.6.13
+
+## Scope / 2026-10-23
+User reported export 0.6.12 physical checks PASS: original and dual SRT, MP4 save-picker cancellation/retry, render cancel/restart, large font/landscape, translated export blocked after original edits while SOURCE remains available.
+
+P1 usability: stop/resume controls scroll out of view on long processing/setup pages. Add persistent primary footer to transcription and translation; show actual stage and error near the top, distinguish model setup from background translation, and consume explicit session stopping flags to disable repeated cancel requests. Preserve resume versus new translation eligibility, Gemma consent, explicit recovery discard confirmation and engine callbacks. ASR completed leads to editor; interrupted/error leads to retry model setup. Stack model choices for narrow/large-font layouts.
+
+## Validation
+Local validate_project.py PASS (117 Kotlin files), diff whitespace check PASS. New ProcessingStatusUiTest covers large-font stop/stopping/retry/completed callbacks. TranslationRecoveryUiTest retains resume/discard assertions and adds compact-landscape stop/stopping coverage. CI selection updated. Android compilation/instrumentation and physical checks pending; no local Android SDK test claim.
+
+No database, model, service or signing changes. IN_PROGRESS pending CI and scoped physical acceptance. Next: stable-key update after CI, test persistent stop and resume with large font/landscape and existing short-video workflow.
+
+## Render notification follow-up / 2026-10-23
+Run 39883320630: build and Android11 PASS; Android15 granted suite 13 tests, one failure. The existing exact-ready-title assertion timed out with no active notifications. Denied suite not reached. Device logcat reports missing enqueued record for notification 4003 immediately after render stop. Source removed the foreground notification then immediately posted the ready notification using the same ID: a cancellation/publication race is consistent with these observations.
+
+Change success transition to STOP_FOREGROUND_DETACH before updating the notification, preserving its slot independently of service destruction. Failed/cancelled renders without a saved result and notification-denied paths retain REMOVE. Android API contract: https://developer.android.com/reference/android/app/Service#STOP_FOREGROUND_DETACH . Retain bounded exact-title/content-intent/no-stop-action regression; no timeout increase, retry or skipped test. Local guardrail and whitespace checks PASS. Android CI rerun and physical notification verification pending; root-cause resolution is not yet confirmed by rerun.
+
+## Translation stage diagnostics / 2026-10-24 / 0.6.14
+Separate verification, native loading and caption inference status. Emit local SubLokaTranslation start/end events using monotonic duration, an ephemeral translator-session identifier, attempt index and returned/failed/cancelled outcome. No caption text, source paths, project identifiers or exception payloads are logged. Returned indicates a stage returned, not database publication or successful model readiness. Existing pipeline publication, checksum validation, model/prompt, signing and cleanup remain intact. Cancellation is checked again after native open before inference.
+
+Local validate_project.py PASS (117 Kotlin files); git diff --check PASS. Android compilation/lint and real-weight device timing remain pending. This is measurement and status correction, not a demonstrated speed improvement. After stable-key installation, capture `adb logcat -v time -s SubLokaTranslation:I '*:S'` during a fresh short-project translation; inspect verify/load/caption durations and confirm saved output plus cancellation/resume still work.
+
+## Native phase diagnostics / 2026-10-24 / 0.6.15
+Manual CI40052474784 for0.6.14: build, Android11 media-device, Android15 modern-services and stable-prototype-apk verified SUCCESS. Native phase measurement now separates prefill (KV clear and prompt/input decode) from generation (sampling and output decode), with processed prompt-token and emitted output-token counts. Scope exit records partial time on exceptions as interrupted_or_failed; returned is not a database publication claim. Logs remain local metadata only under SubLokaTranslation. Model, prompt, greedy sampling, token caps, CPU configuration and cancellation callback unchanged. This increment does not claim a speedup.
+
+Validation: host C++17 compiler with warnings-as-errors and success/exception-unwind timing smoke PASS. Android logging branch syntax checked with declaration stub, not an Android build. Project guardrails117 Kotlin files and git diff --check PASS. Full native Android compilation and real model timing pending CI/device. Capture the same log tag for1–2 captions, compare prefill/generation durations and output token count; no full-project rerun needed.
+
+
+## CPU/memory investigation / 2026-10-24
+Source inspection at pinned llama.cpp 2a667032dc788c3a071d538e0b572e45a3f12731: current build leaves GGML_CPU_ARM_ARCH unset and disables native/all-variant builds. ARM Q4_K repack selection requires supported compiled features; simply enabling extra buffers is not evidence of acceleration. Do not globally enable dotprod instructions without runtime compatibility handling. CPU optimization and memory paging remain hypotheses, not established causes.
+
+Added tools/translation_resource_probe.py: bounded read-only ADB sampling of app process CPU ticks, minor/major faults and resident pages, plus CPU feature flags. Run during translation on the existing APK: `python tools/translation_resource_probe.py`. Default90seconds; exclusive timestamped JSONL in Downloads; Ctrl+C flushes; process restart/access failures terminate explicitly. No caption/media/logcat capture. Counters are process-wide, not proof that a particular model mapping caused faults; CPU percentage uses one-core scale only when device CLK_TCK is available. Three host tests (proc field parsing including complex comm, counter deltas/restart, denied access), project guardrails and diff check PASS. Physical ADB access and capture remain unverified. App/model/signing unchanged; no new APK required and no speedup claim.
+
+
+## Opt-in loading comparison / 2026-10-24 / 0.6.16
+A bounded device capture completed without process restart and recorded sustained major faults. This supports investigating memory paging, but process counters alone do not identify a mapped file or establish root cause. Added a Debug-only loading experiment; default and non-Debug builds retain upstream model parameters. A private `files/translation-gemma/load-mode-probe.txt` containing exactly `read` (optional LF/CRLF) selects LLAMA_LOAD_MODE_NONE and LAZY_OFF once before model load. Missing/invalid markers retain default. Model weights, prompt, limits, threads and cancellation ownership unchanged. Content-free model_load_policy log confirms selection. No mlock, mmap fallback retry or automatic experiment activation.
+
+Enable only after installing this build and ending any active job: `adb shell "run-as app.subloka.caption sh -c 'echo read > files/translation-gemma/load-mode-probe.txt'"`. Revert after ending the job: `adb shell run-as app.subloka.caption rm -f files/translation-gemma/load-mode-probe.txt`. Selection applies to the next native session; no reinstall/model download required. Compare the same short authored captions using native timings and bounded resource probe. Check saved output, stopping/resume and memory stability. Ordinary reads can raise committed memory and cause swapping/process termination; a lower fault count alone is not a performance PASS. Do not promote this policy without physical A/B evidence.
+
+Validation: actual C++ marker reader compiled with warnings-as-errors in both Debug-probe and production configurations; 18 file-content cases plus bare-path cases PASS, including missing/malformed/oversized markers and release isolation. Inference-core host syntax check against actual pinned llama/ggml headers PASS (not linking or inference). Guardrails117 Kotlin files/diff check PASS. Regression wired to CI. Full Android build, physical A/B throughput, memory and translation quality NOT_RUN here. No measured speedup claim.
+
+
+## Smaller physical batch / 2026-10-24 / 0.6.17
+The read-loading experiment is not promoted: captured inference had sustained high process-wide major faults and no captured terminal caption event. A subsequent default-policy run returned three caption calls but remained slow. These observations do not prove model-specific paging or output publication; retain default loading.
+
+Reduce requested physical microbatch from128 to32 to bound prefill compute workspace. Keep context1024, logical batch128, input/body/output caps, prompt, model, four CPU threads and greedy decoding unchanged. Pinned llama.cpp internally splits logical batches; no caption text is truncated. Log actual context/logical/physical batch sizes once after native context creation. This does not claim lower total RAM, identical floating-point output or faster inference: smaller batches can slow prefill and device measurements are required. Existing opt-in load probe remains Debug-only; ensure its marker is absent for this comparison.
+
+Validation: C++17 warnings-as-errors syntax check against actual pinned upstream headers including Android log branch with declaration-only log stub PASS; this is not an NDK build or real-model execution. Existing native load-policy regression PASS; project guardrails117 Kotlin files and diff check PASS. Android CI/device performance and quality pending. Next physical test: same short captions under default policy, capture native timing and resource metrics, check actual physical_batch=32, saved output and stop/resume. No new model download or signing/data changes.
+
+
+## Physical acceptance and experiment retirement / 2026-10-24 / 0.6.18
+For0.6.17, supplied logs confirm default model loading, context1024/logical128/physical32, and three returned calls of30.940s,15.718s,32.562s (79.220s total). Prior default physical128 comparison totaled609.542s: this observed sample is7.69x faster/87.0% less caption-call time, excluding verification/loading. Matching input/output token counts do not prove identical text. This is a single uncontrolled device comparison, not a general throughput guarantee. Resource capture includes a post-inference idle period, so its whole-window fault rate cannot be treated as an active-inference A/B rate or proof of reduced peak RAM.
+
+User reports PASS for translation quality and persistence after reopening, the requested roughly2-minute background/Home/screen-off scenario, and stop/resume retaining completed captions without duplication. These are user-reported physical acceptance, not automated tests or independent language-quality scoring. Retain physical32. No broad device, long-video or release certification is claimed.
+
+Remove the Debug marker override, helper, obsolete helper test and its CI step. Even if an old load-mode-probe.txt remains in app-private storage, it is no longer read. Default upstream loading, model, prompt, token limits, CPU settings, signing, data and local content-free timings are retained. Version0.6.18 is prepared for candidate validation, not published as a release. Project guardrails117 Kotlin files, diff check, three existing resource-probe tests and exact scoped remote-parent diff inspection PASS. Android compilation/lint/services remain pending CI; no local Android SDK. Next: manual stable-key CI and update smoke on existing projects/models, one short translation, then candidate review. No model re-download required.
+
+
+## Render ready-notification isolation / 2026-10-25 / 0.6.19
+CI40112312832 attempts1 and2 fail the same Android15 lifecycle test: session completed, but notification4003 remains Render MP4 rather than MP4 siap disimpan after15seconds. Build/media pass; signing skipped. Emulator logcat reviewed; exact platform ordering cause is not proven. Previous same-ID DETACH transition did not resolve this case.
+
+Use separate result notification4004 and remove foreground4003 on termination. New renders clear the prior result notification; export reset and process-stale cleanup target4004. Keep the exact ready-title assertion and15second deadline; additionally await removal of the foreground notification. Test cleanup clears both IDs. Translation batch32/model/signing/data remain unchanged. This is a targeted fix pending Android verification, not a proven platform-root-cause claim.
+
+Local project guardrails117Kotlin files and diff whitespace check PASS. Android compilation/lint and emulator tests NOT_RUN locally (SDK unavailable); all existing CI gates retained. Next: new manual workflow on this commit, then physical render completion notification/save and update smoke.

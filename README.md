@@ -2,7 +2,9 @@
 
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
-Current implementation has the **frontend demo plus local Room persistence/editor rules**. Media import/playback, speech recognition, offline translation engine, and real export are not connected yet. Demo inference/export states remain labeled and must not be interpreted as real processing.
+Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. The SRT prototype exports original/translation as separate UTF-8 files; The foreground MP4 prototype is now integrated; physical codec/playback validation remains pending. The separate demo project remains labeled.
+
+This is an explicitly authorized prototype while **CP4 remains BLOCKED**. Current branch build/device validation status is recorded in `.agents/testing.md`; historical CI passes below do not validate these changes.
 
 ## Product direction
 
@@ -22,6 +24,10 @@ Editor workspaces are deliberately limited to **Caption**, **Timing**, and **Sty
 - Core KTX: 1.19.1
 
 ## Verification status
+
+T11 prototype code `150ec9a` passed [Android CI run #189](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247): unit tests, debug assembly, lint, media emulator tests and bundled JNI loading/error handling. [Download the debug APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38355668247/artifacts/11791909316). Physical speech inference and the end-to-end user flow still require the Sony smoke protocol in `.agents/testing.md`. CP4 remains blocked.
+
+Historical baseline evidence:
 
 Android CI has verified the frontend scaffold on GitHub Actions:
 
@@ -71,7 +77,7 @@ git pull origin main
 
 The first wrapper run downloads Gradle 9.6.0 automatically, so network access is required once unless the distribution is already cached.
 
-T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. **T10 is now BLOCKED at CP4** after model/readiness smoke: the remaining gate is human-dataset quality plus physical-device RTF/RAM/thermal benchmark. T11 has not started. See `.agents/plan.md` and `.agents/testing.md`.
+T04–T09 are **DONE** and CP3 is **PASS**. T09 real media pipeline passed on an Android 11 emulator. **T10 is now BLOCKED at CP4** after model/readiness smoke: the remaining gate is human-dataset quality plus physical-device RTF/RAM/thermal benchmark. T11 is IN_PROGRESS under the user-approved prototype exception (ADR-029). See `.agents/plan.md` and `.agents/testing.md`.
 
 ## T10 physical benchmark
 
@@ -102,7 +108,7 @@ python tools/t10_translation_review.py init .t10-benchmark/translation-results.c
 python tools/t10_translation_review.py report .t10-benchmark/translation-review.csv --json .t10-benchmark/translation-summary.json
 ```
 
-See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 remains **TODO**.
+See `.agents/testing.md` for CP4 criteria and evidence limitations. The reported ID-clean ASR baseline still exceeds the 20% WER target, so CP4 remains **BLOCKED** and T11 is **IN_PROGRESS** under ADR-029.
 
 ### Restore provisional translation review after pulling
 
@@ -466,3 +472,78 @@ git pull --ff-only origin main
 ```
 
 No new pip download, model preparation or Android run is needed. If pilot succeeds, share the new 10-row `pilot.csv`; if offline SBD resources are missing, share only the printed error and local `session.json`. The previous two aborted runs are not evidence of translation quality; Argos accuracy and host latency are still **UNKNOWN**, CP4 BLOCKED.
+
+
+## T11 prototype setup and limits
+
+Build requires Java 21, SDK 37, NDK `28.2.13676358`, and CMake `3.22.1`.
+CMake fetches whisper.cpp v1.9.4 pinned at `927cfce34f31707e17f2bff35c349632fb9e2c3a`.
+Packaged native ABIs: arm64-v8a and x86_64. Initial build needs network access.
+
+Create a new project, choose the audio language, then import `ggml-base.bin` from the existing benchmark cache or explicitly download it in the app. The app verifies the model SHA-256 before use. After provisioning, inference works without network. Keep the app open and the screen unlocked during processing; leaving the app cancels this prototype operation. Rotation retains the ViewModel. After process death, reopen the saved project and retry; no partial caption checkpoint is restored.
+
+PCM is streamed into private temporary storage, downmixed and linearly resampled to 16 kHz, then transcribed in non-overlapping 30-second windows. Boundary speech and resampling quality need physical evaluation. Completed captions are published atomically only into an empty project at its original revision. No transcription is published on partial failure. Preview follows caption timestamps; source text, manual translation, split/merge and bounded timing adjustments persist locally. Style preview fidelity, background recovery and export remain separate work.
+
+
+## T12 translation prototype
+Open an existing transcribed project and choose **Terjemahkan / perbarui** (or the selected-caption action). Provision the separate translation models once; Wi-Fi-only download is selected by default. When models report ready, you can turn off internet and translate. Completed translations persist per caption; retry processes remaining missing/stale machine captions. Manually edited translations and current results are preserved. Source edits mark existing translations stale; automatic refresh never overwrites a manual translation. Keep the app foreground; stopping retains completed translations. Automatic translation quality still needs human review, and CP4 remains blocked. T12 code `4ed4de4` passed [Android CI #191](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38365151582): all configured unit steps, APK assembly, lint and fresh-app emulator adapter checks. [Download T12 APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38365151582/artifacts/11797056630). Physical translation and user-flow validation remain pending; details are in `.agents/testing.md`.
+
+
+## SRT subtitle export prototype
+Open a saved project → Export → Asli, Terjemahan, or Keduanya → Siapkan SRT. Save each prepared language file using the Android document picker (choose local Downloads for offline use). Two languages produce two independent `.srt` files. Translation export requires every translation current; original-only works without translation. SRT contains text/timing, not fonts/colors; MP4 rendering remains pending. Build/device evidence: `.agents/testing.md`, T14-SRT-001.
+
+SRT code `47e3aa7` passed [Android CI #194](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117): build, lint, configured unit tests and Android 11 emulator writer tests. [Download APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38396624117/artifacts/11812800467). Real document-picker save and SRT playback on Sony still need verification.
+
+
+## MP4 video export prototype
+Open a real project → Export → choose original/translation/both → Render MP4. Keep the app foreground; backgrounding cancels rendering. After validation completes, Save MP4 opens Android's location picker. Choose local storage for offline use. Output: H.264/AAC, SDR only, <=10-minute sources, longest side capped to 1280 pixels without upscaling. Subtitle Style settings/order use the shared preview renderer; captions that overflow must be split or reduced in size. Original video is unchanged; external save is separate from rendering. Full T13 recovery, physical Sony acceptance and quality gates remain pending. Evidence: T14-MP4-001 in `.agents/testing.md`.
+
+MP4 code `e3b5e23` passed [Android CI #197](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38399395230): build, lint, configured unit tests and Android 11 real synthetic-video render tests. [Download the MP4 prototype APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38399395230/artifacts/11814203440). Physical Sony save/playback remains to be verified; see `.agents/testing.md`, T14-MP4-003.
+
+### Caption timing update — 0.5.2-speech-timing
+Caption generation now requires Whisper Base plus the small Silero speech detector (under 1 MB). In model setup, use **Unduh model yang belum tersedia**; an already verified Base model is reused. You can also import Base and Silero independently for offline setup. Media stays on-device. Create a new project from the original video to test new generation; saved captions and manual edits are not automatically replaced. A local diagnostic reproduced the reported failure and removed its long repetition with speech detection, but word errors and physical-device timing still need review. This is not a release-quality accuracy guarantee.
+
+
+### Caption model replacement — 0.5.3-turbo-caption
+The setup screen now starts with **Whisper Large-v3 Turbo q5_0** (~574 MB download), with **Base • ringan** (~148 MB) available explicitly. Both use the existing Silero speech detector. Choose the model, then download missing files or import the matching GGML model. Turbo uses more memory and may take longer than the video; Sony speed/thermal behavior and human-verified quality are still unverified. Start with a short NEW project; saved captions and edits are not overwritten. Processing remains offline after provisioning.
+The local private-video probe produced six separate Turbo captions with original-clock timestamps; two specialized Indonesian candidates instead collapsed the main dialogue into one long caption and were not selected. This is bounded local evidence, not a measured WER improvement or CP4 pass. Android build status and physical protocol are in `.agents/testing.md`.
+
+Code `fdd565f` passed [Android CI #206](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879), both build/lint/unit and emulator jobs. [Download 0.5.3 Turbo caption APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879/artifacts/12026632296). Native local sample comparison is recorded separately; physical Sony quality/performance acceptance remains pending.
+
+
+### Translation upgrade — 0.6.0-gemma-translation candidate
+Translation setup now defaults to **TranslateGemma 4B Q4_K_M**, with ML Kit available as an explicit lightweight alternative. Gemma requires a separate **2.49 GB** download, substantial RAM, and explicit acceptance of bundled Gemma terms/policy. Import the matching GGUF or download over Wi-Fi. After SHA/size verification, caption translation runs locally without internet. Try one short caption first; Sony memory/runtime and translation quality remain unverified for this candidate.
+To regenerate existing automatic results, enable **Ganti juga hasil terjemahan otomatis yang sudah ada**. Manual corrections are always protected; original text and timestamps are preserved. Long captions beyond the bounded context fail rather than silently truncate. Build/testing status lives in `.agents/testing.md`; candidate is not a release or CP4 pass.
+
+
+Code `3d7b4b3` passed [Android CI #209](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38992545226), including build, lint, unit and configured emulator tests. [Download 0.6.0 TranslateGemma APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/38992545226/artifacts/12086270453). Extract the ZIP and install the APK without clearing app data. Open translation setup, review Gemma terms, explicitly prepare the model and try one caption offline. Enable the replacement checkbox to regenerate existing automatic translations; manual corrections remain protected. Native host testing completed60 authored fixtures; known meaning/context errors and Sony performance limits remain, so review results before export.
+
+
+### Translation recovery — 0.6.1 candidate
+When translation stops, reopen the project → translation setup → **Lanjutkan sisa terjemahan**. Completed captions and their checkpoint are saved together, including when replacing old automatic results, so completed work is not translated again. Resume uses the original model and skips manually corrected, changed or deleted captions. **Hapus antrean tertunda** clears only the remaining work after confirmation; saved captions remain. Keep the app foreground while running. This increment resumes translation only; ASR generation and MP4 rendering still need a new run if interrupted. Build/device status: `.agents/testing.md`.
+
+Code `debe00e` passed [Android CI #211](https://github.com/ferdilpu-sudo/Subloka/actions/runs/39022946570): build, lint, unit/Room recovery tests and configured Android11 emulator tests including recovery controls. [Download 0.6.1 APK and reports](https://github.com/ferdilpu-sudo/Subloka/actions/runs/39022946570/artifacts/12097721367). Extract and install the APK without clearing app data; existing models are reused. Physical Sony interruption/reopen/resume testing remains pending.
+
+
+### Stable prototype updates — 0.6.2 setup
+Older CI APKs used temporary debug certificates and may require reinstalling when signatures differ. Do not uninstall before protecting projects/model files. A new key cannot reproduce the old signature; the first transition may still require backup/reinstall. Future updates must use the same private signing bundle and application ID. This remains a debug prototype, not a production release.
+
+Owner setup on Windows (Python, JDK/keytool or Android Studio JBR, GitHub CLI required):
+```powershell
+gh auth login
+python tools/prototype_signing.py setup --upload
+gh workflow run android-ci.yml --ref codex/t11-offline-asr-prototype
+```
+The setup creates/reuses `%USERPROFILE%\.subloka-signing\prototype-signing.json` and uploads it through stdin to the encrypted repository Actions secret `SUBLOKA_PROTOTYPE_SIGNING`. Keep a separate private backup of that file; never post it in chat or git. Setup refuses creating a new local key if an existing remote secret is detected. Do not replace/delete the key for later APKs.
+Only manual Android CI on the prototype branch produces **subloka-stable-prototype-apk**, after build and emulator jobs pass. Install that artifact's `subloka-prototype.apk`; **subloka-ci-test-only-and-reports** uses a temporary key and is not the update channel. Missing signing secret fails explicitly. A verification text records certificate and APK SHA256; compare certificate across updates. CI versionCode follows Android CI run_number; local builds default to2 and are not the update channel. Do not reset this workflow's numbering without planning versionCode continuity.
+First stable-key migration is not yet device-tested. Preserve the existing app until backup/migration is arranged. Subsequent verification: install an older stable-key APK, keep project/model data, install a newer stable-key APK with `adb install -r`, reopen projects and use models without download. App URI grants may require relinking after any uninstall.
+
+
+### Background ASR — 0.6.3 candidate
+ASR runs in a foreground service with an ongoing progress notification and Hentikan action. It can continue while switching apps or turning the screen off; reopening connects to the same in-process job. Allow notifications when prompted to see progress. Android force-stop/process death still requires a new transcription run; no chunk resume or automatic restart. Translations retain their existing resume behavior and MP4 remains foreground-only. Existing models and project schema unchanged. Candidate implementation; build/device evidence in .agents/testing.md. Use only the stable-key artifact for upgrades; do not uninstall or clear app data.
+
+Code `e7e355e` passed [Android CI #217](https://github.com/ferdilpu-sudo/Subloka/actions/runs/39103441312), including build/lint and Android11 emulator service lifecycle/cancel tests with a controlled worker. To produce the installable update with your existing key, manually run Android CI on `codex/t11-offline-asr-prototype` and download `subloka-stable-prototype-apk`. Install using `adb install -r`; do not uninstall or clear data. Physical background/screen-off inference on Sony remains to be tested.
+
+
+### Background translation prototype (0.6.4)
+Caption translation now has a foreground service with progress/stop notification and existing per-segment recovery. Model setup remains in the foreground. Android CI and Sony background translation acceptance for this increment are tracked in `.agents/testing.md`; do not infer real-weight screen-off success from controlled-worker tests. Existing models and stable signing key are reused.

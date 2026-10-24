@@ -8,6 +8,7 @@ data class ProjectSummary(
     val durationLabel: String,
     val resolutionLabel: String,
     val lastEditedLabel: String,
+    val statusLabel: String = "Tersimpan di perangkat",
 )
 
 enum class ModelState {

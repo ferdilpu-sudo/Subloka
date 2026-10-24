@@ -8,6 +8,10 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -41,27 +45,31 @@ class WhisperModelStore(
 
         try {
             val digest = MessageDigest.getInstance("SHA-256")
+            var written = 0L
+            val maxBytes = model.expectedSizeBytes ?: (200L * 1024 * 1024)
             FileOutputStream(temp).use { output ->
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 while (true) {
+                    currentCoroutineContext().ensureActive()
                     val count = input.read(buffer)
                     if (count < 0) break
                     if (count == 0) continue
+                    check(count.toLong() <= maxBytes - written) { "Model exceeds storage limit" }
                     output.write(buffer, 0, count)
+                    written += count
                     digest.update(buffer, 0, count)
                 }
                 output.fd.sync()
             }
 
+            require(model.expectedSizeBytes == null || written == model.expectedSizeBytes) { "Model size mismatch" }
             val actual = digest.digest().toHex()
             require(actual == model.expectedSha256) {
                 "Model checksum mismatch for ${model.id}: expected ${model.expectedSha256}, got $actual"
             }
 
-            if (target.exists() && !target.delete()) {
-                error("Cannot replace existing model: $target")
-            }
-            check(temp.renameTo(target)) { "Cannot finalize model install: $target" }
+            currentCoroutineContext().ensureActive()
+            Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             target
         } catch (error: Throwable) {
             temp.delete()

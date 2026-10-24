@@ -23,10 +23,10 @@ Status DONE tidak otomatis berarti rilis produk. Status SKIP tidak digunakan unt
 | T08 | Persistensi lokal dan aturan editor | T07, CP3 | Room/repository, revision, split/merge, autosave dan migration fixtures; unit/integration tests PASS | DONE |
 | T09 | Impor/pemutar/decode audio nyata | T08 | URI/relink, orientasi/audio track, PCM benar, sumber utuh, error tanpa audio dan codec diuji | DONE |
 | T10 | Evaluasi engine dan model offline | T09 | Benchmark dua bahasa/perangkat; model download/readiness; lisensi; kualitas/resource diukur; CP4 lulus atau BLOCKED | BLOCKED |
-| T11 | Pipeline ASR produksi | T10, CP4 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | TODO |
-| T12 | Pipeline translation produksi | T11 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | TODO |
-| T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | TODO |
-| T14 | Renderer dan ekspor MP4/SRT | T13, CP5 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | TODO |
+| T11 | Pipeline ASR produksi (prototipe terbatas diotorisasi ADR-029) | T10, CP4; pengecualian prototipe ADR-029 | Chunk offset/dedup/silence/cancel, timestamp valid, staging publish aman, tes ASR lulus | IN_PROGRESS |
+| T12 | Pipeline translation (prototipe ADR-030) | T11; pengecualian prototipe ADR-030 | EN↔ID offline, stale/manual protection, retry dan CAS teruji | IN_PROGRESS |
+| T13 | Koordinator job dan recovery | T12 | Satu job berat; process death/cancel/low storage/retry tidak merusak data; CP5 teknis lulus | IN_PROGRESS — translation recovery CI verified; physical/full recovery pending |
+| T14 | Renderer dan ekspor MP4/SRT | T13, CP5; bounded SRT exception ADR-031 | Preview/hasil sesuai, rotation/timing/audio valid, readability/overflow aman, SRT dua arah, cancel aman; tes ekspor lulus | IN_PROGRESS — SRT prototype only |
 | T15 | Integrasi dan hardening end-to-end | T14 | Seluruh FR/NFR ditelusuri; mode pesawat, adaptive/keyboard/accessibility, kualitas, lifecycle/perangkat PASS; CP6 lulus | TODO |
 | T16 | Paket rilis dan handoff | T15, CP6 | Build kandidat, checksum, petunjuk instalasi/model, known limits, sumber/lisensi, docs final; CP7 ditinjau | TODO |
 
@@ -1049,3 +1049,177 @@ T10 infrastructure/readiness smoke telah selesai, tetapi **T10 dan CP4 BLOCKED**
 - **Decision: public 30-WAV acquisition BLOCKED_NO_VERIFIED_INDEX.** End repetitive header/CSV hypothesis tests. Do not calculate trusted offsets from this CSV match. Reopen only with an authoritative index bound to the pinned archive, or a separately approved full-download alternative: 907,765,760 archive bytes (865.7 MiB from previous size evidence), hash verification, safe selective extraction and local disk preflight. No full download, new Range reads, WAV recovery or inference performed/authorized in this turn.
 - **Next actionable T10 work:** use the existing private independent holdout collection plan, 20 clean + 10 challenging, >=5 real consenting speakers and >=250 clean reference words. Do not rerun init or tests already PASS; collect real recordings and blind human references before audit/seal/inference. Public Atika does not replace this holdout. ASR 28.61% and ID->EN 24/30 gates, Android E2E and independent review remain unresolved. T10 remains BLOCKED (active phase), CP4 BLOCKED, T11 TODO.
 - Evidence: `.agents/evidence/t10-atika-csv-windows-match-acquisition-blocked-2026-10-11.json`. Docs-only change: inspected consistency of reported counts, source pins, status and next-action restrictions; no new regression suite needed. Product/schema/architecture unchanged.
+
+
+### T11 prototype authorization — 2026-10-12
+- User explicitly replied `lanjut` after being shown verified external Base results (clean 48/205=23.41%; TELDIALOG 22/83=26.51%) and asked to authorize T11 prototype integration despite CP4 BLOCKED. This permits bounded real in-app transcription, not production readiness or a CP4 PASS.
+- IN_PROGRESS: JNI Base inference, bounded PCM conversion/chunking, model import/download readiness, cancellation and atomic publication into a separate project, real processing/editor integration.
+- Acceptance for this increment: no fake ASR/translation on real projects; cancellation/failure cannot publish partial captions or replace existing projects; offline inference after explicit model provisioning; tests for PCM/time boundaries and revision guards; Android build/lint and physical smoke clearly distinguished.
+- Expected changes: engine/asr, app composition/viewmodel, project/editor UI, caption repository publication guard, Android CI, and existing agent docs. Native foreground-only prototype; full T13 recovery/foreground service and T14 export remain pending.
+
+
+### T11 prototype handoff — 2026-10-13
+- Implemented: JNI Base integration, PCM/time conversion, cancellable bounded staging, revision-protected complete publication, real projects/model/processing/editor flow, timestamp playback and timing edits.
+- Added test coverage and PR Android CI with native toolchain/APK reports. Local structural checks PASS; Gradle bootstrap blocked by network. Evidence T11-PROTOTYPE-001.
+- T11 IN_PROGRESS and CP4 BLOCKED: compile/CI and physical integration still require evidence. No claim of model-quality acceptance, automated translation, recovery, or export.
+- Updated README, architecture, schema (v1 unchanged; new repository contract), design, testing, plan, decisions. PRD unchanged; ADR-029 records existing user authorization.
+- Next: inspect CI results and fix failures, then physical short-video offline smoke before longer performance validation.
+
+- Draft PR: https://github.com/ferdilpu-sudo/Subloka/pull/1. CI `38334285944` build job PASS after fixing the cancellation test's exception ordering; see T11-PROTOTYPE-002. Added emulator JNI load/error test (not model inference). Preserve demo disclosure for legacy demo IDs with attached media. Physical smoke still NOT_RUN.
+
+
+### Final T11 prototype handoff — 2026-10-13
+- Tested code `150ec9af39d03444554195a077da0cc80c3c7af8` on PR #1: **T11-PROTOTYPE-003 PASS**, Android CI `38355668247` build + emulator jobs successful. APK and reports linked in testing.md.
+- Implemented and compiled: actual model provisioning/JNI/PCM transcription pipeline, safe publication to separate projects, source editor/timing/playback integration, cancel/retry and honest legacy demo disclosure.
+- **T11 remains IN_PROGRESS / CP4 BLOCKED.** Next ready action: short Sony offline in-app smoke and persisted-edit/cancellation checks. Physical inference is not established by the passing emulator missing-model test. Do not advance to production translation/export or re-label model quality as passed.
+- Documentation synchronized: README, agent README, plan, testing, decisions, architecture, schema, design, evidence JSON. PRD unchanged. No merge/release performed; draft PR https://github.com/ferdilpu-sudo/Subloka/pull/1.
+
+
+### T12 authorized start — 2026-10-13
+User reports Indonesian in-app transcription succeeded on the test phone; no claim that airplane mode, exact APK revision, persistence/cancel, timing accuracy or 10-minute performance were independently verified. User then authorized offline translation integration with `lanjut`. T12 IN_PROGRESS under ADR-030; T11 remains IN_PROGRESS and CP4 BLOCKED. Scope: model readiness/download UI, eligible-segment pipeline, CAS/manual protection, retry/cancel, editor integration and focused tests/CI.
+
+
+### T12 prototype handoff — 2026-10-13
+- Implemented at `4ed4de418d731635c8da2864a1c0797a2f0763d6`: explicit ML Kit readiness/download, contextual eligible-caption actions, bidirectional pipeline, per-segment CAS/manual protection, retry/cancel and editor reload. Source text/timing are preserved; current/manual translations are not auto-replaced.
+- **T12-PROTOTYPE-002 PASS**, CI `38365151582` both build and emulator jobs. APK/report link and limitations in testing.md. No physical translation result yet. T11 remains IN_PROGRESS with user-reported Indonesian transcription success; T12 IN_PROGRESS; CP4 BLOCKED.
+- Next: install the T12 prototype APK, open a transcribed project, prepare translation models explicitly, turn internet off, translate and verify manual-edit/stale/retry persistence on Sony. No need to rerun the external30 ASR benchmark.
+- Docs updated: README, agent README, plan, testing, ADR-030, architecture, design, schema (v1 unchanged), evidence JSON. PRD unchanged. Draft PR #1 updated; no merge or release.
+
+
+## Active increment — T14 SRT prototype / 2026-10-13
+User authorized `lanjut` after subtitle-export proposal. Implement FR10 only: validated UTF-8 original/translation/two separate files, saved through Android document picker after editor save barrier. No MP4, no T13/CP5 completion claim. Acceptance: exact numbering/timestamps, current-translation gate, snapshot isolation, explicit per-file success/cancel/error. Tests: domain serialization regressions, app document-output instrumentation, CI build/lint. Physical Sony save/playback pending.
+
+
+### T14 implementation handoff / 2026-10-13
+Created pure SRT serialization, document output writer/ViewModel, existing export UI integration and save barrier, domain/writer tests. T12-DEVICE-REPORTED-002 records basic translation/manual preservation user success. T14-SRT-001 local structural checks PASS; Android CI pending, physical SRT unverified. ADR-031 scopes exception; full T13, CP5, MP4 and CP4 remain unresolved. Docs updated: architecture/schema/design/testing/decisions/README. PRD FR10 unchanged.
+
+
+### Latest handoff — T14 SRT / 2026-10-13 / code 47e3aa7
+- Implemented original/translation/two-file SRT export from immutable saved captions, per-file Android document picker, UTF-8/timing validation and honest per-file failure/cancel handling. Version 0.4.0-srt-prototype.
+- T14-SRT-002/003: both CI #193/#194 build and emulator jobs SUCCESS. Final code 47e3aa748cf18a960302763fc9df75ddbdda714f. Guardrail/diff/evidence JSON checks PASS. User evidence T12-DEVICE-REPORTED-002 covers basic translation and manual-correction preservation only.
+- Next ready action: install APK artifact 11812800467 from run 38396624117; Export → Keduanya → Siapkan SRT → save .id.srt and .en.srt independently to local Downloads. Inspect corrected text and timestamps, load each track with video, cancel one picker and confirm the other saved file remains. Source edit must block translation export until reviewed/refreshed, with original-only available.
+- Unverified: actual DocumentsUI/physical playback, low-storage/provider cleanup, process death, full lifecycle/quality. T14 remains IN_PROGRESS; T13/CP5/MP4 pending and CP4 BLOCKED. No repeat of completed external30 benchmark needed.
+- Docs: README, agent index, architecture/design/schema, ADR-031, plan/testing/evidence updated; PRD FR10 unchanged, Room v1 unchanged. Draft PR #1 updated, no merge/release.
+
+
+## Active increment — T14 MP4 / 2026-10-13
+Authorized `lanjut saja`; SRT physical test remains unverified. Implement ADR-032 bounded MP4 render plus shared preview painter, real progress/cancel, staged output validation and save. Acceptance: same layout rule in preview/export; frame-timestamp text changes; audio/rotation retained; no output offered after cancellation/failure. Tests: actual synthetic-video Transformer encode/decode on emulator, boundary/overflow/style painter tests, cancellation and source-preservation checks. T14 remains IN_PROGRESS; T13/CP5 and CP4 not closed.
+
+
+### T14 MP4 implementation handoff / 2026-10-13
+Created shared subtitle painter, Media3 Transformer foreground exporter, private staging/save ViewModel, export UI progress/cancel/save, preview style/order integration and synthetic real-encode instrumentation. Local structural checks PASS (T14-MP4-001); CI pending. No schema migration; PRD unchanged. Docs updated architecture/schema/design/decisions/plan/testing/README. T14 remains IN_PROGRESS, physical SRT/MP4/provider/lifecycle tests pending, T13/CP5 and CP4 unresolved.
+
+
+### Latest handoff — MP4 prototype / 2026-10-14 / tested code e3b5e23
+- Completed implementation: shared preview/MP4 subtitle painter, H.264/AAC SDR foreground render, <=10-minute input, longest side <=1280, private staging/output validation, stop/background cancellation and separate document save. App version 0.5.0-mp4-prototype. No changes to original video/captions by export.
+- T14-MP4-003 PASS: CI #197 run 38399395230 both build and Android 11 emulator jobs. Portrait fixture corrected after historical FAIL T14-MP4-002; no assertion weakened. Artifact 11814203440. Guardrail/diff/JSON checks PASS for final docs.
+- Next ready action: short physical Sony MP4 protocol in testing.md. No physical SRT/MP4 success reported yet; continuing work is not test attestation. User-reported ASR/translation/manual protection success remains scoped T12-DEVICE-REPORTED-002.
+- T14 IN_PROGRESS until physical/export acceptance; full T13/CP5 and CP4 still unresolved. Do not infer release/quality/performance readiness from synthetic emulator tests. Do not rerun completed external30 ASR benchmark.
+- Docs updated: README/agent index, testing/plan and MP4 evidence; architecture/schema/design/ADR-032 updated with code. PRD unchanged, Room v1 unchanged. Draft PR #1 retained; no merge/release.
+
+## Active increment — editor overlap repair / 2026-10-14
+IN_PROGRESS, authorized source audit using uploaded uiux-designer guide. User reports MP4 and SRT successful; record as user-reported basic success only. P1 usability: unbounded header title, fixed preview/actions crowd editor, non-scrolling selected editor/timing/style; P1 accessibility: undersized text actions and overflowing style choices. Preserve Caption/Timing/Style IA. Acceptance: bounded header, accessible actions, scrollable tools at narrow/short sizes and large fonts, preview optional while editing. Scope only editor layout; no engine/schema changes. Verify compile/lint and focused UI regression tests; physical appearance remains unverified without device evidence.
+
+### Latest handoff — editor overlap repair / 2026-10-14
+- Tested code `2429895a5451c58af5c8e0fd40245536d0b79bb0`, APK 0.5.1-editor-layout. Bounded project title, usable Material header actions/selected tabs, optional smaller preview, scrollable caption/timing/style, wrapped style chips and weighted toggle labels. Removed stale export-unavailable copy and inert undo/redo decoration. Wide preview/tools also scroll at reduced height. Source audit follows user-provided uiux-designer guidance; familiar IA preserved.
+- UI-LAYOUT-002 PASS: CI #201 `38557133303` build and emulator jobs, including explicit compact 320x480dp/150% font UI regression. Artifact `11890139444`. Earlier compile failure preserved in testing.md; fixed viewport capture, no weakened assertions. Code implementation/emulator verification complete, physical UI acceptance pending.
+- User-reported basic MP4/SRT success recorded in UI-LAYOUT-001; no need to repeat ASR benchmark. Next ready step: install updated APK and check actual keyboard, scrolling, large text and export on Sony without clearing project data.
+- T14 remains IN_PROGRESS; CP4 BLOCKED, full T13/CP5 unresolved. No merge/release. Docs changed: design/plan/testing. PRD, schema, architecture and engine contracts unchanged. Guide ZIP not committed.
+
+## Active increment — ASR timing/repetition recovery / 2026-10-15
+IN_PROGRESS. User reports incorrect generated timing and supplies original video, rendered MP4 and SRT for local diagnosis. Original/render decoded PCM identical; malformed caption content/timing predates export. Source audit: direct 30s native segment publication accepts punctuation-only output and long repeated-phrase runs. Implement bounded retry on shorter audio slices for these suspicious windows, preserving absolute sample offsets, cancellation and atomic publication; fail explicitly if retry remains suspicious rather than silently deleting repeated speech. This is a recovery heuristic, not proven speech alignment or VAD. Acceptance: normal/repeated legitimate speech retained, retry replaces rather than duplicates first pass, tail/gap offsets correct, failure/cancel leaves no published partial captions/cache. Actual clip improvement remains pending native/device measurement. User media must not be committed or uploaded to public CI.
+
+Recovery experiment update: pinned Base native desktop harness reproduced all 18 supplied SRT captions and timestamps exactly using original decoded/resampled audio. Fixed 10s retry introduced frequent unrelated repeated phrases; rejected and its uncommitted implementation removed. Next evaluate speech detection before inference with original timeline preservation. No claim that shortening windows fixes alignment.
+
+Implementation selection: ADR-033 enables native Silero speech detection, reusing pinned original-time mapping; no fixed-10s retry or heuristic deduplication. ASR-TIMING-001 reproduces prior failure 18/18 exactly and records local VAD output [0,5,0,1] with repetition removed. Both models explicitly provisioned and checksummed, existing Base reused, existing captions untouched. Candidate 0.5.2-speech-timing implemented; Android build/emulator and physical Sony checks pending. Quality/sync task remains IN_PROGRESS.
+
+### Latest handoff — speech timing / 2026-10-15
+- Tested implementation `f6662f1e0cb623d037eae160c2677de0e8b17298`, version 0.5.2-speech-timing. Native pinned Silero VAD precedes Whisper inference; original-time mapping plus outer offset preserved, punctuation-only output excluded. Explicit two-model setup reuses verified Base, supports separate offline imports, and does not alter existing captions. No arbitrary global timestamp shift or repetition deletion.
+- ASR-TIMING-001: original/render decoded audio identical; baseline reproduces supplied SRT 18/18 exactly. Fixed-10s alternative rejected. VAD sample output 6 segments, long repetition gone, original-clock starts 42.42s/92.72s; word errors remain. Committed diagnostic harness repeated candidate output exactly. No claim of manually verified alignment or broad quality improvement.
+- ASR-TIMING-002: CI #203 `38733201582` build/lint/unit and emulator jobs SUCCESS. Artifact `11970159977`. Local guardrail/diff checks PASS, worktree synchronized. Next ready action: Sony install/new-project/explicit VAD setup/offline generation comparison using supplied original video. No need to upload that video again or rerun completed external30 benchmark.
+- ASR quality/timing physical acceptance still IN_PROGRESS; CP4 BLOCKED and T13/CP5/full T14 unresolved. No merge/release. Docs updated: README, ADR-033, architecture/design/plan/testing; PRD and Room schema unchanged. Private media and transcript TSV excluded from repository.
+
+
+## Active increment — Indonesian ASR replacement evaluation / 2026-10-16
+IN_PROGRESS. User requests a more accurate caption engine. Evaluate pinned Indonesian fine-tuned Base/Small candidates against the private supplied video using the existing native harness and Silero mapping before changing Android defaults. Acceptance: usable original-clock timestamps, no new repetition, reproducible local native inference; quality claims remain bounded without human reference, and Sony performance must be measured separately. Preserve offline processing, English support, existing captions and completed benchmark evidence. Scope initially diagnostic harness/evidence; integrate only a candidate that passes caption suitability. No private audio or transcript committed.
+
+Candidate implementation selection: ADR-034, Turbo q5_0 plus existing Silero, explicit Turbo/Base choice. Local probe yields separate main-dialogue captions unlike the two specialized ID candidates. Implement model selection/readiness, exact-size bounded installation, clear setup copy and focused regressions. Android CI and Sony acceptance pending; quality remains IN_PROGRESS.
+
+### Implementation handoff — ASR replacement / 2026-10-16
+0.5.3-turbo-caption implemented under ADR-034 with offline multilingual Turbo default and explicit Base alternative. ASR-REPLACEMENT-001 records native comparison and private-data-safe evidence; six Turbo captions, no independent accuracy claim, ~7.45x host time versus Base on this sample. Guardrail/diff PASS; Android CI pending. Sony performance and human quality acceptance remain IN_PROGRESS; CP4 BLOCKED unchanged. PRD unchanged, Room v1 unchanged; architecture/design/schema/decisions/README/testing synchronized.
+
+### Latest handoff — Turbo caption candidate / 2026-10-16
+- Implemented/tested code fdd565fc25a57c961f9c9188c050f70c880f559d, version 0.5.3-turbo-caption. Turbo q5_0 is setup default; Base remains explicit lightweight choice. Models are pinned, installed independently, exact-size/SHA checked; Silero reused. Readiness follows selection, cannot change during a job, and stale async readiness cannot enable a different model. Original source, stored captions/manual edits, translation and export contracts preserved.
+- ASR-REPLACEMENT-001: native host comparison complete, six Turbo captions with separate original-clock bounds; word/timing accuracy not human verified. Two specialized ID candidates not promoted due to long merged caption. Turbo costs substantially more host runtime/RSS than Base.
+- ASR-REPLACEMENT-002 PASS: CI #206 run 38854509879 both build/lint/unit and emulator jobs SUCCESS. APK/report artifact https://github.com/ferdilpu-sudo/Subloka/actions/runs/38854509879/artifacts/12026632296. Model license bundled. Local consistency/guardrail checks PASS.
+- Next ready action: install without clearing data, new short project, select Turbo, explicitly prepare ~574 MB model, disconnect network, generate and compare words/timing on Sony; record elapsed time and temperature. Base available if Turbo is too heavy. Existing captions are not regenerated. No need to reupload video or repeat the completed external30 baseline.
+- Implementation and configured CI complete; physical quality/performance remain IN_PROGRESS, CP4 BLOCKED unchanged; full T13/CP5/T14 acceptance unresolved. No merge/release. ADR-034/architecture/design/schema/testing/README updated, PRD unchanged and Room v1 unchanged.
+
+
+## Active increment — TranslateGemma / 2026-10-17
+IN_PROGRESS. User requests improved translation after reporting better Turbo transcription. Reconstruct lost uncommitted work from prior session. Integrate pinned offline TranslateGemma 4B Q4_K_M, explicit terms consent and model install, preserve manual corrections/source/timing, optional replacement of automatic output. Verify bounded install, cancellation and native coexistence in CI. Previous scratch probe artifacts unavailable; do not claim recovered implementation tested based on those results. CP4 remains BLOCKED; physical performance/quality pending.
+
+
+### TranslateGemma checkpoint / 2026-10-17
+Implementation 60ae291 includes pinned native model/install/UI, terms consent, explicit machine replacement and protected manual CAS. TRANSLATION-GEMMA-002 local shared-core inference: 60 outputs, cancellation/oversize PASS, ~2.52GiB peak host RSS. Known modality/context errors remain; no CP4 promotion. CI #208 unit tasks passed; Android compilation/emulator still pending at this checkpoint. Additional bundled Mozilla llamafile attribution included before APK delivery. PRD unchanged; Room v1 unchanged. User-reported Turbo improvement recorded separately from measured quality. Next: finish CI and inspect native APK exports, then physical short-caption setup/offline review.
+
+
+### Latest handoff — TranslateGemma / 2026-10-17
+- Implementation and configured verification COMPLETE for prototype0.6.0-gemma-translation, tested code3d7b4b31ed951b864446114daf7d709d45695d23. Pinned offline TranslateGemma4B Q4_K_M default, explicit lightweight ML Kit alternative; terms consent, exact-size/SHA install/import, native cancellation and optional replacement of existing automatic results. Manual corrections/source/timestamps preserved; no Room migration.
+- TRANSLATION-GEMMA-002: 60 public authored fixture outputs, cancellation/oversize PASS; 128.165s, peak2640928KiB host RSS. Eight previously flagged failures improved under AI observation; prohibition/context errors remain. No independent quality score or Sony performance claim.
+- TRANSLATION-GEMMA-003: CI #208 and final #209 SUCCESS, build/lint/unit/emulator; final ZIP digest/native exports/license packaging verified. APK https://github.com/ferdilpu-sudo/Subloka/actions/runs/38992545226/artifacts/12086270453 . No merge/release.
+- Next ready action: update APK without clearing data, open existing project, choose TranslateGemma, review/accept terms, explicitly prepare2.49GB model. Disconnect network and try one caption. Enable replacement checkbox to regenerate existing automatic text; verify manual corrections and timestamps unchanged. Record elapsed time/RAM/thermals on Sony; select ML Kit explicitly if Gemma is too heavy.
+- Physical quality/performance remains IN_PROGRESS; CP4 BLOCKED, full T13/CP5/T14 acceptance unresolved. Do not repeat completed external30 ASR benchmark. User reports better Turbo transcription; this is not formal WER signoff.
+- Updated ADR-035, architecture/design/schema, README, testing/evidence/plan; PRD unchanged and Room v1 unchanged. Draft PR #1 retained. Follow-up commit records evidence only.
+
+
+## Active increment — T13 translation recovery / 2026-10-17
+IN_PROGRESS, authorized user "oke, lanjut" after recovery proposal. Scope first: durable translation job/resume after foreground interruption or process death, including replacement of existing machine text. Atomic result/checkpoint commits, original engine binding, manual/revision protection; tests reopen database and interrupted replacement. Full ASR chunk recovery/background execution/export recovery remain separate T13 increments. User reports good TranslateGemma output and sufficiently smooth Sony use: ~10min translation-only for a2min video, approximate self-report, not instrumented benchmark or CP4 pass.
+
+
+### Latest handoff — translation recovery / 2026-10-18
+- Implemented and CI verified: 0.6.1-translation-recovery, tested code debe00ed5bf2657041ceb1a2c5bb55186b91bbad. Durable pending translation queue, atomic caption/checkpoint commit, original-engine binding, resume and confirmed discard; manual/source revision protection. Engines unchanged.
+- RECOVERY-TRANSLATION-002 PASS: CI #211 run39022946570 build and Android11 emulator, including Room recovery cases and TranslationRecoveryUiTest. Artifact12097721367. No local Android build claim; prior local Gradle limitation recorded.
+- Physical Sony stop/process-kill/reopen continuation remains unverified. Next ready action: install updated APK without clearing data, interrupt after saved translations, reopen translation setup and resume; verify completed captions are not repeated. Existing models reused.
+- Translation implementation/configured CI complete; full T13 remains IN_PROGRESS, CP5 pending, CP4 BLOCKED. ASR/MP4 resume/background execution not added. No merge/release; draft PR1 retained.
+- Updated testing/plan/README with final evidence; ADR-036, architecture/schema/design updated with implementation. PRD unchanged, Room v1 schema unchanged. User reports good translation and about10min translation-only for2min video, not an instrumented performance/quality pass.
+
+
+## Active increment — stable prototype APK signing / 2026-10-18
+IN_PROGRESS, user authorized lanjut after upgrade failure and successful translation resume. Prepare durable owner-held signing key, explicit signed artifact after CI gates, increasing build version code and Windows setup script. No private key in git/artifacts; missing secret must not fall back to temporary signing. Existing CI debug certificate is unavailable, so first migration may need backup/reinstall. Physical in-place update remains required. ASR background service is next, not included here.
+
+
+### Latest handoff — stable signing / 2026-10-18
+IMPLEMENTED; SIGNING-001 local checks PASS, Android CI pending, signed APK/physical upgrade pending owner secret provisioning. Added tools/prototype_signing.py (setup/reuse/upload/sign/verify), manual gated signing job, test-only artifact label, CI run_number versionCode and private-key ignore rules. Existing package identity/model files unchanged. User-reported translation resume recorded RECOVERY-TRANSLATION-DEVICE-001; full process death/CP5 not inferred. Connector lacks secret-write capability; prepared owner command in README is final missing setup, not a request to share credentials. First stable-key migration may need backup/reinstall; do not advise uninstall before protecting project/model data. PRD/schema/design unchanged; architecture/ADR037/README/testing/plan updated. CP4 BLOCKED, fullT13 IN_PROGRESS. Next: owner setup + manual gated build, two stable-key APK upgrade test; ASR foreground-service increment thereafter. No merge/release.
+
+
+## Signing verifier repair / 2026-10-18
+IN_PROGRESS. Manual run39093334123 build/emulator PASS, signing fails at textual signer comparison after apksigner verify succeeds. Investigate Build Tools37 output labels; retain strict fingerprint checking and existing owner key. No need to regenerate secret.
+
+
+### Latest handoff — signer label repair / 2026-10-18
+Implemented repair to tools/prototype_signing.py plus tools/test_prototype_signing.py in CI; SIGNING-002 local reproduction and actual fixed APK signing PASS. Existing keytool bundle validation and apksigner cryptographic verify remain required; all recognized signer certificate digests must equal pinned bundle fingerprint. Build Tools37 uses V3.0 Signer: label; original parser assumed Signer #1. Source APK from owner manual run39093334123, throwaway local signing key only. Build/emulator of prior code PASS; owner-key signing failed historically and remains pending fresh manual workflow at new head. Rerun old workflow reuses old commit and is insufficient. No owner key rotation or app reinstall now. PRD/schema/design/architecture unchanged; documentation/test evidence updated. Full T13/CP5 pending; ASR background not added; no merge/release.
+
+
+## Active increment — ASR foreground service / 2026-10-18
+IN_PROGRESS, user authorized lanjut after stable-key migration and video permission recovery. Scope service-owned ASR across Activity stop/destroy, notification progress/cancel/reopen and bounded wake lock. Preserve single-heavy-job UI locking and atomic revision-guarded caption publication. No automatic restart/chunk resume after process death; translation/MP4 policy unchanged. Test service lifecycle with controlled worker plus existing engine/database regressions. Physical Sony and modern Android behavior need separate evidence.
+
+
+### Latest handoff — ASR foreground service / 2026-10-18
+- Implemented/configured CI verified prototype0.6.3-background-asr, code e7e355e21bf240a81ce32181a2733ad141b786a2. Service owns native ASR/Room CAS publication, progress/cancel notification and bounded wake lock; Activity stop/clear no longer cancels ASR. Process-local state reconnects UI. Translation/model setup/MP4 retain foreground cancellation.
+- ASR-SERVICE-002 PASS: final #217 run39103441312 build117604224251 and media-device117604224152; initial #216 also PASS. Controlled-worker instrumentation covers Activity stop/destruction/reopen, notification cancel, late cancellation after saved result. Models and database schema unchanged.
+- Next required action: owner runs gh workflow run android-ci.yml --ref codex/t11-offline-asr-prototype; use subloka-stable-prototype-apk and adb install -r. Signed job intentionally skipped for PR. Do not uninstall or regenerate signing key. Then Sony short new-project test: start ASR, Home, screen off briefly, reopen via notification, confirm saved captions; separately cancel. Real-weight background/thermal and modern API behavior pending.
+- Process death/force-stop still needs a new ASR run; no chunk resume/autorestart. T13 remains IN_PROGRESS, CP5 unresolved, CP4 BLOCKED. No merge/release. Architecture/design/ADR038/README/testing updated; PRD and Room schema unchanged. Stable-key migration and video permission workaround USER_REPORTED_SUCCESS recorded SIGNING-003; not proof of future in-place upgrade yet.
+
+
+## 2026-10-18 ASR cancellation follow-up / IN_PROGRESS
+User reports background completion PASS but notification Hentikan has no visible response. Inspect cancellation acknowledgement, native cleanup and error classification; preserve busy state until worker exits. No release or checkpoint closure.
+
+
+## 2026-10-18 native ASR cancellation / IN_PROGRESS
+Previous acknowledgement build5a85a9b/manual run39128241166 build, emulator and stable signing SUCCESS, verified via connector. User reports acknowledgement now visible but2–3 minute wait during transcription. Root source inspection identifies missing forwarding of abort callback into scheduled CPU graphs. Added exact-source guarded CMake patch (ADR-039); host native build/Android CI/device timing must be recorded before claiming resolved. Model/key/schema unchanged; do not uninstall.
+
+
+## 2026-10-19 background translation / IN_PROGRESS
+Prior ASR code281bbf1: manual39138025048 build/media/stable-signing verified SUCCESS. User confirmed immediate stop on18Oct and cancel/restart through saved captions on19Oct; bounded Sony user-reported acceptance, not full CP4/CP5.
+Implement0.6.4-background-translation per ADR-040: independent service/task/session, foreground model setup unchanged, notification permission at explicit start/resume, same atomic Room checkpoint/CAS. Tests cover Activity stop/destruction/recreation, live checkpoint still publishable after recreation, notification cancel, delayed cleanup and commit/cancel race. Guardrails/diff PASS. Android CI and real Gemma background/cancel/resume pending. PRD/schema unchanged; architecture/design updated. Next: CI then stable-key manual build and Sony translation background trial; no uninstall/model download required.
