@@ -1,5 +1,6 @@
 #pragma once
 #include "llama.h"
+#include "gemma_timing.h"
 #include <algorithm>
 #include <atomic>
 #include <mutex>
@@ -12,6 +13,7 @@ class GemmaSession {
     llama_model *model = nullptr;
     llama_context *ctx = nullptr;
     std::atomic<bool> stopped{false};
+    unsigned long long captionAttempt = 0;
     static bool abortDecode(void *p) { return static_cast<GemmaSession *>(p)->stopped.load(); }
     void check() { if (stopped.load()) throw std::runtime_error("PROCESS_INTERRUPTED"); }
     std::vector<llama_token> tokenize(const std::string &s, bool bos, bool special) {
@@ -43,6 +45,7 @@ public:
     GemmaSession &operator=(const GemmaSession &) = delete;
     void cancel() { stopped.store(true); }
     std::string translate(const std::string &text, bool fromId) {
+        ++captionAttempt;
         check();
         if (text.empty() || text.size() > 16384) throw std::runtime_error("INPUT_TOO_LONG");
         const std::string src = fromId ? "Indonesian" : "English", dst = fromId ? "English" : "Indonesian";
@@ -54,17 +57,24 @@ public:
         auto suffix = tokenize("<end_of_turn>\n<start_of_turn>model\n", false, true);
         tokens.insert(tokens.end(), suffix.begin(), suffix.end());
         if (tokens.size() + 256 > 1024) throw std::runtime_error("INPUT_TOO_LONG");
-        llama_memory_clear(llama_get_memory(ctx), true);
-        for (size_t i = 0; i < tokens.size(); i += 128) {
-            check(); auto n = static_cast<int32_t>(std::min(size_t(128), tokens.size() - i));
-            if (llama_decode(ctx, llama_batch_get_one(tokens.data() + i, n))) throw std::runtime_error("MODEL_FAILURE");
+        {
+            GemmaPhaseTiming timing("prefill", captionAttempt);
+            llama_memory_clear(llama_get_memory(ctx), true);
+            for (size_t i = 0; i < tokens.size(); i += 128) {
+                check(); auto n = static_cast<int32_t>(std::min(size_t(128), tokens.size() - i));
+                if (llama_decode(ctx, llama_batch_get_one(tokens.data() + i, n))) throw std::runtime_error("MODEL_FAILURE");
+                timing.tokens += n;
+            }
+            timing.outcome = "returned";
         }
+        GemmaPhaseTiming generation("generation", captionAttempt);
         auto sampler = llama_sampler_init_greedy();
         std::string output;
         try {
             for (int i = 0; i < 256; ++i) {
                 check(); auto token = llama_sampler_sample(sampler, ctx, -1);
                 if (llama_vocab_is_eog(llama_model_get_vocab(model), token)) {
+                    generation.outcome = "returned";
                     llama_sampler_free(sampler); return output;
                 }
                 std::vector<char> piece(256);
@@ -72,6 +82,7 @@ public:
                 if (n < 0) { piece.resize(-n); n = llama_token_to_piece(llama_model_get_vocab(model), token, piece.data(), piece.size(), 0, false); }
                 if (n < 0) throw std::runtime_error("MODEL_FAILURE");
                 output.append(piece.data(), n);
+                ++generation.tokens;
                 if (llama_decode(ctx, llama_batch_get_one(&token, 1))) throw std::runtime_error("MODEL_FAILURE");
             }
             throw std::runtime_error("OUTPUT_TOO_LONG"); // Never publish a truncated caption.

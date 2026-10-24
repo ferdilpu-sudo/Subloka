@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.14-translation-timing"
+        versionName = "0.6.15-native-timing"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
