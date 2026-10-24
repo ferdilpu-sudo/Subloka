@@ -17,8 +17,6 @@ FetchContent_Declare(llama GIT_REPOSITORY https://github.com/ggml-org/llama.cpp.
 FetchContent_MakeAvailable(llama)
 add_library(subloka_translation SHARED gemma_jni.cpp)
 target_compile_features(subloka_translation PRIVATE cxx_std_17)
-target_compile_definitions(subloka_translation PRIVATE
-    $<$<CONFIG:Debug>:SUBLOKA_TRANSLATION_MEMORY_PROBE>)
 # Whisper uses a different ggml revision. Prevent dynamic symbol interposition.
 target_link_options(subloka_translation PRIVATE "-Wl,--exclude-libs,ALL")
 target_link_libraries(subloka_translation PRIVATE llama android log)
