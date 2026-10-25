@@ -61,6 +61,7 @@ fun EditorScreen(
     onVideoError: () -> Unit = {},
     onGenerate: () -> Unit = {},
     onRequestTranslation: (String?) -> Unit = {},
+    onRetrySave: ((List<CaptionSegment>, CaptionStyle) -> Unit)? = null,
 ) {
     if (initialSegments.isEmpty()) {
         Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -183,6 +184,7 @@ fun EditorScreen(
                 saveFailed = saveFailed,
                 title = projectTitle,
                 exportAvailable = !saveFailed,
+                onRetrySave = onRetrySave?.let { retry -> { retry(segments, style) } },
             )
             if (!demoMode && sourceUnavailable) {
                 Text("Video tidak dapat dibuka. Tautkan file asli untuk memulihkan pemutaran.",
@@ -271,6 +273,7 @@ private fun ProjectTopBar(
     saveFailed: Boolean,
     title: String,
     exportAvailable: Boolean,
+    onRetrySave: (() -> Unit)?,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -285,6 +288,9 @@ private fun ProjectTopBar(
             Text(saveStatusText, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
                 style = MaterialTheme.typography.labelSmall)
+            if (saveFailed && onRetrySave != null) {
+                TextButton(onClick = onRetrySave) { Text("Coba simpan lagi") }
+            }
         }
         FilledTonalButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
     }

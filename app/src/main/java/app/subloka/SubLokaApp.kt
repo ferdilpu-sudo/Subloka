@@ -206,6 +206,7 @@ fun SubLokaApp(
                         }
                     },
                     saveStatusText = saveState.label(), saveFailed = saveState == PersistenceSaveState.FAILED,
+                    onRetrySave = persistence::retryEditorSave,
                     onSegmentsPersist = persistence::persistSegments, onStylePersist = persistence::persistStyle,
                     onBack = ::back, onExport = { snapshot ->
                         persistence.persistSegments(snapshot)
@@ -259,5 +260,5 @@ private fun PersistenceSaveState.label(): String = when (this) {
     PersistenceSaveState.LOADING -> "Menyiapkan penyimpanan…"
     PersistenceSaveState.SAVING -> "Menyimpan…"
     PersistenceSaveState.SAVED -> "✓ Tersimpan lokal"
-    PersistenceSaveState.FAILED -> "! Gagal menyimpan"
+    PersistenceSaveState.FAILED -> "Perubahan belum tersimpan"
 }

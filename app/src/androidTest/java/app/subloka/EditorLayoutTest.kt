@@ -15,9 +15,54 @@ import app.subloka.feature.editor.EditorScreen
 import org.junit.Rule
 import org.junit.Test
 import org.junit.Assert.assertTrue
+import kotlinx.coroutines.*
 
 class EditorLayoutTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun repeatedNavigationFlushDoesNotAcknowledgeWriteFailure() = runBlocking {
+        val store = androidx.lifecycle.ViewModelStore()
+        try {
+            val model = withContext(Dispatchers.Main) {
+                val app = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                    .targetContext.applicationContext as android.app.Application
+                androidx.lifecycle.ViewModelProvider(store,
+                    androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory(app))[SubLokaViewModel::class.java]
+            }
+            suspend fun flush(): Boolean {
+                val result = CompletableDeferred<Boolean>()
+                withContext(Dispatchers.Main) { model.flush { result.complete(it) } }
+                return withTimeout(10_000) { result.await() }
+            }
+            assertTrue(flush())
+            // Inject a failed write without damaging the device database.
+            withContext(Dispatchers.Main) {
+                SubLokaViewModel::class.java.getDeclaredField("writeFailed").apply {
+                    isAccessible = true
+                    setBoolean(model, true)
+                }
+            }
+            assertTrue(!flush())
+            assertTrue(!flush())
+        } finally { withContext(Dispatchers.Main) { store.clear() } }
+    }
+
+    @Test fun failedSaveRetriesCurrentCorrectionAndBlocksExport() {
+        val caption = CaptionSegment("retry", 0, 2_000_000, SourceLanguage.INDONESIA,
+            "Sebelum koreksi", "", TranslationStatus.MISSING)
+        var retried: List<CaptionSegment>? = null
+        compose.setContent {
+            MaterialTheme {
+                EditorScreen(listOf(caption), CaptionStyle(), null, "Perubahan belum tersimpan", true,
+                    {}, {}, {}, {}, demoMode = false,
+                    onRetrySave = { segments, _ -> retried = segments })
+            }
+        }
+        compose.onNodeWithText("Ekspor").assertIsNotEnabled()
+        compose.onNodeWithText("Teks asli").performScrollTo().performTextReplacement("Koreksi terbaru")
+        compose.onNodeWithText("Coba simpan lagi").performClick()
+        compose.runOnIdle { assertTrue(retried?.single()?.sourceText == "Koreksi terbaru") }
+    }
 
     @Test fun shortLandscapeShowsPreviewAlongsideReachableCaptionAndTools() {
         var exported = false

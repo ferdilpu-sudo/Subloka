@@ -233,7 +233,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         queue.trySend {
             captionsRepo.restoreSnapshot(id, segments)
             if (_project.value?.id == id) { _segments.value = segments; _project.value = projectsRepo.find(id) }
-            refreshProjects(); _saveState.value = PersistenceSaveState.SAVED
+            refreshProjects(); _saveState.value = if (writeFailed) PersistenceSaveState.FAILED else PersistenceSaveState.SAVED
         }
     }
     fun persistStyle(style: CaptionStyle) {
@@ -243,11 +243,31 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         queue.trySend {
             projectsRepo.saveStyle(id, style)
             if (_project.value?.id == id) { _style.value = style; _project.value = projectsRepo.find(id) }
+            _saveState.value = if (writeFailed) PersistenceSaveState.FAILED else PersistenceSaveState.SAVED
+        }
+    }
+    fun retryEditorSave(segments: List<CaptionSegment>, style: CaptionStyle) {
+        if (_asr.value.busy) return
+        val id = _project.value?.id ?: return
+        val snapshot = segments.toList()
+        _saveState.value = PersistenceSaveState.SAVING
+        queue.trySend {
+            captionsRepo.restoreSnapshot(id, snapshot)
+            projectsRepo.saveStyle(id, style)
+            if (_project.value?.id == id) {
+                _segments.value = snapshot
+                _style.value = style
+                _project.value = projectsRepo.find(id)
+            }
+            refreshProjects()
+            // A navigation request must never clear a failed write. Only a full
+            // successful editor retry acknowledges the failed snapshot.
+            writeFailed = false
             _saveState.value = PersistenceSaveState.SAVED
         }
     }
     fun flush(onComplete: (Boolean) -> Unit) {
-        queue.trySend { val success = !writeFailed; writeFailed = false; onComplete(success) }
+        queue.trySend { onComplete(!writeFailed) }
     }
     private fun refreshCaptionReadiness() {
         val generation = ++readinessGeneration
