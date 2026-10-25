@@ -20,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
 import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.CaptionDisplayMode
 import app.subloka.core.domain.CaptionStyle
@@ -54,6 +57,10 @@ fun StyleWorkspace(
             }
             Text("Ukuran teks asli · ${style.sourceSizePercent}%")
             Slider(
+                modifier = Modifier.semantics {
+                    contentDescription = "Ukuran teks asli"
+                    stateDescription = "${style.sourceSizePercent} persen"
+                },
                 value = style.sourceSizePercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(sourceSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
@@ -61,6 +68,10 @@ fun StyleWorkspace(
 
             Text("Ukuran terjemahan · ${style.translationSizePercent}%")
             Slider(
+                modifier = Modifier.semantics {
+                    contentDescription = "Ukuran terjemahan"
+                    stateDescription = "${style.translationSizePercent} persen"
+                },
                 value = style.translationSizePercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(translationSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
@@ -71,6 +82,10 @@ fun StyleWorkspace(
 
             Text("Jarak dari bawah · ${style.bottomPositionPercent}%")
             Slider(
+                modifier = Modifier.semantics {
+                    contentDescription = "Jarak dari bawah"
+                    stateDescription = "${style.bottomPositionPercent} persen"
+                },
                 value = style.bottomPositionPercent.toFloat(),
                 onValueChange = { onStyleChange(style.copy(bottomPositionPercent = it.toInt())) },
                 valueRange = 8f..35f,
@@ -92,6 +107,7 @@ private fun ToggleRow(label: String, checked: Boolean, onCheckedChange: (Boolean
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, modifier = Modifier.weight(1f).padding(end = 12.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = label })
     }
 }

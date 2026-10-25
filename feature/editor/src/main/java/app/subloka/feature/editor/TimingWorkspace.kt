@@ -7,6 +7,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import app.subloka.core.designsystem.SecondaryAction
 import app.subloka.core.domain.CaptionSegment
 
@@ -19,12 +21,12 @@ fun TimingWorkspace(segment: CaptionSegment, minimumStartUs: Long, maximumEndUs:
         Text(segment.sourceText, style = MaterialTheme.typography.bodyMedium)
         Text("Waktu caption", style = MaterialTheme.typography.titleMedium)
         Text("Awal: ${formatTime(segment.startUs)}")
-        NudgeButtons(canNudge = { delta -> segment.startUs + delta >= minimumStartUs && segment.startUs + delta < segment.endUs }) { delta ->
+        NudgeButtons("awal", canNudge = { delta -> segment.startUs + delta >= minimumStartUs && segment.startUs + delta < segment.endUs }) { delta ->
             val start = segment.startUs + delta
             if (start >= minimumStartUs && start < segment.endUs) onChange(start, segment.endUs)
         }
         Text("Akhir: ${formatTime(segment.endUs)}")
-        NudgeButtons(canNudge = { delta -> segment.endUs + delta > segment.startUs && segment.endUs + delta <= maximumEndUs }) { delta ->
+        NudgeButtons("akhir", canNudge = { delta -> segment.endUs + delta > segment.startUs && segment.endUs + delta <= maximumEndUs }) { delta ->
             val end = segment.endUs + delta
             if (end > segment.startUs && end <= maximumEndUs) onChange(segment.startUs, end)
         }
@@ -33,12 +35,14 @@ fun TimingWorkspace(segment: CaptionSegment, minimumStartUs: Long, maximumEndUs:
 }
 
 @Composable
-private fun NudgeButtons(canNudge: (Long) -> Boolean, onNudge: (Long) -> Unit) {
+private fun NudgeButtons(boundary: String, canNudge: (Long) -> Boolean, onNudge: (Long) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(listOf(-100L, -10L), listOf(10L, 100L)).forEach { values ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 values.forEach { ms ->
-                    SecondaryAction("${if (ms > 0) "+" else ""}$ms ms", { onNudge(ms * 1000) }, enabled = canNudge(ms * 1000), modifier = Modifier.weight(1f))
+                    SecondaryAction("${if (ms > 0) "+" else ""}$ms ms", { onNudge(ms * 1000) }, enabled = canNudge(ms * 1000), modifier = Modifier.weight(1f).semantics {
+                        contentDescription = "Geser $boundary caption ${if (ms < 0) "lebih awal" else "lebih akhir"} ${kotlin.math.abs(ms)} milidetik"
+                    })
                 }
             }
         }
