@@ -65,6 +65,9 @@ jobs:
       - name: Instrumentation log verifier regression tests
         run: python3 tools/test_instrumentation_result.py
 
+      - name: Turbo research harness regression tests
+        run: python3 tools/test_turbo_research_benchmark.py
+
       - name: Domain unit tests
         run: ./gradlew --stacktrace :core:domain:testDebugUnitTest
 
@@ -108,6 +111,7 @@ jobs:
           name: subloka-ci-test-only-and-reports
           path: |
             app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/androidTest/debug/*.apk
             **/build/reports/tests/
             app/build/reports/lint-results-debug.html
 
@@ -236,4 +240,18 @@ jobs:
         with:
           name: subloka-stable-prototype-apk
           path: stable-apk/
+          if-no-files-found: error
+      - name: Sign and verify research test APK
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find unsigned-input -name app-debug-androidTest.apk -type f)"
+          test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output research-apk/subloka-research-test.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subloka-research-test-apk
+          path: research-apk/
           if-no-files-found: error
