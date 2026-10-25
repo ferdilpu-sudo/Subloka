@@ -27,20 +27,20 @@ class TurboResearchBenchmarkTest {
             check(Settings.Global.getInt(context.contentResolver, "airplane_mode_on", 0) == 1)
             check(Settings.Global.getInt(context.contentResolver, "wifi_on", 1) == 0)
         }
-        fun battery() {
+        fun battery(): Int {
             val info = requireNotNull(context.registerReceiver(null,
                 android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)))
             val temperature = info.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1)
-            check(temperature in 0 until 400) { "Battery temperature unavailable or >=40C" }
+            check(temperature >= 0) { "Battery temperature unavailable" }
+            return temperature
         }
         offline()
-        battery()
         check(AsrSession.state.value?.running != true && TranslationSession.state.value?.running != true &&
             RenderSession.state.value?.running != true) { "Application must be idle" }
         val root = File(context.filesDir, "research-$token")
         val manifest = JSONObject(File(root, "input.json").readText())
         val samples = manifest.getJSONArray("samples")
-        check(samples.length() == 30)
+        check(samples.length() in 1..30)
         fun sha(file: File): String {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().use { input ->
@@ -69,7 +69,18 @@ class TurboResearchBenchmarkTest {
                 try {
                     for (i in 0 until samples.length()) {
                         offline()
-                        battery()
+                        val coolingStart = System.nanoTime()
+                        var temperature = battery()
+                        while (temperature > 380) {
+                            emit(JSONObject().put("event", "cooling").put("temperature_tenths_c", temperature))
+                            check(System.nanoTime() - coolingStart < TimeUnit.MINUTES.toNanos(15)) {
+                                "Cooling timeout; retain results and resume later"
+                            }
+                            Thread.sleep(15_000)
+                            offline()
+                            temperature = battery()
+                        }
+                        val coolingMs = (System.nanoTime() - coolingStart) / 1_000_000
                         val item = samples.getJSONObject(i)
                         val id = item.getString("id")
                         require(id.matches(Regex("id-(clean|challenging)-[0-9]{2}")))
@@ -86,12 +97,14 @@ class TurboResearchBenchmarkTest {
                         check(!timedOut.get()) { "Sample timed out" }
                         emit(JSONObject().put("event", "sample").put("id", id)
                             .put("elapsed_ms", (System.nanoTime() - started) / 1_000_000)
+                            .put("cooling_ms", coolingMs).put("start_temperature_tenths_c", temperature)
+                            .put("end_temperature_tenths_c", battery())
                             .put("text", segments.joinToString(" ") { it.text })
                             .put("segments", JSONArray().apply { segments.forEach { s ->
                                 put(JSONObject().put("start_us", s.startUs).put("end_us", s.endUs))
                             } }))
                     }
-                    emit(JSONObject().put("event", "complete").put("count", 30))
+                    emit(JSONObject().put("event", "complete").put("count", samples.length()))
                 } finally { timer.shutdownNow() }
             }
         }

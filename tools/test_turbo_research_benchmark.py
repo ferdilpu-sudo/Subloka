@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import wave
-from turbo_research_benchmark import prepare, score
+from turbo_research_benchmark import prepare, score, retained_results
 
 
 class BenchmarkTest(unittest.TestCase):
@@ -39,6 +39,26 @@ class BenchmarkTest(unittest.TestCase):
             data = json.loads(m.read_text()); data['samples'][1] = data['samples'][0]
             m.write_text(json.dumps(data))
             with self.assertRaises(ValueError): prepare(root, m)
+
+    def test_resume_provenance_and_reject_mismatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); rows, manifest = self.fixture(root)
+            old = root / 'old'; old.mkdir()
+            (old / 'manifest.json').write_bytes(manifest.read_bytes())
+            engine = dict(event='loaded', fixture='original',
+                model_sha256='394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2',
+                vad_sha256='2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987')
+            sample = dict(event='sample', id=rows[0]['id'], text='satu', elapsed_ms=100)
+            (old / 'results.jsonl').write_text('\n'.join(map(json.dumps, [engine, sample])))
+            kept, sources = retained_results([old], manifest)
+            self.assertEqual(kept[0]['source_fixture'], 'original')
+            self.assertEqual(len(sources[0]['results_sha256']), 64)
+            with self.assertRaisesRegex(ValueError, 'duplicate'):
+                retained_results([old, old], manifest)
+            data = json.loads(manifest.read_text()); data['samples'][0]['actual_heard_transcript'] = 'changed'
+            manifest.write_text(json.dumps(data))
+            with self.assertRaisesRegex(ValueError, 'manifest differs'):
+                retained_results([old], manifest)
 
     def test_weighted_score_and_incomplete_rejected(self):
         with tempfile.TemporaryDirectory() as temp:

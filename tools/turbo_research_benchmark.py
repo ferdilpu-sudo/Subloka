@@ -81,6 +81,32 @@ def score(rows, events):
     return summary
 
 
+def retained_results(directories, manifest):
+    """Keep original run identity; reject duplicates and changed fixtures."""
+    retained, sources = [], []
+    expected = json.loads(manifest.read_text(encoding='utf-8-sig'))
+    valid_ids = {r['id'] for r in expected['samples']}
+    seen = set()
+    for directory in directories:
+        if json.loads((directory / 'manifest.json').read_text(encoding='utf-8-sig')) != expected:
+            raise ValueError('Resume manifest differs')
+        raw = (directory / 'results.jsonl').read_bytes()
+        events = [json.loads(line) for line in raw.decode().splitlines()]
+        loaded = [e for e in events if e.get('event') == 'loaded']
+        if len(loaded) != 1 or loaded[0].get('model_sha256') != '394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2' or loaded[0].get('vad_sha256') != '2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987':
+            raise ValueError('Resume model identity mismatch')
+        for event in events:
+            if event.get('event') != 'sample':
+                continue
+            if event['id'] not in valid_ids or event['id'] in seen or event['elapsed_ms'] < 0 or not isinstance(event['text'], str):
+                raise ValueError('Invalid or duplicate retained sample')
+            seen.add(event['id'])
+            retained.append(dict(event, source_fixture=loaded[0]['fixture']))
+        sources.append({'directory': str(directory), 'engine': loaded[0],
+                        'results_sha256': hashlib.sha256(raw).hexdigest(), 'events': events})
+    return retained, sources
+
+
 def adb(*args, data=None, timeout=30):
     r = subprocess.run(['adb', *args], input=data, capture_output=True, timeout=timeout)
     if r.returncode:
@@ -92,20 +118,31 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dataset', type=Path, required=True)
     parser.add_argument('--manifest', type=Path)
+    parser.add_argument('--resume-from', type=Path, action='append', default=[])
     parser.add_argument('--run', action='store_true', help='Explicitly run instrumentation; application must be idle')
     args = parser.parse_args()
     manifest = args.manifest or args.dataset / 'manifest_curation.json'
     rows, files = prepare(args.dataset, manifest)
+    retained, sources = retained_results(args.resume_from, manifest)
+    done = {r['id'] for r in retained}
+    inputs = json.loads(files['input.json'])['samples']
+    pending = [item for item in inputs if item['id'] not in done]
+    files = {name: value for name, value in files.items() if name == 'input.json' or name[:-4] not in done}
+    files['input.json'] = json.dumps({'samples': pending}).encode()
+    print(f'{len(retained)} retained; {len(pending)} pending', flush=True)
     print('PASS: 30 WAV hashes, formats, durations and reviewed references verified.', flush=True)
     if not args.run:
         print('Validation only; no device operation. Use --run after installing the matching signed test APK.')
         return
+    if not pending:
+        raise ValueError('All samples already present; no new run needed')
     if adb('shell', 'settings', 'get', 'global', 'airplane_mode_on').strip() != b'1' or adb('shell', 'settings', 'get', 'global', 'wifi_on').strip() != b'0':
         raise RuntimeError('Enable airplane mode and turn Wi-Fi off first')
     token = uuid.uuid4().hex
     local = Path.home() / 'Downloads' / ('Subloka-turbo-' + token)
     local.mkdir()
     (local / 'manifest.json').write_bytes(manifest.read_bytes())
+    (local / 'retained.json').write_text(json.dumps({'samples': retained, 'sources': sources}), encoding='utf-8')
     remote = 'files/research-' + token
     archive = io.BytesIO()
     with tarfile.open(fileobj=archive, mode='w') as tar:
@@ -114,7 +151,7 @@ def main():
             info.size = len(content)
             tar.addfile(info, io.BytesIO(content))
     adb('exec-in', 'run-as', PACKAGE, 'tar', '-xf', '-', data=archive.getvalue())
-    print('Running 30 samples; report directory:', local, flush=True)
+    print(f'Running {len(pending)} samples with cooling pauses; report directory:', local, flush=True)
     print('Keep device awake. Results are retained in app-private ' + remote, flush=True)
     output = None
     try:
@@ -133,7 +170,17 @@ def main():
     if output is None:
         raise RuntimeError('Missing results; no score produced')
     events = [json.loads(line) for line in output.decode().splitlines()]
-    summary = score(rows, events)
+    fresh = [e for e in events if e.get('event') == 'sample']
+    if not events or events[-1] != {'event': 'complete', 'count': len(pending)} or len(fresh) != len(pending) or {e['id'] for e in fresh} != {e['id'] for e in pending}:
+        raise ValueError('Incomplete new run; retain partial results for resume')
+    loaded = [e for e in events if e.get('event') == 'loaded']
+    merged = loaded + retained + fresh + [{'event': 'complete', 'count': 30}]
+    summary = score(rows, merged)
+    summary['multi_run'] = bool(retained)
+    summary['retained_samples'] = len(retained)
+    summary['timing_note'] = 'Inference only; excludes cooling/load. Mixed thermal conditions across resumed runs; not continuous throughput.'
+    summary['source_runs'] = [{k: v for k, v in source.items() if k != 'events'} for source in sources]
+    (local / 'combined-results.json').write_text(json.dumps(merged), encoding='utf-8')
     (local / 'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
     print(json.dumps(summary, indent=2))
     print('Summary:', local / 'summary.json')
