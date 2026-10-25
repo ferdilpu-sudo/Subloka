@@ -122,7 +122,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             } catch (error: CancellationException) { throw error }
             catch (error: Exception) {
                 _sourceRelink.value = _sourceRelink.value.copy(busy = false,
-                    message = error.message ?: "Video tidak dapat ditautkan. Caption tetap tersimpan.")
+                    message = UiFailureMessage.describe(error, "Video tidak dapat ditautkan. Pilih file asli yang sama. Caption tetap tersimpan."))
             } finally {
                 _sourceRelink.value = _sourceRelink.value.copy(busy = false)
             }
@@ -135,10 +135,6 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             try {
                 try {
                     if (TranslationSession.state.value?.running != true) recovery.recoverInterrupted()
-                    if (projectsRepo.list().isEmpty()) {
-                        projectsRepo.upsert(DemoData.persistentProject)
-                        captionsRepo.replaceAll(DemoData.PROJECT_ID, DemoData.segments)
-                    }
                     refreshProjects()
                     _saveState.value = PersistenceSaveState.SAVED
                 } catch (error: Exception) {
@@ -402,7 +398,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
             } catch (_: Exception) {
                 _translation.value = _translation.value.copy(error = "Proses terjemahan gagal. Periksa model dan coba lagi; hasil yang sudah tersimpan tetap tersedia.")
             } catch (_: LinkageError) {
-                _translation.value = _translation.value.copy(error = "Engine terjemahan tidak tersedia untuk perangkat ini.")
+                _translation.value = _translation.value.copy(error = "Terjemahan belum didukung pada perangkat ini. Gunakan perangkat lain.")
             } finally {
                 // Keep the editor locked until its next snapshot includes completed publications.
                 withContext(NonCancellable) {

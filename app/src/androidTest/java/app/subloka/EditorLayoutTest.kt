@@ -20,6 +20,28 @@ import kotlinx.coroutines.*
 class EditorLayoutTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun legacyExampleDoesNotGenerateSimulatedTranslation() {
+        val caption = CaptionSegment("example", 0, 2_000_000, SourceLanguage.INDONESIA,
+            "Contoh kalimat", "", TranslationStatus.MISSING)
+        compose.setContent {
+            MaterialTheme {
+                EditorScreen(listOf(caption), CaptionStyle(), null, "Tersimpan", false,
+                    {}, {}, {}, {}, demoMode = true)
+            }
+        }
+        compose.onNodeWithText("Buka terjemahan", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Terjemahan tidak tersedia pada contoh").performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test fun platformErrorsDoNotExposePrivatePaths() {
+        val fallback = "Pilih video lain dan coba lagi."
+        assertTrue(UiFailureMessage.describe(IllegalStateException("/private/video.mp4 native error"), fallback) == fallback)
+        assertTrue(UiFailureMessage.describe(android.database.sqlite.SQLiteFullException(), fallback).contains("Penyimpanan penuh"))
+        assertTrue(UiFailureMessage.describe(MediaSourceException(MediaErrorCode.NO_AUDIO, "native details"), fallback).contains("tidak memiliki audio"))
+        val relink = "Video berbeda dari sumber asli. Pilih file asli yang sama; caption tidak diubah."
+        assertTrue(UiFailureMessage.describe(IllegalStateException(relink), fallback) == relink)
+    }
+
     @Test fun repeatedNavigationFlushDoesNotAcknowledgeWriteFailure() = runBlocking {
         val store = androidx.lifecycle.ViewModelStore()
         try {
@@ -80,16 +102,16 @@ class EditorLayoutTest {
                 }
             }
         }
-        compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").assertIsDisplayed()
+        compose.onNodeWithText("Pratinjau video belum tersedia").assertIsDisplayed()
         compose.onNodeWithText("Teks asli").performScrollTo().assertIsDisplayed()
-        val preview = compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").fetchSemanticsNode().boundsInRoot
+        val preview = compose.onNodeWithText("Pratinjau video belum tersedia").fetchSemanticsNode().boundsInRoot
         val field = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
         assertTrue("Landscape video and caption must be side by side", preview.right <= field.left)
         compose.onNodeWithText("Waktu").performScrollTo().performClick()
         compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Gaya").performClick()
-        compose.onNodeWithText("Preview dan MP4", substring = true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("VIDEO PREVIEW · PILIH VIDEO").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Pratinjau dan MP4", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Pratinjau video belum tersedia").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ekspor").assertIsDisplayed().performClick()
         compose.runOnIdle { assertTrue(exported) }
     }
@@ -181,7 +203,7 @@ class EditorLayoutTest {
         compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Gaya").performClick()
         compose.onNodeWithText("Terjemahan", substring = false).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Preview dan MP4", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Pratinjau dan MP4", substring = true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ekspor").assertIsDisplayed()
     }
 }

@@ -91,7 +91,7 @@ fun StyleWorkspace(
                 valueRange = 8f..35f,
             )
             Text(
-                "Preview dan MP4 memakai tata letak yang sama. Caption terlalu panjang harus dipecah sebelum ekspor.",
+                "Pratinjau dan MP4 memakai tata letak yang sama. Caption terlalu panjang harus dipecah sebelum ekspor.",
                 color = SubLokaColors.TextSecondary,
                 style = MaterialTheme.typography.bodySmall,
             )

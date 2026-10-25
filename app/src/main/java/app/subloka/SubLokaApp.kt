@@ -192,7 +192,7 @@ fun SubLokaApp(
                         persistence.flush { success -> if (success && !asr.busy) route = "relink" }
                     },
                     mediaUri = p.sourceUri.takeUnless { it.startsWith("demo://") },
-                    projectTitle = p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
+                    projectTitle = if (p.sourceUri.startsWith("demo://")) "${p.title} · contoh" else p.title, demoMode = p.id == DemoData.PROJECT_ID || p.sourceUri.startsWith("demo://"), durationUs = p.durationUs,
                     videoWidth = if (p.rotationDegrees in setOf(90, 270)) p.heightPx else p.widthPx,
                     videoHeight = if (p.rotationDegrees in setOf(90, 270)) p.widthPx else p.heightPx,
                     onGenerate = { route = "model" },

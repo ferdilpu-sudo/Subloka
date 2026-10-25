@@ -142,7 +142,7 @@ private fun SelectedCaptionEditor(
                     maxLines = 4,
                 )
                 if (segment.translationStatus != TranslationStatus.CURRENT) {
-                    SecondaryAction(if (demoMode) "Terjemahkan ulang (demo)" else "Terjemahkan caption ini",
+                    SecondaryAction(if (demoMode) "Terjemahan tidak tersedia pada contoh" else "Terjemahkan caption ini",
                         onRetranslate, enabled = translationAvailable, modifier = Modifier.fillMaxWidth())
                     if (!demoMode && segment.translationOrigin == app.subloka.core.domain.TranslationOrigin.MANUAL) {
                         Text("Terjemahan manual dilindungi. Koreksi langsung pada kolom terjemahan.", style = MaterialTheme.typography.bodySmall)

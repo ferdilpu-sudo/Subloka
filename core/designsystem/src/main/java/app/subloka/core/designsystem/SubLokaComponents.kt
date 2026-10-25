@@ -64,7 +64,7 @@ fun DemoBadge(modifier: Modifier = Modifier) {
         shape = RoundedCornerShape(999.dp),
     ) {
         Text(
-            text = "DEMO · engine belum terhubung",
+            text = "PROYEK CONTOH · bukan hasil transkripsi",
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
         )

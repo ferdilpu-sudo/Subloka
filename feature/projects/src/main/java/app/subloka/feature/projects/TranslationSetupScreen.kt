@@ -27,6 +27,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
     var wifiOnly by rememberSaveable { mutableStateOf(true) }
     var replaceMachine by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
+    var advanced by rememberSaveable { mutableStateOf(false) }
     var showTerms by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val permitted = !useGemma || termsAccepted
@@ -68,15 +69,25 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
             if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             if (stage.isNotBlank()) Text(stage)
             if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
-            if (busy) Text(if (stopping) "Tunggu engine berhenti. Hasil yang sudah tersimpan tetap tersedia."
+            if (busy) Text(if (stopping) "Menunggu proses berhenti. Hasil yang sudah tersimpan tetap tersedia."
                 else if (backgroundRunning) "Boleh berpindah aplikasi atau mematikan layar. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
                 else "Tetap buka aplikasi selama penyiapan model.")
-            Text("Teks asli dan timing tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
-                    label = { Text("TranslateGemma") })
-                FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
-                    label = { Text("ML Kit • ringan") })
+            Text("Teks asli dan waktu caption tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
+            Text(if (useGemma) "Model aktif: TranslateGemma" else "Model aktif: ML Kit ringan")
+            TextButton(onClick = { advanced = !advanced }) {
+                Text(if (advanced) "Tutup opsi lanjutan" else "Opsi lanjutan")
+            }
+            if (advanced) {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
+                        label = { Text("TranslateGemma") })
+                    FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
+                        label = { Text("ML Kit • ringan") })
+                }
+                if (!busy) {
+                    if (useGemma && !ready) SecondaryAction("Impor model terjemahan", onImport, enabled = permitted)
+                    SecondaryAction("Periksa model kembali", onCheck)
+                }
             }
             if (useGemma) {
                 Text("TranslateGemma 4B • unduhan 2,49 GB. Membutuhkan banyak RAM dan dapat lambat. Kecepatan bergantung pada perangkat dan panjang caption.")
@@ -96,10 +107,8 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 if (!ready) {
                     Text("Unduh model sekali dengan internet. Setelah siap, terjemahan diproses di perangkat tanpa koneksi. Model ini terpisah dari Whisper.")
                     Row { Checkbox(wifiOnly, { wifiOnly = it }); Text("Unduh hanya melalui Wi-Fi", modifier = Modifier.padding(top = 12.dp)) }
-                    if (useGemma) SecondaryAction("Impor model GGUF", onImport, enabled = permitted)
                 }
                 if (hasRecovery) SecondaryAction("Hapus antrean tertunda", { confirmDiscard = true })
-                SecondaryAction("Periksa model kembali", onCheck)
                 SecondaryAction("Kembali ke editor", onBack)
             }
         }

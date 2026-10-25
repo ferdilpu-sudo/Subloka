@@ -29,6 +29,8 @@ class TranslationRecoveryUiTest {
             }
         }
         compose.onNodeWithText("Indonesia → English • 2 caption dapat diterjemahkan").assertExists()
+        compose.onNodeWithText("ML Kit • ringan").assertDoesNotExist()
+        compose.onNodeWithText("Opsi lanjutan").performScrollTo().performClick()
         compose.onNodeWithText("ML Kit • ringan").assertIsNotEnabled()
         compose.onNodeWithText("Ganti juga hasil terjemahan otomatis yang sudah ada").assertDoesNotExist()
         compose.onNodeWithText("Lanjutkan sisa terjemahan").assertIsDisplayed().performClick()

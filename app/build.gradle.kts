@@ -12,8 +12,16 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
-        versionName = "0.6.20-save-recovery"
+        versionName = "0.7.0-beta.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        getByName("release") {
+            isDebuggable = false
+            // Keep native/reflection behavior unchanged for the first release candidate.
+            isMinifyEnabled = false
+        }
     }
 
     buildFeatures { compose = true }

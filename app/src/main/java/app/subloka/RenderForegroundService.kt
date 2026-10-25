@@ -95,9 +95,9 @@ class RenderForegroundService : Service() {
             catch (failure: Exception) {
                 if (RenderSession.state.value?.let { it.request.id == request.id && it.stopping } == true) {
                     message = stopMessage
-                } else error = failure.message ?: "Render MP4 gagal. Coba lagi."
+                } else error = UiFailureMessage.describe(failure, "Render MP4 gagal. Periksa video sumber dan ruang penyimpanan, lalu coba lagi.")
             }
-            catch (_: LinkageError) { error = "Engine tidak tersedia untuk perangkat ini." }
+            catch (_: LinkageError) { error = "Pemrosesan belum didukung pada perangkat ini. Gunakan perangkat lain." }
             finally {
                 watchdog.cancel()
                 val saved = task?.savedMessage

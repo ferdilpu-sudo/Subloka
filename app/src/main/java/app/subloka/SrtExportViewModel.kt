@@ -29,7 +29,7 @@ class SrtExportViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 _state.value = State(documents = files, message = "SRT siap. Simpan setiap file di bawah.")
             } catch (cancel: CancellationException) { throw cancel }
-            catch (error: Exception) { _state.value = State(message = error.message ?: "SRT gagal disiapkan.") }
+            catch (error: Exception) { _state.value = State(message = UiFailureMessage.describe(error, "SRT gagal disiapkan. Periksa teks, waktu caption, dan status terjemahan, lalu coba lagi.")) }
         }
     }
     fun select(index: Int): String? {

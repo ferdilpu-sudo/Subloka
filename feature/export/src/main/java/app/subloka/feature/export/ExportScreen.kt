@@ -55,7 +55,7 @@ fun ExportScreen(
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             TextButton(onClick = onBack, enabled = !locked) { Text("Kembali ke editor") }
             Text("Ekspor caption", style = MaterialTheme.typography.headlineSmall)
-            if (demoMode) Text("Proyek demo · SRT berisi contoh caption. Render MP4 tersedia pada proyek video.")
+            if (demoMode) Text("Proyek contoh · SRT berisi contoh caption. Render MP4 tersedia pada proyek video.")
             Text("Format hasil", style = MaterialTheme.typography.titleMedium)
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 SegmentedButton(selected = !mp4, onClick = { mp4 = false }, enabled = !locked,

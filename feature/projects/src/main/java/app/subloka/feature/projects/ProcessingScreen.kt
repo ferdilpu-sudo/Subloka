@@ -31,9 +31,9 @@ fun ProcessingScreen(
             if (stage.isNotBlank()) Text(stage)
             if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
             Text(when {
-                busy && stopping -> "Tunggu engine berhenti sebelum memulai lagi."
+                busy && stopping -> "Tunggu proses berhenti sebelum memulai lagi."
                 busy -> "Boleh berpindah aplikasi atau mematikan layar. Pantau proses lewat notifikasi jika izin notifikasi aktif."
-                completed -> "Buka editor untuk memeriksa kata dan timing caption."
+                completed -> "Buka editor untuk memeriksa kata dan waktu caption."
                 else -> "Tekan Coba lagi untuk memeriksa kesiapan model dan memulai ulang transkripsi."
             })
             if (busy && !stopping) Text("Jika proses aplikasi dihentikan Android, transkripsi perlu dimulai ulang.", style = MaterialTheme.typography.bodySmall)

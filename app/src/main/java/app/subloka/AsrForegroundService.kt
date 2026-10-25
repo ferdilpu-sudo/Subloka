@@ -94,9 +94,9 @@ class AsrForegroundService : Service() {
             catch (failure: Exception) {
                 if (AsrSession.state.value?.let { it.request.id == request.id && it.stopping } == true) {
                     message = stopMessage
-                } else error = failure.message ?: "Transkripsi gagal. Coba lagi."
+                } else error = UiFailureMessage.describe(failure, "Transkripsi gagal. Periksa video dan kesiapan model, lalu coba lagi.")
             }
-            catch (_: LinkageError) { error = "Engine tidak tersedia untuk perangkat ini." }
+            catch (_: LinkageError) { error = "Pemrosesan belum didukung pada perangkat ini. Gunakan perangkat lain." }
             finally {
                 watchdog.cancel()
                 val saved = task?.savedMessage

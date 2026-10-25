@@ -35,7 +35,7 @@ class SubLokaMediaViewModel(application: Application) : AndroidViewModel(applica
                 documentAccess.persistReadPermission(uri)
                 _selection.value = MediaSelectionState.Ready(mediaSource.inspect(uri.toString()))
             } catch (error: MediaSourceException) {
-                _selection.value = MediaSelectionState.Error(error.message ?: "Video tidak dapat digunakan.")
+                _selection.value = MediaSelectionState.Error(UiFailureMessage.describe(error, "Video tidak dapat dibuka. Pilih video lain yang dapat diputar di perangkat."))
             } catch (_: Throwable) {
                 _selection.value = MediaSelectionState.Error("Video tidak dapat digunakan.")
             }

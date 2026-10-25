@@ -51,7 +51,7 @@ fun EditorScreen(
     onBack: () -> Unit,
     onExport: (List<CaptionSegment>) -> Unit,
     modifier: Modifier = Modifier,
-    projectTitle: String = "Traveling",
+    projectTitle: String = "Proyek",
     demoMode: Boolean = true,
     durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
     videoWidth: Int = 16,
@@ -194,7 +194,7 @@ fun EditorScreen(
                 androidx.compose.material3.TextButton(onClick = onRelink) { Text("Tautkan ulang video") }
             }
             if (hasPreviewSpace && !keyboardLikelyVisible) {
-                if (demoMode) DemoBadge() else Text("Prototipe • periksa teks, waktu, dan makna terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
+                if (demoMode) DemoBadge() else Text("Periksa teks, waktu, dan terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
             }
 
             if (!demoMode && !keyboardLikelyVisible && !expanded) {
@@ -363,19 +363,8 @@ private fun WorkspacePanel(
                 )
             },
             demoMode = demoMode,
-            translationAvailable = demoMode || TranslationEligibility.canGenerate(selected, true),
-            onRetranslate = {
-                if (!demoMode) onRequestTranslation(selected.id) else onSegmentsChange(
-                    segments.toMutableList().also { list ->
-                        list[selectedIndex] = selected.copy(
-                            translationText = demoRetranslation(selected.sourceText, selected.sourceLanguage.code),
-                            translationStatus = TranslationStatus.CURRENT,
-                            translationOrigin = TranslationOrigin.MACHINE,
-                            translationSourceRevision = selected.sourceRevision,
-                        )
-                    },
-                )
-            },
+            translationAvailable = !demoMode && TranslationEligibility.canGenerate(selected, true),
+            onRetranslate = { if (!demoMode) onRequestTranslation(selected.id) },
             onSplit = onSplit,
             onMergeNext = onMergeNext,
             modifier = modifier,
@@ -390,6 +379,3 @@ private fun WorkspacePanel(
         EditorWorkspace.STYLE -> StyleWorkspace(style = style, onStyleChange = onStyleChange, modifier = modifier)
     }
 }
-
-private fun demoRetranslation(source: String, sourceCode: String): String =
-    if (sourceCode == "EN") "[Demo ID] $source" else "[Demo EN] $source"

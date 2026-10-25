@@ -30,7 +30,7 @@ fun ProjectsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("SubLoka", style = MaterialTheme.typography.headlineMedium)
                     Text("Proyek saya", style = MaterialTheme.typography.titleLarge)
-                    Text("Prototipe subtitle offline", color = SubLokaColors.TextSecondary,
+                    Text("Buat dan koreksi subtitle di perangkat", color = SubLokaColors.TextSecondary,
                         style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -65,7 +65,7 @@ private fun ProjectCard(project: ProjectSummary, onClick: () -> Unit) {
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(project.title, style = MaterialTheme.typography.titleMedium,
+            Text(if (project.id == "demo-traveling") "${project.title} · contoh" else project.title, style = MaterialTheme.typography.titleMedium,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (project.sourceFileName != project.title) {
                 Text(project.sourceFileName, style = MaterialTheme.typography.bodySmall,

@@ -39,7 +39,7 @@ if "Translation" in re.findall(r'EditorWorkspace\.([A-Z_]+)', all_kt):
 for label in ["Caption", "Timing", "Style"]:
     if label.upper() not in all_kt:
         errors.append(f"workspace missing: {label}")
-if "DEMO · engine belum terhubung" not in all_kt:
+if "PROYEK CONTOH · bukan hasil transkripsi" not in all_kt:
     errors.append("demo disclosure missing")
 
 manifest = (ROOT / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")

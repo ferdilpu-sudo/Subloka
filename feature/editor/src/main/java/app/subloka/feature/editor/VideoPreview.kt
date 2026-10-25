@@ -95,7 +95,7 @@ fun VideoPreview(
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
-                Text("VIDEO PREVIEW · PILIH VIDEO", color = SubLokaColors.TextSecondary)
+                Text("Pratinjau video belum tersedia", color = SubLokaColors.TextSecondary)
             }
 
             if (renderError == null) {
@@ -110,10 +110,6 @@ fun VideoPreview(
                     canvas.restore()
                 }
             } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(if (controller == null) "Preview belum tersedia" else "Playback lokal", style = MaterialTheme.typography.bodySmall)
-            Text("Media3", color = SubLokaColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

@@ -94,9 +94,9 @@ class TranslationForegroundService : Service() {
             catch (failure: Exception) {
                 if (TranslationSession.state.value?.let { it.request.id == request.id && it.stopping } == true) {
                     message = stopMessage
-                } else error = failure.message ?: "Terjemahan gagal. Coba lagi."
+                } else error = UiFailureMessage.describe(failure, "Terjemahan gagal. Periksa kesiapan model, lalu lanjutkan sisa terjemahan dari proyek.")
             }
-            catch (_: LinkageError) { error = "Engine tidak tersedia untuk perangkat ini." }
+            catch (_: LinkageError) { error = "Pemrosesan belum didukung pada perangkat ini. Gunakan perangkat lain." }
             finally {
                 watchdog.cancel()
                 val saved = task?.savedMessage
