@@ -21,6 +21,35 @@ import org.junit.Test
 class ProjectsScreenTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun informationActionDoesNotCreateProject() {
+        var opened = false
+        var created = false
+        compose.setContent {
+            SubLokaTheme {
+                ProjectsScreen(emptyList(), { created = true }, {},
+                    onOpenInformation = { opened = true })
+            }
+        }
+        compose.onNodeWithText("Privasi dan lisensi").performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(opened); assertEquals(false, created) }
+    }
+
+    @Test fun bundledNoticeOpensOfflineAndReturnsToInformation() {
+        var closed = false
+        compose.setContent { SubLokaTheme { AppInformationDialog { closed = true } } }
+        compose.waitUntil(5_000) {
+            runCatching {
+                compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Gemma-NOTICE.txt"))
+            }.isSuccess
+        }
+        compose.onNodeWithText("Gemma-NOTICE.txt").performClick()
+        compose.onNodeWithText("Gemma is provided", substring = true).assertExists()
+        compose.onNodeWithText("Kembali ke informasi").performClick()
+        compose.onNodeWithText("Pemrosesan di perangkat").assertIsDisplayed()
+        compose.onNodeWithText("Tutup").performClick()
+        compose.runOnIdle { assertTrue(closed) }
+    }
+
     @Test fun emptyProjectsKeepsCreateActionReachableAtLargeFont() {
         var created = false
         compose.setContent {

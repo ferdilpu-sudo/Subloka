@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -23,6 +24,7 @@ fun ProjectsScreen(
     onNewProject: () -> Unit,
     onOpenProject: (ProjectSummary) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenInformation: () -> Unit = {},
 ) {
     Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -32,6 +34,7 @@ fun ProjectsScreen(
                     Text("Proyek saya", style = MaterialTheme.typography.titleLarge)
                     Text("Buat dan koreksi subtitle di perangkat", color = SubLokaColors.TextSecondary,
                         style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = onOpenInformation) { Text("Privasi dan lisensi") }
                 }
             }
             if (projects.isEmpty()) {

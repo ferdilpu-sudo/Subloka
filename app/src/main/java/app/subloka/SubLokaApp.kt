@@ -27,6 +27,8 @@ fun SubLokaApp(
     videoExporter: VideoExportViewModel = viewModel(),
 ) {
     var route by rememberSaveable { mutableStateOf("projects") }
+    var showInformation by rememberSaveable { mutableStateOf(false) }
+    if (showInformation) AppInformationDialog { showInformation = false }
     val segments by persistence.segments.collectAsState()
     val style by persistence.style.collectAsState()
     val saveState by persistence.saveState.collectAsState()
@@ -138,6 +140,7 @@ fun SubLokaApp(
                     else -> "Tersimpan di perangkat"
                 }) },
             onNewProject = { media.clear(); route = "new" },
+            onOpenInformation = { showInformation = true },
             onOpenProject = { p -> persistence.openProject(p.id) { route = "editor" } }, modifier = modifier,
         )
         "new" -> NewProjectScreen(
