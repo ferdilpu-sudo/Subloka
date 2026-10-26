@@ -1,5 +1,73 @@
 # SubLoka
 
+Editor caption bilingual Inggris ↔ Indonesia untuk Android. Alur utama: **Pilih video → Transkripsi → Koreksi → Terjemahkan → Ekspor SRT/MP4**.
+
+## Kandidat beta 0.7.0-beta.1
+
+Kandidat untuk pengujian terbatas, belum rilis publik/stabil. APK non-debug memakai application ID dan kunci pembaruan yang sama. Tidak ada migrasi database atau penggantian model dalam pembaruan ini.
+
+- Build: `594a59a85ed3f47287f183c2bb50dc08d8f531bd`.
+- [Android CI 40254125638](https://github.com/ferdilpu-sudo/Subloka/actions/runs/40254125638): build, media-device, modern-services dan stable-prototype-apk lulus, termasuk pemeriksaan paket beta dan peluncuran pada emulator Android 11 yang bersih.
+- Artefak: **subloka-beta-apk**, berkas **subloka-beta.apk**. Artefak debug/prototype dan research-test bukan paket beta.
+- Pengujian pengguna pada 26 Oktober 2026: proyek lama, koreksi dan model tetap tersedia; label prototipe/Media3/Playback lokal hilang; pilihan teknis terjemahan tersedia di Opsi lanjutan. PASS ini terbatas pada pemeriksaan tersebut.
+
+### Perubahan versi ini
+
+- Instalasi baru membuka daftar proyek kosong tanpa proyek demo otomatis. Contoh lama tetap diberi label dan tidak membuat terjemahan simulasi.
+- Teks antarmuka lebih berorientasi pengguna, pilihan teknis terjemahan dipindahkan ke Opsi lanjutan.
+- Pesan kegagalan pada alur yang diperbarui tidak menampilkan pesan exception mentah.
+- Ikon aplikasi dan paket beta non-debug terpisah dari paket pengujian.
+
+### Instalasi atau pembaruan
+
+Perlu GitHub CLI yang sudah login, Android Platform Tools (ADB), dan perangkat yang sudah mengizinkan USB debugging. Selesaikan pekerjaan aplikasi sebelum memasang pembaruan. Jalankan seluruh blok PowerShell berikut:
+
+```powershell
+& {
+    $target = Join-Path $HOME ("Downloads/Subloka-Beta-40254125638-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+    gh run download 40254125638 --repo ferdilpu-sudo/Subloka --name subloka-beta-apk --dir $target
+    if ($LASTEXITCODE -ne 0) { throw "Unduhan gagal; instalasi dibatalkan." }
+    $apk = Join-Path $target "subloka-beta.apk"
+    if (-not (Test-Path $apk)) { throw "APK beta tidak ditemukan." }
+    adb install -r "$apk"
+    if ($LASTEXITCODE -ne 0) { throw "Instalasi gagal; jangan uninstall atau hapus data." }
+}
+```
+
+Jika tanda tangan tidak cocok, hentikan migrasi dan pertahankan aplikasi/data yang ada. Jangan uninstall untuk memaksa pembaruan. Versi beta menonaktifkan `adb run-as`; prosedur pencadangan model/database lama berbasis run-as tidak berlaku. Ekspor SRT/MP4 bukan cadangan proyek lengkap. Arsip artefak CI memiliki masa simpan; ini belum kanal distribusi permanen.
+
+### Mulai menggunakan
+
+1. Pilih Proyek baru, video, lalu bahasa audio Inggris atau Indonesia.
+2. Siapkan model melalui unduh atau impor eksplisit. Model yang sudah tersedia digunakan kembali.
+3. Jalankan transkripsi, periksa teks dan waktu, lalu tunggu status Tersimpan lokal setelah koreksi.
+4. Terjemahkan jika diperlukan. Periksa hasil, terutama nama, angka dan makna. Perubahan teks asli membuat terjemahan perlu diperbarui; ekspor asli tetap tersedia.
+5. Ekspor SRT atau render MP4, lalu tekan Simpan dan pilih lokasi. Keduanya pada SRT menghasilkan dua berkas bahasa terpisah.
+
+Transkripsi menggunakan Whisper Large-v3 Turbo (~574 MB) dan Silero (~0,9 MB); terjemahan default TranslateGemma 4B (~2,49 GB). Model tidak dibundel dalam APK. Siapkan ruang tambahan untuk video, berkas sementara dan hasil ekspor; ukuran model bukan perkiraan kebutuhan RAM.
+
+Setelah model siap, pemrosesan konten berjalan di perangkat. Transkripsi, terjemahan dan render memakai layanan latar depan dengan notifikasi. Home/layar mati berbeda dari Android force-stop: terjemahan dapat melanjutkan sisa yang tersimpan, sedangkan transkripsi/render yang terputus perlu dimulai ulang. Aktifkan izin notifikasi untuk melihat status; banner pop-up tidak dijamin.
+
+### Batasan dan status verifikasi
+
+- Pengujian fisik utama pada Sony SO-03L; kelulusan emulator tidak membuktikan performa semua HP. Minimum konfigurasi Android 8 (API 26) bukan jaminan kelancaran perangkat tersebut.
+- Hasil otomatis tetap perlu koreksi. Tidak ada jaminan kecepatan real-time, akurasi universal atau kebutuhan RAM minimum yang sudah terukur.
+- Benchmark Turbo 30 sampel **dijeda atas permintaan pengguna**; hasil parsial bukan skor lengkap atau kelulusan CP4. Tidak perlu mengulangnya untuk mengikuti panduan beta.
+- TalkBack, cakupan perangkat lebih luas, serta pemeriksaan distribusi/lisensi akhir masih terbuka sebelum rilis publik.
+- Video hingga 10 menit; jalur ekspor MP4 saat ini H.264/AAC SDR dengan sisi terpanjang maksimum 1280 piksel. Dukungan seluruh codec/HDR tidak dijanjikan.
+- Tidak ada cadangan proyek lengkap yang dapat dipulihkan melalui UI. Jangan menghapus data/uninstall jika proyek masih diperlukan.
+- Unduhan model memerlukan jaringan dan persetujuan ketentuan model. Alternatif ML Kit memiliki ketentuan SDK sendiri; klaim pemrosesan lokal tidak berarti seluruh SDK tidak pernah melakukan trafik jaringan.
+
+Bukti implementasi dan pengujian terperinci: [catatan terbatas](.agents/evidence/processing-status-ui.md). Panduan pengembang: [.agents/AGENTS.md](.agents/AGENTS.md).
+
+## Riwayat pengembangan
+
+Bagian di bawah adalah catatan versi lama, **bukan petunjuk pemasangan atau batas perilaku beta saat ini**. Nama model lama, syarat foreground-only dan status pending di arsip mengikuti versi yang disebutkan.
+
+<details>
+<summary>Arsip dokumentasi prototipe dan benchmark</summary>
+
+
 > Focused offline bilingual caption editor for Android (English ↔ Indonesia).
 
 Current branch implements a **T11 foreground-only offline transcription prototype**: import a video (up to 10 minutes), provision the checksum-verified Whisper Base model, transcribe locally, then correct caption text and timing in the Room-backed editor. The T12 prototype adds explicit ML Kit model preparation and offline EN↔ID translation from the editor. The SRT prototype exports original/translation as separate UTF-8 files; The foreground MP4 prototype is now integrated; physical codec/playback validation remains pending. The separate demo project remains labeled.
@@ -547,3 +615,5 @@ Code `e7e355e` passed [Android CI #217](https://github.com/ferdilpu-sudo/Subloka
 
 ### Background translation prototype (0.6.4)
 Caption translation now has a foreground service with progress/stop notification and existing per-segment recovery. Model setup remains in the foreground. Android CI and Sony background translation acceptance for this increment are tracked in `.agents/testing.md`; do not infer real-weight screen-off success from controlled-worker tests. Existing models and stable signing key are reused.
+
+</details>
