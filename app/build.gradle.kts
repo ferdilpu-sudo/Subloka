@@ -10,6 +10,8 @@ android {
     defaultConfig {
         applicationId = "app.subloka.caption"
         minSdk = 26
+        // Both local inference engines are built only for these ABIs.
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
         targetSdk = 37
         versionCode = providers.environmentVariable("SUBLOKA_VERSION_CODE").orNull?.toInt() ?: 2
         versionName = "0.7.0-beta.1"

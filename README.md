@@ -50,6 +50,7 @@ Setelah model siap, pemrosesan konten berjalan di perangkat. Transkripsi, terjem
 
 ### Batasan dan status verifikasi
 
+- Engine lokal memerlukan Android 64-bit: arm64-v8a untuk HP, x86_64 untuk lingkungan uji. Android 32-bit tidak didukung.
 - Pengujian fisik utama pada Sony SO-03L; kelulusan emulator tidak membuktikan performa semua HP. Minimum konfigurasi Android 8 (API 26) bukan jaminan kelancaran perangkat tersebut.
 - Hasil otomatis tetap perlu koreksi. Tidak ada jaminan kecepatan real-time, akurasi universal atau kebutuhan RAM minimum yang sudah terukur.
 - Benchmark Turbo 30 sampel **dijeda atas permintaan pengguna**; hasil parsial bukan skor lengkap atau kelulusan CP4. Tidak perlu mengulangnya untuk mengikuti panduan beta.

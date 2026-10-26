@@ -1,5 +1,7 @@
 """Fail CI if the signed distribution APK is debuggable, test-only or misidentified."""
 import sys
+import re
+import zipfile
 from pathlib import Path
 
 
@@ -14,6 +16,25 @@ def verify(text):
         raise ValueError('Unexpected beta version')
 
 
+def verify_native_libraries(text, apk_path):
+    expected = {"arm64-v8a", "x86_64"}
+    match = re.search(r"^native-code:(.*)$", text, re.MULTILINE)
+    advertised = set(re.findall(r"'([^']+)'", match.group(1))) if match else set()
+    if advertised != expected:
+        raise ValueError('Unexpected or missing advertised native ABIs')
+    with zipfile.ZipFile(apk_path) as apk:
+        names = set(apk.namelist())
+        packaged = {n.split('/')[1] for n in names if n.startswith('lib/') and n.endswith('.so')}
+        if packaged != expected:
+            raise ValueError('Unexpected or missing packaged native ABIs')
+        for abi in expected:
+            for engine in ('libsubloka_asr.so', 'libsubloka_translation.so'):
+                path = f'lib/{abi}/{engine}'
+                if path not in names or apk.getinfo(path).file_size == 0:
+                    raise ValueError(f'Missing or empty engine: {path}')
+
+
 if __name__ == '__main__':
     verify(Path(sys.argv[1]).read_text())
-    print('Beta package identity, launcher and non-debug flags verified')
+    verify_native_libraries(Path(sys.argv[1]).read_text(), sys.argv[2])
+    print('Beta package identity, launcher, non-debug flags and native ABI coverage verified')

@@ -272,7 +272,7 @@ jobs:
           test -f "$APK"
           python3 tools/prototype_signing.py sign --apk "$APK" --output beta-apk/subloka-beta.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
           "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging beta-apk/subloka-beta.apk > beta-apk/package-info.txt
-          python3 tools/verify_beta_package.py beta-apk/package-info.txt
+          python3 tools/verify_beta_package.py beta-apk/package-info.txt beta-apk/subloka-beta.apk
       - name: Enable KVM for beta launch check
         shell: bash
         run: |
