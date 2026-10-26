@@ -61,6 +61,35 @@ Setelah model siap, pemrosesan konten berjalan di perangkat. Transkripsi, terjem
 
 Bukti implementasi dan pengujian terperinci: [catatan terbatas](.agents/evidence/processing-status-ui.md). Panduan pengembang: [.agents/AGENTS.md](.agents/AGENTS.md).
 
+## Privasi beta dan penggunaan jaringan
+
+Informasi ini berlaku untuk kandidat beta pada cabang ini, ditinjau 26 Oktober 2026. Ini menjelaskan implementasi yang diperiksa; belum merupakan hasil audit trafik jaringan seluruh SDK.
+
+- **Konten proyek:** video dibaca dari lokasi yang dipilih pengguna. Caption, koreksi, waktu, gaya dan status pekerjaan disimpan di penyimpanan aplikasi pada perangkat. Jalur transkripsi Whisper dan terjemahan TranslateGemma memproses konten secara lokal; tidak ada layanan server SubLoka untuk menerima konten.
+- **Unduhan model:** tindakan unduh menghubungi Hugging Face dan penyedia berkasnya. Penyedia menerima informasi koneksi yang diperlukan seperti alamat IP dan permintaan berkas. Impor model lokal tersedia. Model diverifikasi sebelum digunakan.
+- **Alternatif ML Kit:** menurut [Terms & Privacy Google](https://developers.google.com/ml-kit/terms), input dan hasil diproses di perangkat, tetapi SDK dapat menghubungi Google untuk pembaruan dan mengirim metrik penggunaan/performa. [Pengungkapan data Android ML Kit](https://developers.google.com/ml-kit/android-data-disclosure) menjelaskan metadata perangkat/aplikasi, pengenal instalasi, metrik, peristiwa/error dan bahasa sumber/tujuan. Dokumen Google tersebut membahas SDK terkini; perilaku jaringan setiap versi paket belum diukur secara independen di sini. Memilih Gemma tidak kami nyatakan sebagai bukti bahwa seluruh SDK dalam APK pasti tidak pernah mengirim trafik.
+- **Penyimpanan hasil:** SRT/MP4 ditulis ke lokasi yang dipilih. Jika memilih penyedia dokumen cloud, penyedia itu dapat menyinkronkan hasil sesuai pengaturannya. Pilih penyimpanan lokal untuk alur offline.
+- **Diagnostik:** aplikasi memiliki log lokal tahap, durasi dan jenis kegagalan untuk pemecahan masalah. Jangan mengirim log lengkap tanpa memeriksanya; log perangkat/dependensi tidak seluruhnya diaudit. Pelaporan masalah melalui GitHub adalah tindakan manual pengguna.
+- **Cadangan dan penghapusan:** backup Android aplikasi dinonaktifkan. Tidak ada fitur pemulihan arsip proyek lengkap pada beta. Menghapus data aplikasi/uninstall dapat menghilangkan proyek dan model internal; file sumber dan ekspor di luar aplikasi dikelola terpisah. Jangan menghapus data sebagai langkah rutin pembaruan.
+
+Untuk laporan masalah, gunakan [Issues SubLoka](https://github.com/ferdilpu-sudo/Subloka/issues). Sertakan versi, perangkat dan langkah reproduksi; jangan lampirkan video/transkrip pribadi, kunci penandatanganan atau log sensitif di issue publik.
+
+## Komponen pihak ketiga
+
+Inventaris berikut membantu penelusuran sumber, **bukan daftar lengkap dependensi transitif atau pernyataan kelengkapan lisensi distribusi**. Model diunduh/diimpor terpisah dari APK.
+
+| Komponen | Sumber/versi yang dipakai | Pemberitahuan yang tersedia |
+|---|---|---|
+| Whisper dan whisper.cpp | [OpenAI Whisper](https://github.com/openai/whisper), [whisper.cpp](https://github.com/ggml-org/whisper.cpp) revision `927cfce34f31707e17f2bff35c349632fb9e2c3a` | [Whisper](engine/asr/src/main/assets/licenses/openai-whisper-LICENSE.txt), [whisper.cpp](engine/asr/src/main/assets/licenses/whisper.cpp-LICENSE.txt) |
+| Silero VAD | [Silero](https://github.com/snakers4/silero-vad), model 6.2.0 | [Lisensi](engine/asr/src/main/assets/licenses/silero-vad-LICENSE.txt) |
+| TranslateGemma | Google; GGUF Q4_K_M dari mradermacher, revision dipin dalam katalog model | [Notice](engine/translation/src/main/assets/licenses/Gemma-NOTICE.txt), [ketentuan](engine/translation/src/main/assets/licenses/Gemma-terms.txt), [kebijakan penggunaan](engine/translation/src/main/assets/licenses/Gemma-prohibited_use_policy.txt) |
+| llama.cpp dan komponen native terkait | revision `2a667032dc788c3a071d538e0b572e45a3f12731` | [llama.cpp](engine/translation/src/main/assets/licenses/llama.cpp-LICENSE.txt), [JSON](engine/translation/src/main/assets/licenses/llama-json-LICENSE.txt), [llamafile](engine/translation/src/main/assets/licenses/llamafile-LICENSE.txt) |
+| Google ML Kit Translate | `com.google.mlkit:translate:17.0.3` | [Ketentuan/privasi](https://developers.google.com/ml-kit/terms), [panduan atribusi terjemahan](https://developers.google.com/ml-kit/language/translation/translation-terms) |
+| AndroidX / Compose / Room / Media3 | Versi dipin dalam Gradle; Room 2.8.5, Media3 1.11.1, Compose BOM 2026.09.00 | Inventaris notice lengkap dari dependensi teresolusi masih perlu dilengkapi |
+| Kotlin / kotlinx.coroutines | Compiler 2.3.21; coroutines 1.10.2 | Inventaris notice lengkap dari dependensi teresolusi masih perlu dilengkapi |
+
+Sebelum distribusi publik: lengkapi notice dependensi transitif, sediakan akses informasi privasi/lisensi di aplikasi, dan terapkan atribusi ML Kit sesuai panduan resminya pada alur yang memakai ML Kit. Label pemilihan model saja belum diperlakukan sebagai bukti pemenuhan atribusi. Jangan mengartikan keberadaan sembilan berkas model/native sebagai audit lisensi seluruh APK.
+
 ## Riwayat pengembangan
 
 Bagian di bawah adalah catatan versi lama, **bukan petunjuk pemasangan atau batas perilaku beta saat ini**. Nama model lama, syarat foreground-only dan status pending di arsip mengikuti versi yang disebutkan.
