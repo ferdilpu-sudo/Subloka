@@ -125,7 +125,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/collect_dependency_notices.py --report app/build/reports/distribution/release-runtime-dependencies.txt --cache "${GRADLE_USER_HOME:-$HOME/.gradle}/caches/modules-2/files-2.1" --output app/build/reports/distribution/license-evidence
+          python3 tools/collect_dependency_notices.py --report app/build/reports/distribution/release-runtime-dependencies.txt --cache "${GRADLE_USER_HOME:-$HOME/.gradle}/caches/modules-2/files-2.1" --output app/build/reports/distribution/license-evidence --fetch-missing-poms
 
       - name: Lint debug
         run: ./gradlew --stacktrace :app:lintDebug
