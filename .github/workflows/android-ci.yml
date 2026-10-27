@@ -104,6 +104,9 @@ jobs:
       - name: Assemble debug
         run: ./gradlew --stacktrace :app:assembleDebug
 
+      - name: Test dependency evidence collector
+        run: python3 tools/test_collect_dependency_notices.py
+
       - name: Record resolved release dependencies
         shell: bash
         run: |
@@ -117,6 +120,12 @@ jobs:
 
       - name: Assemble release candidate
         run: ./gradlew --stacktrace :app:assembleRelease :app:lintRelease
+
+      - name: Collect dependency license evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/collect_dependency_notices.py --report app/build/reports/distribution/release-runtime-dependencies.txt --cache "${GRADLE_USER_HOME:-$HOME/.gradle}/caches/modules-2/files-2.1" --output app/build/reports/distribution/license-evidence
 
       - name: Lint debug
         run: ./gradlew --stacktrace :app:lintDebug
