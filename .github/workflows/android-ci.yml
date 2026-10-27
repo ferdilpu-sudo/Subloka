@@ -104,6 +104,17 @@ jobs:
       - name: Assemble debug
         run: ./gradlew --stacktrace :app:assembleDebug
 
+      - name: Record resolved release dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/build/reports/distribution
+          ./gradlew --console=plain :app:dependencies --configuration releaseRuntimeClasspath > app/build/reports/distribution/release-runtime-dependencies.txt
+          if grep -q 'FAILED' app/build/reports/distribution/release-runtime-dependencies.txt; then
+            cat app/build/reports/distribution/release-runtime-dependencies.txt
+            exit 1
+          fi
+
       - name: Assemble release candidate
         run: ./gradlew --stacktrace :app:assembleRelease :app:lintRelease
 
@@ -121,6 +132,7 @@ jobs:
             app/build/outputs/apk/androidTest/debug/*.apk
             **/build/reports/tests/
             app/build/reports/lint-results-debug.html
+            app/build/reports/distribution/
 
   media-device:
     runs-on: ubuntu-latest

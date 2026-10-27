@@ -73,7 +73,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 else if (backgroundRunning) "Boleh berpindah aplikasi atau mematikan layar. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
                 else "Tetap buka aplikasi selama penyiapan model.")
             Text("Teks asli dan waktu caption tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
-            Text(if (useGemma) "Model aktif: TranslateGemma" else "Model aktif: ML Kit ringan")
+            Text(if (useGemma) "Model aktif: TranslateGemma" else "Model aktif: Google Translate (ML Kit) • ringan")
             TextButton(onClick = { advanced = !advanced }) {
                 Text(if (advanced) "Tutup opsi lanjutan" else "Opsi lanjutan")
             }
@@ -116,8 +116,8 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
             busy -> SecondaryAction(if (stopping) "Menghentikan…" else "Hentikan", onCancel,
                 enabled = !stopping, modifier = Modifier.fillMaxWidth())
             !ready -> PrimaryAction("Unduh model terjemahan", { onDownload(wifiOnly) }, enabled = permitted, modifier = Modifier.fillMaxWidth())
-            hasRecovery -> PrimaryAction("Lanjutkan sisa terjemahan", onResume, enabled = permitted, modifier = Modifier.fillMaxWidth())
-            else -> PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0, modifier = Modifier.fillMaxWidth())
+            hasRecovery -> PrimaryAction(if (useGemma) "Lanjutkan sisa terjemahan" else "Lanjutkan dengan Google", onResume, enabled = permitted, modifier = Modifier.fillMaxWidth())
+            else -> PrimaryAction(if (useGemma) "Terjemahkan caption" else "Translate with Google", { onTranslate(replaceMachine) }, enabled = permitted && count > 0, modifier = Modifier.fillMaxWidth())
         }
     }
 }

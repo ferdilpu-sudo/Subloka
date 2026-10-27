@@ -2,14 +2,15 @@
 
 Editor caption bilingual Inggris ↔ Indonesia untuk Android. Alur utama: **Pilih video → Transkripsi → Koreksi → Terjemahkan → Ekspor SRT/MP4**.
 
-## Kandidat beta 0.7.0-beta.1
+## Kandidat beta 0.7.0-beta.2
 
 Kandidat untuk pengujian terbatas, belum rilis publik/stabil. APK non-debug memakai application ID dan kunci pembaruan yang sama. Tidak ada migrasi database atau penggantian model dalam pembaruan ini.
 
-- Build: `594a59a85ed3f47287f183c2bb50dc08d8f531bd`.
-- [Android CI 40254125638](https://github.com/ferdilpu-sudo/Subloka/actions/runs/40254125638): build, media-device, modern-services dan stable-prototype-apk lulus, termasuk pemeriksaan paket beta dan peluncuran pada emulator Android 11 yang bersih.
+- Build beta.2 yang diuji: `f37b0cfc91d1f99e98289ea4dd4085a9333fa0ce`.
+- [Android CI 40434229679](https://github.com/ferdilpu-sudo/Subloka/actions/runs/40434229679): build, media-device, modern-services dan stable-prototype-apk lulus, termasuk pemeriksaan paket beta dan peluncuran pada emulator Android 11 yang bersih.
 - Artefak: **subloka-beta-apk**, berkas **subloka-beta.apk**. Artefak debug/prototype dan research-test bukan paket beta.
-- Pengujian pengguna pada 26 Oktober 2026: proyek lama, koreksi dan model tetap tersedia; label prototipe/Media3/Playback lokal hilang; pilihan teknis terjemahan tersedia di Opsi lanjutan. PASS ini terbatas pada pemeriksaan tersebut.
+- Pengujian pengguna beta.2 pada 27 Oktober 2026: proyek/model tetap tersedia, label TranslateGemma tampil, koreksi berubah menjadi label manual dan tetap tersimpan setelah proyek dibuka ulang. PASS terbatas pada alur tersebut.
+- Pengujian pengguna beta.1 pada 26 Oktober 2026: proyek lama, koreksi dan model tetap tersedia; label prototipe/Media3/Playback lokal hilang; pilihan teknis terjemahan tersedia di Opsi lanjutan. PASS ini terbatas pada pemeriksaan tersebut.
 
 ### Perubahan versi ini
 
@@ -18,14 +19,16 @@ Kandidat untuk pengujian terbatas, belum rilis publik/stabil. APK non-debug mema
 - Pesan kegagalan pada alur yang diperbarui tidak menampilkan pesan exception mentah.
 - Ikon aplikasi dan paket beta non-debug terpisah dari paket pengujian.
 
+**Kompatibilitas beta.2:** hasil baru menyimpan penanda penyedia terjemahan. Jangan downgrade ke beta.1/versi lama setelah menghasilkan terjemahan baru; versi lama belum mengenali nilai tersebut.
+
 ### Instalasi atau pembaruan
 
 Perlu GitHub CLI yang sudah login, Android Platform Tools (ADB), dan perangkat yang sudah mengizinkan USB debugging. Selesaikan pekerjaan aplikasi sebelum memasang pembaruan. Jalankan seluruh blok PowerShell berikut:
 
 ```powershell
 & {
-    $target = Join-Path $HOME ("Downloads/Subloka-Beta-40254125638-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
-    gh run download 40254125638 --repo ferdilpu-sudo/Subloka --name subloka-beta-apk --dir $target
+    $target = Join-Path $HOME ("Downloads/Subloka-Beta-40434229679-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+    gh run download 40434229679 --repo ferdilpu-sudo/Subloka --name subloka-beta-apk --dir $target
     if ($LASTEXITCODE -ne 0) { throw "Unduhan gagal; instalasi dibatalkan." }
     $apk = Join-Path $target "subloka-beta.apk"
     if (-not (Test-Path $apk)) { throw "APK beta tidak ditemukan." }
@@ -74,9 +77,11 @@ Informasi ini berlaku untuk kandidat beta pada cabang ini, ditinjau 26 Oktober 2
 
 Untuk laporan masalah, gunakan [Issues SubLoka](https://github.com/ferdilpu-sudo/Subloka/issues). Sertakan versi, perangkat dan langkah reproduksi; jangan lampirkan video/transkrip pribadi, kunci penandatanganan atau log sensitif di issue publik.
 
+Opsi ML Kit menggunakan **Google Translate** untuk terjemahan di perangkat; TranslateGemma merupakan model terpisah. Lihat [Google Cloud Translation](https://cloud.google.com/translate) dan [ketentuan atribusi ML Kit](https://developers.google.com/ml-kit/language/translation/translation-terms).
+
 ## Komponen pihak ketiga
 
-Inventaris berikut membantu penelusuran sumber, **bukan daftar lengkap dependensi transitif atau pernyataan kelengkapan lisensi distribusi**. Model diunduh/diimpor terpisah dari APK.
+Inventaris berikut membantu penelusuran sumber, **bukan daftar lengkap dependensi transitif atau pernyataan kelengkapan lisensi distribusi**. Model diunduh/diimpor terpisah dari APK. CI menghasilkan `app/build/reports/distribution/release-runtime-dependencies.txt` dalam artefak `subloka-ci-test-only-and-reports` untuk meninjau dependensi transitif yang teresolusi. Laporan ini bukan kumpulan lisensi/NOTICE; pemetaan serta pembundelan pemberitahuan masih harus diselesaikan.
 
 | Komponen | Sumber/versi yang dipakai | Pemberitahuan yang tersedia |
 |---|---|---|

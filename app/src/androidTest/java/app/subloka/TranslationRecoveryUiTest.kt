@@ -62,4 +62,27 @@ class TranslationRecoveryUiTest {
         compose.runOnIdle { assertEquals(1, cancels) }
     }
 
+
+    @Test fun googleActionStartsAndResumesWithoutChangingManualProtection() {
+        var pending by mutableStateOf(false)
+        var started = 0
+        var resumed = 0
+        compose.setContent {
+            MaterialTheme {
+                TranslationSetupScreen(ready = true, busy = false, stage = "", error = null,
+                    recoveryCount = 1, hasRecovery = pending, onResume = { resumed++ }, onDiscardRecovery = {},
+                    eligibleCount = 1, replaceableCount = 2, pairLabel = "Indonesia → English",
+                    useGemma = false, termsAccepted = false, onModelSelected = {}, onTermsAccepted = {},
+                    onImport = {}, onCheck = {}, onDownload = {},
+                    onTranslate = { replace -> assertEquals(false, replace); started++ },
+                    onCancel = {}, onBack = {})
+            }
+        }
+        compose.onNodeWithText("Translate with Google").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, started); pending = true }
+        compose.onNodeWithText("Lanjutkan dengan Google").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, resumed) }
+        compose.onNodeWithText("Translate with Google").assertDoesNotExist()
+    }
+
 }

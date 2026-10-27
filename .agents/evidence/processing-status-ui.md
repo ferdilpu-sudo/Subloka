@@ -138,3 +138,11 @@ Manual edits become MANUAL (blank becomes NONE), remain excluded from automatic 
 Data contract: Room schema v1 tables/columns unchanged; no destructive migration. New stored enum values require beta.2+ readers. Do not downgrade to beta.1/older APKs after generating results on beta.2. Existing texts/models/IDs remain untouched on upgrade. Engine weights/prompts/runtime/signing unchanged.
 
 Validation: source diff of11existing files against292dc64 inspected; guardrails122Kotlin, whitespace and two existing Python beta-package tests PASS. Added two domain tests and two database tests; augmented checkpoint-resume test for provider persistence. These Kotlin/Room tests are NOT_RUN locally (no Android SDK/Kotlin compiler); existing domain/database CI steps run them. Android compile/lint/native package/device acceptance pending new manual CI. Research remains paused. No release/tag/merge.
+
+## 2026-10-27 — Beta.2 acceptance and ML Kit action/help foundation
+- User reports PASS on CI40434229679/f37b0cf: retained old project/model, TranslateGemma origin, manual edit origin, persistence after reopening. CI beta artifact independently found with matching SHA.
+- This increment: Google-specific start/resume actions for ML Kit; provider explanation and explicit external reference links with unavailable-browser feedback; Gemma actions unchanged.
+- CI adds resolved releaseRuntimeClasspath report to existing test/report artifact, rejects unresolved FAILED entries. This is dependency evidence, NOT a complete license/NOTICE inventory.
+- README now identifies tested beta.2 and enum downgrade restriction.
+- Local guardrails (122 Kotlin), YAML parse, whitespace PASS. Added Google action/resume UI regression to existing TranslationRecoveryUiTest; Android compilation/device test NOT_RUN locally (SDK unavailable), awaiting CI.
+- Remaining: official result badges, required disclaimer/export attribution, resolved dependency license/NOTICE review and bundling. No assertion of completed distribution compliance. Model/schema/signing unchanged; benchmark remains paused.

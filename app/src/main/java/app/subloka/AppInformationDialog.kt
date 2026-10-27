@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,11 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun AppInformationDialog(onClose: () -> Unit) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var linkError by remember { mutableStateOf(false) }
+    fun openReference(url: String) {
+        linkError = runCatching { uriHandler.openUri(url) }.isFailure
+    }
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val notices by produceState<Map<String, String>?>(null, context) {
         value = withContext(Dispatchers.IO) {
@@ -44,6 +50,11 @@ internal fun AppInformationDialog(onClose: () -> Unit) {
                             item { Text("Jaringan dan ML Kit", style = MaterialTheme.typography.titleMedium) }
                             item { Text("Unduhan model menghubungi penyedia berkas. Alternatif ML Kit memproses teks secara lokal, tetapi SDK Google dapat mengirim metrik perangkat, aplikasi, penggunaan dan bahasa, serta menghubungi Google untuk pembaruan. Memilih Gemma bukan jaminan tidak adanya seluruh trafik SDK.") }
                             item { Text("Referensi: developers.google.com/ml-kit/terms dan developers.google.com/ml-kit/android-data-disclosure") }
+                            item { Text("Penyedia terjemahan", style = MaterialTheme.typography.titleMedium) }
+                            item { Text("Opsi ML Kit menggunakan Google Translate untuk terjemahan di perangkat. TranslateGemma adalah model terpisah. Label pada caption menunjukkan penyedia yang tercatat; hasil lama tanpa catatan penyedia tidak ditebak. Hasil yang dikoreksi diberi label diedit manual.") }
+                            item { TextButton(onClick = { openReference("https://cloud.google.com/translate") }) { Text("Tentang Google Translate — buka browser") } }
+                            item { TextButton(onClick = { openReference("https://developers.google.com/ml-kit/language/translation/translation-terms") }) { Text("Ketentuan terjemahan ML Kit — buka browser") } }
+                            if (linkError) item { Text("Browser tidak dapat dibuka. Referensi: cloud.google.com/translate", color = MaterialTheme.colorScheme.error) }
                             item { Text("Penyimpanan dan cadangan", style = MaterialTheme.typography.titleMedium) }
                             item { Text("SRT/MP4 disimpan ke lokasi pilihanmu. Penyedia cloud dapat menyinkronkan hasil. Backup Android dinonaktifkan; ekspor bukan cadangan proyek lengkap. Menghapus data atau uninstall dapat menghilangkan proyek dan model. Gunakan pembaruan tanpa uninstall.") }
                             item { Text("Diagnostik lokal mencatat tahap, durasi dan kegagalan. Periksa log sebelum membagikannya. Jangan unggah video, transkrip pribadi atau kunci penandatanganan ke laporan publik.") }
