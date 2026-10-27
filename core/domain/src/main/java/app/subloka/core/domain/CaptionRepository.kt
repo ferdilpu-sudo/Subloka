@@ -18,5 +18,6 @@ interface CaptionRepository {
         expectedSourceRevision: Long,
         translationText: String,
         allowReplaceManual: Boolean = false,
+        origin: TranslationOrigin = TranslationOrigin.MACHINE,
     ): EditorMutation<CaptionSegment>?
 }

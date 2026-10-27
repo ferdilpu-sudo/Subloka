@@ -32,7 +32,7 @@ interface CaptionDao {
         SET translated_text = :translationText,
             translation_source_revision = source_revision,
             translation_status = 'CURRENT',
-            translation_origin = 'MACHINE',
+            translation_origin = :origin,
             updated_at_ms = :updatedAtMs
         WHERE project_id = :projectId
           AND id = :segmentId
@@ -47,5 +47,6 @@ interface CaptionDao {
         translationText: String,
         updatedAtMs: Long,
         allowReplaceManual: Int,
+        origin: String,
     ): Int
 }

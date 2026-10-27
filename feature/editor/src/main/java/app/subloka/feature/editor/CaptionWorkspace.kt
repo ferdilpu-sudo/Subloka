@@ -130,6 +130,10 @@ private fun SelectedCaptionEditor(
             Text(translationLabel(segment.translationStatus), color = translationColor(segment.translationStatus),
                 style = MaterialTheme.typography.labelMedium)
             if (translationExpanded) {
+                if (segment.translationText.isNotBlank()) {
+                    Text(app.subloka.core.domain.TranslationOrigins.label(segment.translationOrigin),
+                        style = MaterialTheme.typography.labelSmall)
+                }
                 if (segment.translationStatus == TranslationStatus.STALE) {
                     Text("Perlu diperbarui", color = SubLokaColors.Warning, style = MaterialTheme.typography.labelMedium)
                 }
@@ -176,6 +180,10 @@ private fun SegmentCard(segment: CaptionSegment, selected: Boolean, onClick: () 
             Text(segment.sourceText, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             Text("${segment.sourceLanguage.target.code} · TERJEMAHAN", style = MaterialTheme.typography.labelSmall)
             Text(segment.translationText, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, color = SubLokaColors.TextSecondary)
+            if (segment.translationText.isNotBlank()) {
+                Text(app.subloka.core.domain.TranslationOrigins.label(segment.translationOrigin),
+                    style = MaterialTheme.typography.labelSmall)
+            }
             Text(translationLabel(segment.translationStatus), color = translationColor(segment.translationStatus), style = MaterialTheme.typography.labelSmall)
         }
     }

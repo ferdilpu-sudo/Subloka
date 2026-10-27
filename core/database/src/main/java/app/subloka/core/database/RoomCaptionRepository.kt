@@ -187,12 +187,8 @@ class RoomCaptionRepository(
             second.translated_text.orEmpty(),
         )
         val hasTranslation = mergedTranslation.isNotBlank()
-        val mergedOrigin = when {
-            !hasTranslation -> TranslationOrigin.NONE
-            first.translation_origin == TranslationOrigin.MANUAL.name ||
-                second.translation_origin == TranslationOrigin.MANUAL.name -> TranslationOrigin.MANUAL
-            else -> TranslationOrigin.MACHINE
-        }
+        val mergedOrigin = app.subloka.core.domain.TranslationOrigins.merge(
+            first.toDomain(language), second.toDomain(language))
 
         val merged = CaptionSegment(
             id = idFactory(),
@@ -230,7 +226,10 @@ class RoomCaptionRepository(
         expectedSourceRevision: Long,
         translationText: String,
         allowReplaceManual: Boolean,
+        origin: TranslationOrigin,
     ): EditorMutation<CaptionSegment>? = database.withTransaction {
+        require(origin in setOf(TranslationOrigin.MACHINE, TranslationOrigin.MACHINE_GEMMA,
+            TranslationOrigin.MACHINE_MLKIT)) { "Expected automatic translation origin" }
         require(translationText.isNotBlank()) { "Machine translation must not be blank" }
         val project = requireProject(projectId)
         val updated = captionDao.applyMachineTranslation(
@@ -240,6 +239,7 @@ class RoomCaptionRepository(
             translationText = translationText,
             updatedAtMs = nowMs(),
             allowReplaceManual = if (allowReplaceManual) 1 else 0,
+            origin = origin.name,
         )
         if (updated == 0) {
             null

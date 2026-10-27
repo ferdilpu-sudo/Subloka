@@ -139,12 +139,7 @@ fun EditorScreen(
         val second = ordered[index + 1]
         val mergedTranslation = CaptionEditingRules.mergeText(first.translationText, second.translationText)
         val hasTranslation = mergedTranslation.isNotBlank()
-        val origin = when {
-            !hasTranslation -> TranslationOrigin.NONE
-            first.translationOrigin == TranslationOrigin.MANUAL ||
-                second.translationOrigin == TranslationOrigin.MANUAL -> TranslationOrigin.MANUAL
-            else -> TranslationOrigin.MACHINE
-        }
+        val origin = app.subloka.core.domain.TranslationOrigins.merge(first, second)
         val merged = first.copy(
             id = UUID.randomUUID().toString(),
             endUs = second.endUs,

@@ -12,7 +12,7 @@ def verify(text):
         raise ValueError('Debug/test APK cannot be distributed as beta')
     if 'launchable-activity:' not in text or 'application-icon-' not in text:
         raise ValueError('Missing launcher activity/icon')
-    if "versionName='0.7.0-beta.1'" not in text:
+    if "versionName='0.7.0-beta.2'" not in text:
         raise ValueError('Unexpected beta version')
 
 

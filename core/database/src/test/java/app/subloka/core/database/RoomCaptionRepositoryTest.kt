@@ -233,6 +233,45 @@ class RoomCaptionRepositoryTest {
         assertEquals(null, reopened.pending(PROJECT_ID))
         assertEquals(listOf("Improved first", "Improved second"), captionRepository.list(PROJECT_ID).map { it.translationText })
         assertEquals(snapshot.map { it.startUs to it.endUs }, captionRepository.list(PROJECT_ID).map { it.startUs to it.endUs })
+        assertTrue(captionRepository.list(PROJECT_ID).all { it.translationOrigin == TranslationOrigin.MACHINE_GEMMA })
+    }
+
+    @Test
+    fun providerSurvivesReopenAndManualCorrectionIsProtected() = runBlocking {
+        seedProjectAndSegments()
+        val snapshot = captionRepository.list(PROJECT_ID)
+        assertTrue(snapshot.all { it.translationOrigin == TranslationOrigin.MACHINE })
+        val store = TranslationRecoveryStore(database)
+        val job = store.begin(PROJECT_ID, "mlkit:17.0.3", listOf(snapshot.first()))
+        assertTrue(store.publish(job.id, snapshot.first(), "Google result"))
+        database.close(); openDatabase()
+        assertEquals(TranslationOrigin.MACHINE_MLKIT, captionRepository.list(PROJECT_ID).first().translationOrigin)
+        assertEquals(TranslationOrigin.MACHINE, captionRepository.list(PROJECT_ID)[1].translationOrigin)
+        captionRepository.saveManualTranslation(PROJECT_ID, snapshot.first().id, "My correction")
+        val corrected = captionRepository.list(PROJECT_ID).first()
+        assertEquals(TranslationOrigin.MANUAL, corrected.translationOrigin)
+        assertEquals(null, captionRepository.applyMachineTranslation(PROJECT_ID, corrected.id,
+            corrected.sourceRevision, "Late machine output", origin = TranslationOrigin.MACHINE_GEMMA))
+        assertEquals("My correction", captionRepository.list(PROJECT_ID).first().translationText)
+    }
+
+    @Test
+    fun splitKeepsProviderAndMixedMergeDoesNotGuessProvider() = runBlocking {
+        seedProjectAndSegments()
+        val snapshot = captionRepository.list(PROJECT_ID)
+        for ((index, source) in snapshot.withIndex()) {
+            captionRepository.applyMachineTranslation(PROJECT_ID, source.id, source.sourceRevision,
+                "Two translated words", origin = if (index == 0) TranslationOrigin.MACHINE_MLKIT
+                    else TranslationOrigin.MACHINE_GEMMA)
+        }
+        val first = snapshot.first()
+        val parts = captionRepository.splitSegment(PROJECT_ID, first.id, (first.startUs + first.endUs) / 2).value
+        assertTrue(parts.all { it.translationOrigin == TranslationOrigin.MACHINE_MLKIT })
+        val same = captionRepository.mergeWithNext(PROJECT_ID, parts.first().id).value
+        assertEquals(TranslationOrigin.MACHINE_MLKIT, same.translationOrigin)
+        val mixed = captionRepository.mergeWithNext(PROJECT_ID, same.id).value
+        assertEquals(TranslationOrigin.MACHINE, mixed.translationOrigin)
+        assertEquals(TranslationStatus.STALE, mixed.translationStatus)
     }
 
     @Test

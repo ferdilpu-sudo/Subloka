@@ -44,7 +44,8 @@ class TranslationRecoveryStore(private val database: SubLokaDatabase) {
         val checkpoint = decode(job)
         check(checkpoint.pending[source.id] == source.sourceRevision)
         val applied = captions.applyMachineTranslation(requireNotNull(job.project_id), source.id,
-            source.sourceRevision, text, allowReplaceManual = false) != null
+            source.sourceRevision, text, allowReplaceManual = false,
+            origin = app.subloka.core.domain.TranslationOrigins.fromEngine(checkpoint.engine)) != null
         val remaining = checkpoint.copy(pending = checkpoint.pending - source.id)
         dao.save(job.copy(checkpoint_ref = encode(remaining),
             state = if (remaining.pending.isEmpty()) "SUCCEEDED" else "RUNNING",
