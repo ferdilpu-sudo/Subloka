@@ -16,6 +16,7 @@ internal object TranslationSession {
     val state = mutable.asStateFlow()
     @Synchronized fun reserve(project: CaptionProject, selection: TranslationUiState, engine: String,
         segmentId: String?, replaceCurrentMachine: Boolean, resume: Boolean): TranslationRequest? {
+        if (!selection.useGemma && (!resume || selection.pendingId == null)) return null
         if (RenderSession.state.value?.running == true || mutable.value?.running == true || AsrSession.state.value?.running == true) return null
         return TranslationRequest(UUID.randomUUID().toString(), project, selection.useGemma,
             selection.termsAccepted, engine, segmentId, replaceCurrentMachine,

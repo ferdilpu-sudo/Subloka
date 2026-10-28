@@ -73,7 +73,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 else if (backgroundRunning) "Boleh berpindah aplikasi atau mematikan layar. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
                 else "Tetap buka aplikasi selama penyiapan model.")
             Text("Teks asli dan waktu caption tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
-            Text(if (useGemma) "Model aktif: TranslateGemma" else "Model aktif: Google Translate (ML Kit) • ringan")
+            Text(if (useGemma) "Model aktif: TranslateGemma" else "Antrean lama: Google Translate (ML Kit)")
             TextButton(onClick = { advanced = !advanced }) {
                 Text(if (advanced) "Tutup opsi lanjutan" else "Opsi lanjutan")
             }
@@ -81,8 +81,6 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     FilterChip(selected = useGemma, onClick = { onModelSelected(true) }, enabled = !busy && !hasRecovery,
                         label = { Text("TranslateGemma") })
-                    FilterChip(selected = !useGemma, onClick = { onModelSelected(false) }, enabled = !busy && !hasRecovery,
-                        label = { Text("ML Kit • ringan") })
                 }
                 if (!busy) {
                     if (useGemma && !ready) SecondaryAction("Impor model terjemahan", onImport, enabled = permitted)

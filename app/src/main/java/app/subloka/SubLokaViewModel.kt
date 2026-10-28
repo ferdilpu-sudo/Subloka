@@ -193,7 +193,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _segments.value = captionsRepo.list(id)
         _style.value = projectsRepo.getStyle(id)
         val checkpoint = recovery.pending(id)
-        val useGemma = checkpoint?.engine?.startsWith("gemma:") ?: _translation.value.useGemma
+        val useGemma = checkpoint?.engine?.startsWith("gemma:") ?: true
         _translation.value = _translation.value.copy(pendingId = checkpoint?.id,
             pendingCount = checkpoint?.pending?.size ?: 0, useGemma = useGemma,
             ready = _translation.value.ready && useGemma == _translation.value.useGemma)
@@ -324,6 +324,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         AsrForegroundService.start(getApplication(), request)
     }
     fun selectTranslationModel(useGemma: Boolean) {
+        if (!useGemma) return
         if (_asr.value.busy || _translation.value.pendingId != null) return
         _translation.value = _translation.value.copy(useGemma = useGemma, ready = false)
         checkTranslationModel()
