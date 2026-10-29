@@ -19,11 +19,13 @@ class TranslationRecoveryStore(private val database: SubLokaDatabase) {
     suspend fun pending(projectId: String): TranslationCheckpoint? = dao.pendingTranslation(projectId)?.let(::decode)
 
     suspend fun begin(projectId: String, engine: String, snapshot: List<CaptionSegment>,
-                      resumeId: String? = null): TranslationCheckpoint = database.withTransaction {
+                      resumeId: String? = null, allowLegacyGemmaResume: Boolean = false): TranslationCheckpoint = database.withTransaction {
         val existing = dao.pendingTranslation(projectId)
         check(if (resumeId == null) existing == null else existing?.id == resumeId) { "Pekerjaan berubah. Buka ulang proyek." }
         val old = existing?.let(::decode)
-        check(old == null || old.engine == engine) { "Gunakan model yang sama untuk melanjutkan." }
+        // Explicit user resume can move only unfinished legacy ML Kit work to Gemma.
+        val legacyGemmaResume = allowLegacyGemmaResume && old?.engine?.startsWith("mlkit:") == true && engine.startsWith("gemma:")
+        check(old == null || old.engine == engine || legacyGemmaResume) { "Gunakan model yang sama untuk melanjutkan." }
         val candidates = snapshot.filter { TranslationEligibility.canGenerate(it, true) &&
             (old == null || old.pending[it.id] == it.sourceRevision) }
         val items = candidates.associate { it.id to it.sourceRevision }
@@ -79,3 +81,4 @@ class TranslationRecoveryStore(private val database: SubLokaDatabase) {
         return TranslationCheckpoint(job.id, requireNotNull(job.engine_version), json.getInt("total"), items)
     }
 }
+

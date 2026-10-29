@@ -9,7 +9,6 @@ import app.subloka.core.domain.*
 import app.subloka.demo.DemoData
 import app.subloka.engine.translation.TranslateGemmaOfflineTranslator
 import app.subloka.engine.translation.TranslateGemmaModel
-import app.subloka.engine.translation.MlKitOfflineTranslator
 import app.subloka.engine.translation.CaptionTranslationPipeline
 import app.subloka.engine.asr.WhisperModelCatalog
 import app.subloka.engine.asr.WhisperModelStore
@@ -29,7 +28,7 @@ data class AsrUiState(val busy: Boolean = false, val modelReady: Boolean = false
     val stage: String = "", val error: String? = null, val completed: Boolean = false, val serviceJobId: String? = null)
 
 data class TranslationUiState(val useGemma: Boolean = true, val termsAccepted: Boolean = false, val ready: Boolean = false, val stage: String = "",
-    val pendingId: String? = null, val pendingCount: Int = 0, val serviceJobId: String? = null,
+    val legacyRecovery: Boolean = false, val pendingId: String? = null, val pendingCount: Int = 0, val serviceJobId: String? = null,
     val error: String? = null, val applied: Int = 0, val completed: Boolean = false)
 
 class SubLokaViewModel(application: Application) : AndroidViewModel(application) {
@@ -193,9 +192,10 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _segments.value = captionsRepo.list(id)
         _style.value = projectsRepo.getStyle(id)
         val checkpoint = recovery.pending(id)
-        val useGemma = checkpoint?.engine?.startsWith("gemma:") ?: true
+        val useGemma = true
         _translation.value = _translation.value.copy(pendingId = checkpoint?.id,
             pendingCount = checkpoint?.pending?.size ?: 0, useGemma = useGemma,
+            legacyRecovery = checkpoint?.engine?.startsWith("mlkit:") == true,
             ready = _translation.value.ready && useGemma == _translation.value.useGemma)
     }
     fun openProject(id: String, onComplete: () -> Unit) {
@@ -344,7 +344,7 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
     }
     /** Called only after the editor write barrier, from the dedicated translation flow. */
     fun checkTranslationModel() = translationOperation("Memeriksa model terjemahan…") { translator ->
-        val ready = (!_translation.value.useGemma || _translation.value.termsAccepted) && translator.state() == ModelReadinessState.READY
+        val ready = _translation.value.termsAccepted && translator.state() == ModelReadinessState.READY
         _translation.value = _translation.value.copy(ready = ready,
             stage = if (ready) "Model terjemahan siap offline." else "Model terjemahan belum siap. Unduh terlebih dahulu.")
     }
@@ -354,9 +354,8 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         _translation.value = _translation.value.copy(ready = true, stage = "Model siap. Anda dapat mematikan koneksi sebelum menerjemahkan.")
     }
 
-    private fun translationEngineKey() = if (_translation.value.useGemma)
+    private fun translationEngineKey() =
         "gemma:${TranslateGemmaModel.descriptor.expectedSha256}:llama-2a667032:prompt1"
-        else "mlkit:17.0.3"
 
     fun discardTranslationRecovery() {
         if (_asr.value.busy) return
@@ -389,9 +388,9 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         operation = viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val translator = if (selection.useGemma) TranslateGemmaOfflineTranslator(getApplication(), selection.termsAccepted) {
+                    val translator = TranslateGemmaOfflineTranslator(getApplication(), selection.termsAccepted) {
                         _translation.value = _translation.value.copy(stage = it)
-                    }.also { gemmaTranslator = it } else MlKitOfflineTranslator()
+                    }.also { gemmaTranslator = it }
                     try { translator.use { action(it) } } finally { gemmaTranslator = null }
                 }
             } catch (cancel: CancellationException) {
@@ -428,3 +427,4 @@ class SubLokaViewModel(application: Application) : AndroidViewModel(application)
         super.onCleared()
     }
 }
+

@@ -55,7 +55,9 @@ class TranslationForegroundServiceTest {
         scenario = ActivityScenario.launch(MainActivity::class.java)
         lateinit var request: TranslationRequest
         scenario!!.onActivity {
-            request = requireNotNull(TranslationSession.reserve(project, TranslationUiState(), "fixture", null, false, false))
+            assertNull(TranslationSession.reserve(project, TranslationUiState(termsAccepted = false), "gemma:fixture", null, false, false))
+            assertNull(TranslationSession.reserve(project, TranslationUiState(useGemma = false, termsAccepted = true, pendingId = "legacy"), "mlkit:17.0.3", null, false, true))
+            request = requireNotNull(TranslationSession.reserve(project, TranslationUiState(termsAccepted = true), "gemma:fixture", null, false, false))
             TranslationForegroundService.start(it, request)
         }
         withTimeout(15_000) {
@@ -138,7 +140,7 @@ class TranslationForegroundServiceTest {
             }
             assertTrue(stopping.running)
             assertTrue(stopping.stage.startsWith("Menghentikan"))
-            assertNull(TranslationSession.reserve(request.project, TranslationUiState(), "fixture", null, false, false))
+            assertNull(TranslationSession.reserve(request.project, TranslationUiState(termsAccepted = true), "gemma:fixture", null, false, false))
             withTimeout(5_000) { while (!worker.cancelled) delay(25) }
             assertTrue(TranslationSession.state.value!!.stage.startsWith("Menghentikan"))
         } finally { worker.releaseCancellation.complete(Unit) }
@@ -160,3 +162,4 @@ class TranslationForegroundServiceTest {
         assertNull(terminal.error)
     }
 }
+

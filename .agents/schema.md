@@ -85,3 +85,8 @@ Room v1 unchanged. Terms acceptance is stored separately in application preferen
 
 ### Translation checkpoints (ADR-036)
 Room v1 table/column schema unchanged; add ProcessingJobDao. For TRANSLATE only, checkpoint_ref contains inline JSON {version:1,total:Int,pending:[{id:String,revision:Long}]} instead of a file path. No copied caption text. engine_version/model_version bind the inference configuration. States RUNNING → SUCCEEDED when pending empty; failed rows remain in FAILED; graceful interruption/startup recovery uses INTERRUPTED. Resume supersedes the prior attempt as CANCELLED/SUPERSEDED and creates a new UUID attempt from unchanged pending IDs/revisions. Discard marks CANCELLED/DISCARDED without caption mutation. Publication and checkpoint progress are one database transaction. Existing schema fixture must remain byte-for-byte unchanged; no destructive migration.
+
+
+
+## GEMMA-FOCUS-002 checkpoint transition / 2026-10-29
+Room schema v1 and checkpoint JSON v1 unchanged. begin(..., allowLegacyGemmaResume = true) allows only mlkit: → gemma: engine change, invoked by explicit resume. Previous job becomes CANCELLED/SUPERSEDED and a new Gemma job is created in one transaction. Pending IDs with changed source revision or manual origin are excluded; completed results never enter the resumed snapshot. Unknown/mixed/legacy caption origins remain unchanged. Older binaries remain unsupported for downgrade; no destructive migration.

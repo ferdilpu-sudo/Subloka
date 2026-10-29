@@ -1,5 +1,7 @@
 SubLoka — Indeks komponen pihak ketiga
 
+Catatan pembaruan 29 Oktober 2026: daftar di bawah merekam build sebelum SDK ML Kit dilepas. Sebagian dependensi Google mungkin tidak lagi disertakan. Daftar teresolusi yang baru akan diperiksa dari CI; daftar historis ini bukan klaim isi APK terbaru.
+
 Daftar ini bersumber dari metadata dependensi build yang diperiksa pada 28 Oktober 2026. Termasuk BOM dan modul metadata; tidak semua baris merupakan pustaka terpisah di APK.
 Nama lisensi mengikuti deklarasi POM atau POM induk. Indeks ini bukan pengganti teks lisensi, hak cipta, atau NOTICE khusus komponen. Pemeriksaan kelengkapan pemberitahuan distribusi masih berlangsung.
 
@@ -486,3 +488,4 @@ Lisensi: Apache-2.0
 
 org.jspecify:jspecify:1.0.0
 Lisensi: Apache-2.0
+

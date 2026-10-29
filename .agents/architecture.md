@@ -126,3 +126,8 @@ AsrForegroundService owns the coroutine, LocalAsrTask native pipeline, bounded p
 
 ### Background translation prototype0.6.4
 TranslationForegroundService owns LocalTranslationTask and separate persistence/translator handles. TranslationSession carries process-local request/stage/terminal state to ViewModels; durable remaining segment IDs and CAS remain in TranslationRecoveryStore. ViewModel recreation must not recover a live service job as interrupted. ASR and translation session reservation exclude each other. Model provisioning remains Activity-owned. Translation task holds storage until NonCancellable checkpoint cleanup; process death uses existing explicit resume. No Room migration or engine change.
+
+
+
+## GEMMA-FOCUS-002 current translation architecture / 2026-10-29
+Supersedes historical ML Kit stack references above: production translation adapter is TranslateGemmaOfflineTranslator only, using existing pinned native runtime/weights. ML Kit SDK dependency/adapter removed; legacy output origin enum retained for reading existing data. UI reports old checkpoint and requires explicit Gemma resume; recovery store validates pending identity/revision and one-way legacy transition atomically. No automatic download or project mutation when merely opening the legacy queue.

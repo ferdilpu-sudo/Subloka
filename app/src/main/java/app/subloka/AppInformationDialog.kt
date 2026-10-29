@@ -47,12 +47,11 @@ internal fun AppInformationDialog(onClose: () -> Unit) {
                         } else {
                             item { Text("Pemrosesan di perangkat", style = MaterialTheme.typography.titleMedium) }
                             item { Text("Video, caption dan terjemahan diproses di perangkat. Proyek disimpan dalam aplikasi. Unduhan model memerlukan jaringan; setelah model siap, alur utama dapat digunakan offline.") }
-                            item { Text("Jaringan dan ML Kit", style = MaterialTheme.typography.titleMedium) }
-                            item { Text("Unduhan model menghubungi penyedia berkas. Alternatif ML Kit memproses teks secara lokal, tetapi SDK Google dapat mengirim metrik perangkat, aplikasi, penggunaan dan bahasa, serta menghubungi Google untuk pembaruan. Memilih Gemma bukan jaminan tidak adanya seluruh trafik SDK.") }
-                            item { Text("Referensi: developers.google.com/ml-kit/terms dan developers.google.com/ml-kit/android-data-disclosure") }
+                            item { Text("Penggunaan jaringan", style = MaterialTheme.typography.titleMedium) }
+                            item { Text("Unduhan model menghubungi penyedia berkas hanya saat kamu meminta unduhan. Impor model lokal juga tersedia. Terjemahan baru menggunakan TranslateGemma; SDK ML Kit tidak lagi disertakan. Ini bukan pernyataan bahwa seluruh trafik perangkat telah diaudit.") }
                             item { Text("Penyedia terjemahan", style = MaterialTheme.typography.titleMedium) }
-                            item { Text("Opsi ML Kit menggunakan Google Translate untuk terjemahan di perangkat. TranslateGemma adalah model terpisah. Label pada caption menunjukkan penyedia yang tercatat; hasil lama tanpa catatan penyedia tidak ditebak. Hasil yang dikoreksi diberi label diedit manual.") }
-                            item { TextButton(onClick = { openReference("https://cloud.google.com/translate") }) { Text("Tentang Google Translate — buka browser") } }
+                            item { Text("Terjemahan menggunakan TranslateGemma. Hasil lama dari Google Translate (ML Kit) tetap disimpan dengan label asalnya. Label pada caption menunjukkan penyedia yang tercatat; hasil lama tanpa catatan penyedia tidak ditebak. Hasil yang dikoreksi diberi label diedit manual.") }
+                            item { TextButton(onClick = { openReference("https://cloud.google.com/translate") }) { Text("Tentang penyedia hasil lama — buka browser") } }
                             item { TextButton(onClick = { openReference("https://developers.google.com/ml-kit/language/translation/translation-terms") }) { Text("Ketentuan terjemahan ML Kit — buka browser") } }
                             if (linkError) item { Text("Browser tidak dapat dibuka. Referensi: cloud.google.com/translate", color = MaterialTheme.colorScheme.error) }
                             item { Text("Penyimpanan dan cadangan", style = MaterialTheme.typography.titleMedium) }
@@ -75,3 +74,4 @@ internal fun AppInformationDialog(onClose: () -> Unit) {
         }
     }
 }
+

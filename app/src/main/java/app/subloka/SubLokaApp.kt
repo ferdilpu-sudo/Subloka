@@ -172,6 +172,7 @@ fun SubLokaApp(
         "translation" -> project?.let { p ->
             TranslationSetupScreen(translation.ready, asr.busy, translation.stage, translation.error,
                 recoveryCount = translation.pendingCount, hasRecovery = translation.pendingId != null,
+                legacyRecovery = translation.legacyRecovery,
                 backgroundRunning = translationSession?.running == true,
                 stopping = translationSession?.stopping == true,
                 onResume = { beginTranslation(true) }, onDiscardRecovery = persistence::discardTranslationRecovery,
@@ -265,3 +266,4 @@ private fun PersistenceSaveState.label(): String = when (this) {
     PersistenceSaveState.SAVED -> "✓ Tersimpan lokal"
     PersistenceSaveState.FAILED -> "Perubahan belum tersimpan"
 }
+

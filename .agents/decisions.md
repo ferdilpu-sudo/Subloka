@@ -147,3 +147,8 @@ User reports stopping during transcription takes2–3 minutes despite acknowledg
 
 ## ADR-040 — Service-owned caption translation / ACCEPTED prototype / 2026-10-19
 User authorized lanjut after proposal for continuous background translation. Separate TranslationForegroundService owns translator, bounded wake lock, job and database, using the existing per-segment atomic recovery publication. Session reconnects recreated UI; startup skips interrupted recovery while a live translation session owns the job. New/resumed requests freeze engine/consent/filter and prevent simultaneous ASR. Notification Hentikan retains busy ownership through cleanup; same saved checkpoint resumes on explicit user action after cancellation or process death. Uses mediaProcessing on35+ for caption media workflow and dataSync on29–34 for local processing. No automatic restart, downloads, model replacement, schema change or MP4 background support. Modern Android service-type behavior and real Gemma screen-off performance require physical validation.
+
+
+
+## GEMMA-FOCUS-002 — Retire ML Kit runtime / 2026-10-29
+User chooses TranslateGemma and authorizes SDK removal after first-stage PASS. Supersedes ADR-035 lightweight alternative and narrowly extends ADR-036 same-engine resume: an explicit button labeled Lanjutkan dengan TranslateGemma may supersede a legacy mlkit: checkpoint into the currently pinned Gemma configuration. Requires model readiness/terms and preserves pending IDs/revisions only. No automatic migration on opening a project, no completed-result relabeling, no manual overwrite, no cloud fallback. Other engine changes remain rejected. Keep persisted MACHINE_MLKIT values for historical results. SDK-owned old files are not deleted by migration.

@@ -1308,3 +1308,10 @@ Code281bbf125b868756ff22edcfb033f4f91d414d1c. Manual39138025048 jobs117706447901
 
 ## TRANSLATION-SERVICE-001 / 2026-10-19 / implementation; CI pending
 Working tree based281bbf1. Added service lifecycle tests with controlled worker plus real Room checkpoint publication after Activity recreation; delayed cancellation retains ownership and acknowledgement; simulated committed completion wins cancellation. Existing recovery tests cover atomic publication, manual/source conflict and remaining-only resume. Local guardrails/diff PASS. Android compilation/emulator tests NOT_RUN for this increment; CI required. Tests do not execute real Gemma weights. Sony screen-off/background translation, stop/resume and newer Android foreground-service behavior remain pending.
+
+
+
+## GEMMA-FOCUS-002 / 2026-10-29
+Baseline69de432 user PASS: new Gemma work and persistence, ML Kit choice absent; CI40624219050 previously independently SUCCESS. This changeset adds Room tests for explicit-only legacy resume, completed/manual/changed caption preservation, superseded writer rejection, Gemma origin and reopen, and rejection of unrelated engine changes. UI test requires accepted Gemma terms before explicit legacy resume. Service fixtures use Gemma request identity and assert rejected legacy/no-consent reservations. Fresh adapter smoke uses Gemma with absent model/no consent. These Android/Kotlin tests are NOT_RUN locally (no SDK/compiler); CI required. Local static/YAML/guardrail results recorded in scoped evidence after execution. No claim of engine performance or complete network/license audit.
+
+Local verification: project guardrails PASS (118 Kotlin files); workflow YAML parsed and dependency rejection step present; source scan found no remaining MlKitOfflineTranslator or com.google.mlkit Gradle declarations after planned deletion. Android/Room/Compose execution remains NOT_RUN locally; awaiting CI.

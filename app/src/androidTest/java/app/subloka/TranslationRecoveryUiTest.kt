@@ -63,26 +63,23 @@ class TranslationRecoveryUiTest {
     }
 
 
-    @Test fun googleActionStartsAndResumesWithoutChangingManualProtection() {
-        var pending by mutableStateOf(false)
-        var started = 0
+    @Test fun legacyResumeRequiresGemmaTermsAndExplicitAction() {
+        var accepted by mutableStateOf(false)
         var resumed = 0
         compose.setContent {
             MaterialTheme {
                 TranslationSetupScreen(ready = true, busy = false, stage = "", error = null,
-                    recoveryCount = 1, hasRecovery = pending, onResume = { resumed++ }, onDiscardRecovery = {},
-                    eligibleCount = 1, replaceableCount = 2, pairLabel = "Indonesia → English",
-                    useGemma = false, termsAccepted = false, onModelSelected = {}, onTermsAccepted = {},
-                    onImport = {}, onCheck = {}, onDownload = {},
-                    onTranslate = { replace -> assertEquals(false, replace); started++ },
-                    onCancel = {}, onBack = {})
+                    recoveryCount = 1, hasRecovery = true, legacyRecovery = true,
+                    onResume = { resumed++ }, onDiscardRecovery = {},
+                    eligibleCount = 0, replaceableCount = 2, pairLabel = "Indonesia → English",
+                    useGemma = true, termsAccepted = accepted, onModelSelected = {}, onTermsAccepted = {},
+                    onImport = {}, onCheck = {}, onDownload = {}, onTranslate = {}, onCancel = {}, onBack = {})
             }
         }
-        compose.onNodeWithText("Translate with Google").assertIsDisplayed().performClick()
-        compose.runOnIdle { assertEquals(1, started); pending = true }
-        compose.onNodeWithText("Lanjutkan dengan Google").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Lanjutkan dengan TranslateGemma").assertIsDisplayed().assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(0, resumed); accepted = true }
+        compose.onNodeWithText("Lanjutkan dengan TranslateGemma").assertIsEnabled().performClick()
         compose.runOnIdle { assertEquals(1, resumed) }
-        compose.onNodeWithText("Translate with Google").assertDoesNotExist()
+        compose.onNodeWithText("Lanjutkan dengan Google").assertDoesNotExist()
     }
-
 }

@@ -47,7 +47,7 @@ Jika tanda tangan tidak cocok, hentikan migrasi dan pertahankan aplikasi/data ya
 4. Terjemahkan jika diperlukan. Periksa hasil, terutama nama, angka dan makna. Perubahan teks asli membuat terjemahan perlu diperbarui; ekspor asli tetap tersedia.
 5. Ekspor SRT atau render MP4, lalu tekan Simpan dan pilih lokasi. Keduanya pada SRT menghasilkan dua berkas bahasa terpisah.
 
-Transkripsi menggunakan Whisper Large-v3 Turbo (~574 MB) dan Silero (~0,9 MB); terjemahan default TranslateGemma 4B (~2,49 GB). Model tidak dibundel dalam APK. Siapkan ruang tambahan untuk video, berkas sementara dan hasil ekspor; ukuran model bukan perkiraan kebutuhan RAM.
+Transkripsi menggunakan Whisper Large-v3 Turbo (~574 MB) dan Silero (~0,9 MB); terjemahan menggunakan TranslateGemma 4B (~2,49 GB). Model tidak dibundel dalam APK. Siapkan ruang tambahan untuk video, berkas sementara dan hasil ekspor; ukuran model bukan perkiraan kebutuhan RAM.
 
 Setelah model siap, pemrosesan konten berjalan di perangkat. Transkripsi, terjemahan dan render memakai layanan latar depan dengan notifikasi. Home/layar mati berbeda dari Android force-stop: terjemahan dapat melanjutkan sisa yang tersimpan, sedangkan transkripsi/render yang terputus perlu dimulai ulang. Aktifkan izin notifikasi untuk melihat status; banner pop-up tidak dijamin.
 
@@ -60,24 +60,24 @@ Setelah model siap, pemrosesan konten berjalan di perangkat. Transkripsi, terjem
 - TalkBack, cakupan perangkat lebih luas, serta pemeriksaan distribusi/lisensi akhir masih terbuka sebelum rilis publik.
 - Video hingga 10 menit; jalur ekspor MP4 saat ini H.264/AAC SDR dengan sisi terpanjang maksimum 1280 piksel. Dukungan seluruh codec/HDR tidak dijanjikan.
 - Tidak ada cadangan proyek lengkap yang dapat dipulihkan melalui UI. Jangan menghapus data/uninstall jika proyek masih diperlukan.
-- Unduhan model memerlukan jaringan dan persetujuan ketentuan model. Alternatif ML Kit memiliki ketentuan SDK sendiri; klaim pemrosesan lokal tidak berarti seluruh SDK tidak pernah melakukan trafik jaringan.
+- Unduhan model memerlukan jaringan dan persetujuan ketentuan model. SDK ML Kit telah dilepas dari dependensi aplikasi; audit trafik seluruh perangkat belum dilakukan.
 
 Bukti implementasi dan pengujian terperinci: [catatan terbatas](.agents/evidence/processing-status-ui.md). Panduan pengembang: [.agents/AGENTS.md](.agents/AGENTS.md).
 
 ## Privasi beta dan penggunaan jaringan
 
-Informasi ini berlaku untuk kandidat beta pada cabang ini, ditinjau 26 Oktober 2026. Ini menjelaskan implementasi yang diperiksa; belum merupakan hasil audit trafik jaringan seluruh SDK.
+Informasi ini berlaku untuk kandidat beta pada cabang ini, diperbarui 29 Oktober 2026. Ini menjelaskan implementasi yang diperiksa; belum merupakan hasil audit trafik jaringan seluruh SDK.
 
 - **Konten proyek:** video dibaca dari lokasi yang dipilih pengguna. Caption, koreksi, waktu, gaya dan status pekerjaan disimpan di penyimpanan aplikasi pada perangkat. Jalur transkripsi Whisper dan terjemahan TranslateGemma memproses konten secara lokal; tidak ada layanan server SubLoka untuk menerima konten.
 - **Unduhan model:** tindakan unduh menghubungi Hugging Face dan penyedia berkasnya. Penyedia menerima informasi koneksi yang diperlukan seperti alamat IP dan permintaan berkas. Impor model lokal tersedia. Model diverifikasi sebelum digunakan.
-- **Alternatif ML Kit:** menurut [Terms & Privacy Google](https://developers.google.com/ml-kit/terms), input dan hasil diproses di perangkat, tetapi SDK dapat menghubungi Google untuk pembaruan dan mengirim metrik penggunaan/performa. [Pengungkapan data Android ML Kit](https://developers.google.com/ml-kit/android-data-disclosure) menjelaskan metadata perangkat/aplikasi, pengenal instalasi, metrik, peristiwa/error dan bahasa sumber/tujuan. Dokumen Google tersebut membahas SDK terkini; perilaku jaringan setiap versi paket belum diukur secara independen di sini. Memilih Gemma tidak kami nyatakan sebagai bukti bahwa seluruh SDK dalam APK pasti tidak pernah mengirim trafik.
+- **TranslateGemma:** satu-satunya engine terjemahan untuk pekerjaan baru. Antrean ML Kit lama dapat dilanjutkan secara eksplisit dengan TranslateGemma setelah model siap dan ketentuan diterima. Hanya ID/revisi yang masih tertunda diproses; hasil selesai, caption berubah dan koreksi manual tetap dilindungi. Hasil lama mempertahankan penanda penyedianya.
 - **Penyimpanan hasil:** SRT/MP4 ditulis ke lokasi yang dipilih. Jika memilih penyedia dokumen cloud, penyedia itu dapat menyinkronkan hasil sesuai pengaturannya. Pilih penyimpanan lokal untuk alur offline.
 - **Diagnostik:** aplikasi memiliki log lokal tahap, durasi dan jenis kegagalan untuk pemecahan masalah. Jangan mengirim log lengkap tanpa memeriksanya; log perangkat/dependensi tidak seluruhnya diaudit. Pelaporan masalah melalui GitHub adalah tindakan manual pengguna.
 - **Cadangan dan penghapusan:** backup Android aplikasi dinonaktifkan. Tidak ada fitur pemulihan arsip proyek lengkap pada beta. Menghapus data aplikasi/uninstall dapat menghilangkan proyek dan model internal; file sumber dan ekspor di luar aplikasi dikelola terpisah. Jangan menghapus data sebagai langkah rutin pembaruan.
 
 Untuk laporan masalah, gunakan [Issues SubLoka](https://github.com/ferdilpu-sudo/Subloka/issues). Sertakan versi, perangkat dan langkah reproduksi; jangan lampirkan video/transkrip pribadi, kunci penandatanganan atau log sensitif di issue publik.
 
-Opsi ML Kit menggunakan **Google Translate** untuk terjemahan di perangkat; TranslateGemma merupakan model terpisah. Lihat [Google Cloud Translation](https://cloud.google.com/translate) dan [ketentuan atribusi ML Kit](https://developers.google.com/ml-kit/language/translation/translation-terms).
+Hasil historis ML Kit berasal dari **Google Translate**; hasil tersebut tetap tersimpan. TranslateGemma merupakan model terpisah. Lihat [Google Cloud Translation](https://cloud.google.com/translate) dan [ketentuan atribusi ML Kit](https://developers.google.com/ml-kit/language/translation/translation-terms).
 
 ## Komponen pihak ketiga
 
@@ -89,13 +89,15 @@ Inventaris berikut membantu penelusuran sumber, **bukan daftar lengkap dependens
 | Silero VAD | [Silero](https://github.com/snakers4/silero-vad), model 6.2.0 | [Lisensi](engine/asr/src/main/assets/licenses/silero-vad-LICENSE.txt) |
 | TranslateGemma | Google; GGUF Q4_K_M dari mradermacher, revision dipin dalam katalog model | [Notice](engine/translation/src/main/assets/licenses/Gemma-NOTICE.txt), [ketentuan](engine/translation/src/main/assets/licenses/Gemma-terms.txt), [kebijakan penggunaan](engine/translation/src/main/assets/licenses/Gemma-prohibited_use_policy.txt) |
 | llama.cpp dan komponen native terkait | revision `2a667032dc788c3a071d538e0b572e45a3f12731` | [llama.cpp](engine/translation/src/main/assets/licenses/llama.cpp-LICENSE.txt), [JSON](engine/translation/src/main/assets/licenses/llama-json-LICENSE.txt), [llamafile](engine/translation/src/main/assets/licenses/llamafile-LICENSE.txt) |
-| Google ML Kit Translate | `com.google.mlkit:translate:17.0.3` | [Ketentuan/privasi](https://developers.google.com/ml-kit/terms), [panduan atribusi terjemahan](https://developers.google.com/ml-kit/language/translation/translation-terms) |
 | AndroidX / Compose / Room / Media3 | Versi dipin dalam Gradle; Room 2.8.5, Media3 1.11.1, Compose BOM 2026.09.00 | Inventaris notice lengkap dari dependensi teresolusi masih perlu dilengkapi |
 | Kotlin / kotlinx.coroutines | Compiler 2.3.21; coroutines 1.10.2 | Inventaris notice lengkap dari dependensi teresolusi masih perlu dilengkapi |
 
-Sebelum distribusi publik: lengkapi notice dependensi transitif, sediakan akses informasi privasi/lisensi di aplikasi, dan terapkan atribusi ML Kit sesuai panduan resminya pada alur yang memakai ML Kit. Label pemilihan model saja belum diperlakukan sebagai bukti pemenuhan atribusi. Jangan mengartikan keberadaan sembilan berkas model/native sebagai audit lisensi seluruh APK.
+Sebelum distribusi publik: periksa ulang notice dependensi transitif dari CI setelah penghapusan SDK, dan selesaikan peninjauan atribusi hasil ML Kit historis. Informasi privasi/lisensi tersedia di aplikasi. Label pemilihan model saja belum diperlakukan sebagai bukti pemenuhan atribusi. Jangan mengartikan keberadaan sembilan berkas model/native sebagai audit lisensi seluruh APK.
+
 
 ## Riwayat pengembangan
+
+Harness benchmark ML Kit di bawah telah dipensiunkan bersama SDK; jangan jalankan perintah benchmark ML Kit historis. Benchmark Turbo tetap dijeda.
 
 Bagian di bawah adalah catatan versi lama, **bukan petunjuk pemasangan atau batas perilaku beta saat ini**. Nama model lama, syarat foreground-only dan status pending di arsip mengikuti versi yang disebutkan.
 
@@ -652,3 +654,4 @@ Code `e7e355e` passed [Android CI #217](https://github.com/ferdilpu-sudo/Subloka
 Caption translation now has a foreground service with progress/stop notification and existing per-segment recovery. Model setup remains in the foreground. Android CI and Sony background translation acceptance for this increment are tracked in `.agents/testing.md`; do not infer real-weight screen-off success from controlled-worker tests. Existing models and stable signing key are reused.
 
 </details>
+

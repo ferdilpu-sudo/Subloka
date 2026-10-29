@@ -121,6 +121,13 @@ jobs:
       - name: Assemble release candidate
         run: ./gradlew --stacktrace :app:assembleRelease :app:lintRelease
 
+      - name: Reject retired ML Kit runtime dependency
+        run: |
+          if grep -E 'com\.google\.mlkit:|com\.google\.android\.gms:play-services-mlkit' app/build/reports/distribution/release-runtime-dependencies.txt; then
+            echo "Retired ML Kit dependency remains in release runtime."
+            exit 1
+          fi
+
       - name: Collect dependency license evidence
         shell: bash
         run: |
@@ -313,3 +320,4 @@ jobs:
           name: subloka-beta-apk
           path: beta-apk/
           if-no-files-found: error
+

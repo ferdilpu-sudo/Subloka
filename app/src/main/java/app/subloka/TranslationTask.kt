@@ -27,11 +27,11 @@ internal class LocalTranslationTask(private val context: Context) : TranslationT
         private set
     override fun cancel() { cancelled.set(true); translator?.cancel() }
     override suspend fun run(request: TranslationRequest, onStage: (String) -> Unit) = withContext(Dispatchers.IO) {
-        val engine: OfflineTranslator = if (request.useGemma)
-            TranslateGemmaOfflineTranslator(context, request.termsAccepted, onStage).also {
-                translator = it
-                if (cancelled.get()) it.cancel()
-            } else MlKitOfflineTranslator()
+        check(request.useGemma && request.termsAccepted && request.engine.startsWith("gemma:"))
+        val engine: OfflineTranslator = TranslateGemmaOfflineTranslator(context, request.termsAccepted, onStage).also {
+            translator = it
+            if (cancelled.get()) it.cancel()
+        }
         try {
             engine.use {
                 currentCoroutineContext().ensureActive()
@@ -45,7 +45,7 @@ internal class LocalTranslationTask(private val context: Context) : TranslationT
                             TranslationEligibility.canGenerate(it, request.replaceCurrentMachine))
                     }
                     currentCoroutineContext().ensureActive()
-                    val checkpoint = recovery.begin(request.project.id, request.engine, snapshot, request.pendingId)
+                    val checkpoint = recovery.begin(request.project.id, request.engine, snapshot, request.pendingId, allowLegacyGemmaResume = true)
                     val work = snapshot.filter { checkpoint.pending[it.id] == it.sourceRevision }
                     try {
                         val result = CaptionTranslationPipeline(engine).run(work, publish = { source, text ->
@@ -67,3 +67,4 @@ internal class LocalTranslationTask(private val context: Context) : TranslationT
         } finally { translator = null }
     }
 }
+

@@ -87,7 +87,7 @@ class NotificationDeniedServiceTest {
                     when (kind) {
                         "asr" -> AsrForegroundService.start(it, requireNotNull(AsrSession.reserve(project, true)))
                         "translation" -> TranslationForegroundService.start(it, requireNotNull(
-                            TranslationSession.reserve(project, TranslationUiState(), "fixture", null, false, false)))
+                            TranslationSession.reserve(project, TranslationUiState(termsAccepted = true), "gemma:fixture", null, false, false)))
                         else -> RenderForegroundService.start(it, requireNotNull(RenderSession.reserve(project, emptyList(), CaptionStyle())))
                     }
                 }
@@ -125,3 +125,4 @@ class NotificationDeniedServiceTest {
         }
     }
 }
+

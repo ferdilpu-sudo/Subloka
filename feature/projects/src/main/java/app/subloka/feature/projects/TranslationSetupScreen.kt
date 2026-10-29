@@ -23,18 +23,18 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                            onImport: () -> Unit,
                            onCheck: () -> Unit, onDownload: (Boolean) -> Unit,
                            onTranslate: (Boolean) -> Unit, onCancel: () -> Unit, onBack: () -> Unit,
-                           backgroundRunning: Boolean = false, modifier: Modifier = Modifier, stopping: Boolean = false) {
+                           backgroundRunning: Boolean = false, modifier: Modifier = Modifier, stopping: Boolean = false, legacyRecovery: Boolean = false) {
     var wifiOnly by rememberSaveable { mutableStateOf(true) }
     var replaceMachine by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
     var advanced by rememberSaveable { mutableStateOf(false) }
     var showTerms by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val permitted = !useGemma || termsAccepted
+    val permitted = useGemma && termsAccepted
     val count = if (hasRecovery) recoveryCount else if (replaceMachine) replaceableCount else eligibleCount
     if (confirmDiscard) {
         AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Hapus antrean tertunda?") },
-            text = { Text("Caption dan hasil terjemahan tetap tersimpan. Setelah ini kamu bisa memilih model atau membuat antrean baru.") },
+            text = { Text("Caption dan hasil terjemahan tetap tersimpan. Setelah ini kamu bisa membuat antrean TranslateGemma baru.") },
             confirmButton = { TextButton(onClick = { confirmDiscard = false; onDiscardRecovery() }) { Text("Hapus antrean") } },
             dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Kembali") } })
     }
@@ -73,7 +73,7 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 else if (backgroundRunning) "Boleh berpindah aplikasi atau mematikan layar. Jika Android menghentikan aplikasi, buka proyek dan lanjutkan sisa terjemahan."
                 else "Tetap buka aplikasi selama penyiapan model.")
             Text("Teks asli dan waktu caption tetap disimpan. Koreksi terjemahan manual selalu dilewati. Periksa makna hasil terjemahan sebelum digunakan.")
-            Text(if (useGemma) "Model aktif: TranslateGemma" else "Antrean lama: Google Translate (ML Kit)")
+            Text("Model aktif: TranslateGemma")
             TextButton(onClick = { advanced = !advanced }) {
                 Text(if (advanced) "Tutup opsi lanjutan" else "Opsi lanjutan")
             }
@@ -99,7 +99,9 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
                 Checkbox(replaceMachine, { replaceMachine = it }, enabled = !busy)
                 Text("Ganti juga hasil terjemahan otomatis yang sudah ada", Modifier.weight(1f).padding(top = 12.dp))
             }
-            if (hasRecovery) Text("Ada pekerjaan terjemahan tertunda: $recoveryCount caption belum selesai. Lanjutkan dengan model yang sama; caption yang berubah atau dikoreksi manual akan dilewati.")
+            if (hasRecovery) Text(if (legacyRecovery)
+                "Antrean ML Kit lama: $recoveryCount caption belum selesai. Lanjutkan dengan TranslateGemma untuk menerjemahkan sisanya. Hasil yang sudah selesai tetap disimpan; caption yang berubah atau dikoreksi manual dilewati."
+                else "Ada pekerjaan terjemahan tertunda: $recoveryCount caption belum selesai. Caption yang berubah atau dikoreksi manual akan dilewati.")
             Text(if (ready) "✓ Model siap di perangkat" else "Model terjemahan belum siap")
             if (!busy) {
                 if (!ready) {
@@ -114,8 +116,9 @@ fun TranslationSetupScreen(ready: Boolean, busy: Boolean, stage: String, error: 
             busy -> SecondaryAction(if (stopping) "Menghentikan…" else "Hentikan", onCancel,
                 enabled = !stopping, modifier = Modifier.fillMaxWidth())
             !ready -> PrimaryAction("Unduh model terjemahan", { onDownload(wifiOnly) }, enabled = permitted, modifier = Modifier.fillMaxWidth())
-            hasRecovery -> PrimaryAction(if (useGemma) "Lanjutkan sisa terjemahan" else "Lanjutkan dengan Google", onResume, enabled = permitted, modifier = Modifier.fillMaxWidth())
-            else -> PrimaryAction(if (useGemma) "Terjemahkan caption" else "Translate with Google", { onTranslate(replaceMachine) }, enabled = permitted && count > 0, modifier = Modifier.fillMaxWidth())
+            hasRecovery -> PrimaryAction(if (legacyRecovery) "Lanjutkan dengan TranslateGemma" else "Lanjutkan sisa terjemahan", onResume, enabled = permitted, modifier = Modifier.fillMaxWidth())
+            else -> PrimaryAction("Terjemahkan caption", { onTranslate(replaceMachine) }, enabled = permitted && count > 0, modifier = Modifier.fillMaxWidth())
         }
     }
 }
+

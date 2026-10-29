@@ -174,3 +174,13 @@ User reports CI40616260323 beta PASS for offline reading/scroll/back/close of An
 
 ## GEMMA-FOCUS-001 / 2026-10-28
 User explicitly chooses TranslateGemma focus. Remove new ML Kit selection, reject new ML Kit session reservations, reset model to Gemma whenever no recovery checkpoint exists. Existing ML Kit checkpoint resume retained and labeled Antrean lama; existing captions/manual corrections untouched. SDK remains for legacy recovery, so privacy/attribution obligations are not declared closed. Update existing recovery UI assertion for absent ML Kit chip. Guardrails122Kotlin/whitespace PASS; Android CI and device acceptance pending. No destructive migration, model redownload or key change. Next verify new Gemma jobs, preserved old data and legacy recovery; SDK removal remains separate work.
+
+
+
+## GEMMA-FOCUS-002 / 2026-10-29
+CI40624219050 on69de432 passed; user reports new-translation ML Kit selection absent, Gemma output succeeds and corrections survive reopening. This confirms first-stage focus only.
+Next changeset removes com.google.mlkit:translate and MlKitOfflineTranslator plus its retired instrumented harnesses. All inference/provisioning routes use existing TranslateGemma. Historical MACHINE_MLKIT/MACHINE/MANUAL results remain readable and are not relabeled or deleted. Legacy pending work offers explicit Lanjutkan dengan TranslateGemma; terms/readiness gate retained. Only unchanged nonmanual pending IDs transfer transactionally; completed output untouched; other engine switches rejected. Tests prepared for preservation, reopen, late writer, consent and recovery UI. Service fake fixtures updated for Gemma identity. CI checks release runtime has no ML Kit dependency. Native weights, signing, schema and model files unchanged.
+Privacy/help updated; component list explicitly marks its previous build inventory as historical until new CI inventory review. Legacy result attribution and full notice review remain open; no network-audit or release claim. Benchmark remains paused.
+
+
+Local verification: project guardrails PASS (118 Kotlin files); workflow YAML parsed and dependency rejection step present; source scan found no remaining MlKitOfflineTranslator or com.google.mlkit Gradle declarations after planned deletion. Android/Room/Compose execution remains NOT_RUN locally; awaiting CI.

@@ -326,6 +326,65 @@ class RoomCaptionRepositoryTest {
         assertEquals(snapshot[1].translationText, captionRepository.list(PROJECT_ID)[1].translationText)
     }
 
+    @Test
+    fun explicitLegacyResumeRetainsCompletedAndManualResultsAcrossReopen() = runBlocking {
+        seedProjectAndSegments()
+        val first = captionRepository.list(PROJECT_ID)
+        captionRepository.replaceAll(PROJECT_ID, first + listOf(
+            first[1].copy(id = "segment-3", startUs = 2_000_000, endUs = 3_000_000),
+            first[1].copy(id = "segment-4", startUs = 3_000_000, endUs = 4_000_000)))
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val store = TranslationRecoveryStore(database)
+        val job = store.begin(PROJECT_ID, "mlkit:17.0.3", snapshot)
+        assertTrue(store.publish(job.id, snapshot[0], "Completed legacy output"))
+        store.stop(job.id, true)
+        captionRepository.saveManualTranslation(PROJECT_ID, "segment-2", "Manual correction")
+        captionRepository.saveSourceText(PROJECT_ID, "segment-3", "Changed source")
+        val before = captionRepository.list(PROJECT_ID)
+        val pending = store.pending(PROJECT_ID)
+        try {
+            store.begin(PROJECT_ID, "gemma:test", before, job.id)
+            fail("Legacy engine switch must be explicit")
+        } catch (_: IllegalStateException) { }
+        assertEquals(pending, store.pending(PROJECT_ID))
+        val resumed = store.begin(PROJECT_ID, "gemma:test", before, job.id, allowLegacyGemmaResume = true)
+        assertEquals(setOf("segment-4"), resumed.pending.keys)
+        assertEquals(before, captionRepository.list(PROJECT_ID))
+        // A stale worker cannot publish after the old checkpoint has been superseded.
+        try {
+            store.publish(job.id, snapshot[3], "Late legacy result")
+            fail("Superseded job cannot publish")
+        } catch (_: IllegalStateException) { }
+        assertTrue(store.publish(resumed.id, before.first { it.id == "segment-4" }, "New Gemma output"))
+        database.close()
+        openDatabase()
+        val after = captionRepository.list(PROJECT_ID)
+        assertEquals(before.take(3), after.take(3))
+        assertEquals(TranslationOrigin.MACHINE_MLKIT, after[0].translationOrigin)
+        assertEquals(TranslationOrigin.MANUAL, after[1].translationOrigin)
+        assertEquals(TranslationOrigin.MACHINE_GEMMA, after[3].translationOrigin)
+        assertEquals("New Gemma output", after[3].translationText)
+        assertEquals(null, TranslationRecoveryStore(database).pending(PROJECT_ID))
+    }
+
+    @Test
+    fun legacyResumePermissionDoesNotAllowOtherEngineChanges() = runBlocking {
+        seedProjectAndSegments()
+        val store = TranslationRecoveryStore(database)
+        val snapshot = captionRepository.list(PROJECT_ID)
+        val job = store.begin(PROJECT_ID, "gemma:old", snapshot)
+        store.stop(job.id, true)
+        val before = store.pending(PROJECT_ID)
+        for (engine in listOf("gemma:new", "mlkit:17.0.3")) {
+            try {
+                store.begin(PROJECT_ID, engine, snapshot, job.id, allowLegacyGemmaResume = true)
+                fail("Only ML Kit to Gemma transition is allowed")
+            } catch (_: IllegalStateException) { }
+            assertEquals(before, store.pending(PROJECT_ID))
+            assertEquals(snapshot, captionRepository.list(PROJECT_ID))
+        }
+    }
+
     private suspend fun seedProjectAndSegments() {
         projectRepository.upsert(project())
         val mutation = captionRepository.replaceAll(
@@ -459,3 +518,4 @@ class RoomCaptionRepositoryTest {
         private const val PROJECT_ID = "project-1"
     }
 }
+
