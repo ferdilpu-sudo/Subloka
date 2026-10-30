@@ -184,3 +184,11 @@ Privacy/help updated; component list explicitly marks its previous build invento
 
 
 Local verification: project guardrails PASS (118 Kotlin files); workflow YAML parsed and dependency rejection step present; source scan found no remaining MlKitOfflineTranslator or com.google.mlkit Gradle declarations after planned deletion. Android/Room/Compose execution remains NOT_RUN locally; awaiting CI.
+
+
+
+## LICENSE-INDEX-002 / 2026-10-29
+Verified CI40803254126 at9e724bd9386b07fc8f3bfe4fb13ea7afdba95a6c. Artifact12867721118 releaseRuntimeClasspath report and collected inventory agree on128 coordinates, down from156 (28 removed,0 added). All128 POM hashes unchanged from reviewed mapping;0 POMs missing. Every collected evidence blob hash verified. ML Kit, Firebase and Google Play Services coordinates absent from this report; this is dependency evidence, not a device-wide network audit. License families:127 Apache-2.0,1 MIT. Retained only relevant inherited Guava parent mappings, whose saved POM hashes were verified.
+Updated dependency-license-map.json with exact run/commit/artifact, inventory/report hashes and removed coordinates; regenerated offline Komponen-pihak-ketiga.txt for the128-coordinate inventory. Existing Apache/MIT/native/model texts retained. No engine, model, schema, signing or runtime behavior change. Full per-component copyright/NOTICE and historical-output attribution review remain open; no public release assertion.
+CI Room HTML report explicitly confirms explicitLegacyResumeRetainsCompletedAndManualResultsAcrossReopen and legacyResumePermissionDoesNotAllowOtherEngineChanges PASS. User reports device PASS for retained data/models and Gemma translation persistence; legacy queue device coverage remains conditional on a real queue having been available.
+Validation: exact coordinate parity between report, inventory, mapping and display index; unchanged reviewed POM hashes; evidence blob and inherited-parent hashes PASS. New index APK inclusion awaits the next combined build; no engine retest required. Benchmark remains paused.

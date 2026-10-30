@@ -1,18 +1,13 @@
 SubLoka — Indeks komponen pihak ketiga
 
-Catatan pembaruan 29 Oktober 2026: daftar di bawah merekam build sebelum SDK ML Kit dilepas. Sebagian dependensi Google mungkin tidak lagi disertakan. Daftar teresolusi yang baru akan diperiksa dari CI; daftar historis ini bukan klaim isi APK terbaru.
-
-Daftar ini bersumber dari metadata dependensi build yang diperiksa pada 28 Oktober 2026. Termasuk BOM dan modul metadata; tidak semua baris merupakan pustaka terpisah di APK.
-Nama lisensi mengikuti deklarasi POM atau POM induk. Indeks ini bukan pengganti teks lisensi, hak cipta, atau NOTICE khusus komponen. Pemeriksaan kelengkapan pemberitahuan distribusi masih berlangsung.
+Daftar ini berdasarkan releaseRuntimeClasspath CI 40803254126, commit 9e724bd9386b07fc8f3bfe4fb13ea7afdba95a6c, diperiksa 29 Oktober 2026 setelah SDK ML Kit dilepas.
+Terdapat 128 koordinat dependensi, termasuk BOM dan modul metadata; bukan jumlah pustaka yang dikemas terpisah di APK. ML Kit tidak tercantum dalam laporan dependensi runtime ini.
+Nama lisensi mengikuti deklarasi POM atau POM induk yang diperiksa. Indeks ini bukan pengganti teks lisensi, hak cipta, atau NOTICE khusus komponen. Pemeriksaan kelengkapan pemberitahuan distribusi masih berlangsung.
 
 Teks yang tersedia offline:
 - Apache 2.0: AndroidX-Apache-2.0-LICENSE.txt
 - MIT dan hak cipta Checker Framework: Checker-Framework-MIT-LICENSE.txt
-- Model dan engine native: lihat dokumen Whisper, whisper.cpp, Silero, Gemma, llama.cpp, llama-json dan llamafile pada daftar lisensi.
-
-Rujukan ketentuan SDK (memerlukan internet):
-Android SDK: https://developer.android.com/studio/terms
-ML Kit: https://developers.google.com/ml-kit/terms
+- Model dan engine native: lihat dokumen Whisper, whisper.cpp, Silero, Gemma, llama.cpp, llama-json dan llamafile pada daftar lisensi. Model/engine tersebut tidak dihitung sebagai koordinat Maven di bawah.
 
 Komponen dan versi:
 
@@ -32,12 +27,6 @@ androidx.annotation:annotation-jvm:1.10.0
 Lisensi: Apache-2.0
 
 androidx.annotation:annotation:1.10.0
-Lisensi: Apache-2.0
-
-androidx.appcompat:appcompat-resources:1.6.1
-Lisensi: Apache-2.0
-
-androidx.appcompat:appcompat:1.6.1
 Lisensi: Apache-2.0
 
 androidx.arch.core:core-common:2.2.0
@@ -169,28 +158,16 @@ Lisensi: Apache-2.0
 androidx.core:core:1.19.1
 Lisensi: Apache-2.0
 
-androidx.cursoradapter:cursoradapter:1.0.0
-Lisensi: Apache-2.0
-
 androidx.customview:customview-poolingcontainer:1.0.0
 Lisensi: Apache-2.0
 
 androidx.customview:customview:1.0.0
 Lisensi: Apache-2.0
 
-androidx.drawerlayout:drawerlayout:1.0.0
-Lisensi: Apache-2.0
-
-androidx.emoji2:emoji2-views-helper:1.4.0
-Lisensi: Apache-2.0
-
 androidx.emoji2:emoji2:1.4.0
 Lisensi: Apache-2.0
 
 androidx.exifinterface:exifinterface:1.3.6
-Lisensi: Apache-2.0
-
-androidx.fragment:fragment:1.3.6
 Lisensi: Apache-2.0
 
 androidx.graphics:graphics-path:1.0.1
@@ -208,13 +185,7 @@ Lisensi: Apache-2.0
 androidx.lifecycle:lifecycle-common:2.11.0
 Lisensi: Apache-2.0
 
-androidx.lifecycle:lifecycle-livedata-core-ktx:2.11.0
-Lisensi: Apache-2.0
-
 androidx.lifecycle:lifecycle-livedata-core:2.11.0
-Lisensi: Apache-2.0
-
-androidx.lifecycle:lifecycle-livedata:2.11.0
 Lisensi: Apache-2.0
 
 androidx.lifecycle:lifecycle-process:2.11.0
@@ -257,9 +228,6 @@ androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
 Lisensi: Apache-2.0
 
 androidx.lifecycle:lifecycle-viewmodel:2.11.0
-Lisensi: Apache-2.0
-
-androidx.loader:loader:1.0.0
 Lisensi: Apache-2.0
 
 androidx.media3:media3-common:1.11.1
@@ -313,9 +281,6 @@ Lisensi: Apache-2.0
 androidx.recyclerview:recyclerview:1.3.0
 Lisensi: Apache-2.0
 
-androidx.resourceinspection:resourceinspection-annotation:1.0.1
-Lisensi: Apache-2.0
-
 androidx.room:room-common-jvm:2.8.5
 Lisensi: Apache-2.0
 
@@ -364,16 +329,7 @@ Lisensi: Apache-2.0
 androidx.tracing:tracing:1.2.0
 Lisensi: Apache-2.0
 
-androidx.vectordrawable:vectordrawable-animated:1.1.0
-Lisensi: Apache-2.0
-
-androidx.vectordrawable:vectordrawable:1.1.0
-Lisensi: Apache-2.0
-
 androidx.versionedparcelable:versionedparcelable:1.1.1
-Lisensi: Apache-2.0
-
-androidx.viewpager:viewpager:1.0.0
 Lisensi: Apache-2.0
 
 androidx.window:window-core-android:1.5.0
@@ -385,72 +341,25 @@ Lisensi: Apache-2.0
 androidx.window:window:1.5.0
 Lisensi: Apache-2.0
 
-com.google.android.datatransport:transport-api:2.2.1
-Lisensi: Apache-2.0
-
-com.google.android.datatransport:transport-backend-cct:2.3.3
-Lisensi: Apache-2.0
-
-com.google.android.datatransport:transport-runtime:2.2.6
-Lisensi: Apache-2.0
-
-com.google.android.gms:play-services-base:18.5.0
-Lisensi: Android Software Development Kit License
-
-com.google.android.gms:play-services-basement:18.4.0
-Lisensi: Android Software Development Kit License
-
-com.google.android.gms:play-services-tasks:18.2.0
-Lisensi: Android Software Development Kit License
-
 com.google.code.findbugs:jsr305:3.0.2
 Lisensi: Apache-2.0
 
 com.google.errorprone:error_prone_annotations:2.28.0
 Lisensi: Apache-2.0
 
-com.google.firebase:firebase-annotations:16.0.0
-Lisensi: Apache-2.0
-
-com.google.firebase:firebase-components:16.1.0
-Lisensi: Apache-2.0
-
-com.google.firebase:firebase-encoders-json:17.1.0
-Lisensi: Apache-2.0
-
-com.google.firebase:firebase-encoders:16.1.0
-Lisensi: Apache-2.0
-
 com.google.guava:failureaccess:1.0.2
 Lisensi: Apache-2.0
-Deklarasi dari POM induk: com.google.guava:guava-parent:26.0-android
+Deklarasi diwarisi dari POM induk: com.google.guava:guava-parent:26.0-android
 
 com.google.guava:guava:33.3.1-android
 Lisensi: Apache-2.0
-Deklarasi dari POM induk: com.google.guava:guava-parent:33.3.1-android
+Deklarasi diwarisi dari POM induk: com.google.guava:guava-parent:33.3.1-android
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
 Lisensi: Apache-2.0
-Deklarasi dari POM induk: com.google.guava:guava-parent:26.0-android
+Deklarasi diwarisi dari POM induk: com.google.guava:guava-parent:26.0-android
 
 com.google.j2objc:j2objc-annotations:3.0.0
-Lisensi: Apache-2.0
-
-com.google.mlkit:common:18.11.0
-Lisensi: ML Kit Terms of Service
-
-com.google.mlkit:translate:17.0.3
-Lisensi: ML Kit Terms of Service
-
-com.squareup.okhttp3:okhttp:3.0.0
-Lisensi: Apache-2.0
-Deklarasi dari POM induk: com.squareup.okhttp3:parent:3.0.0
-
-com.squareup.okio:okio:1.6.0
-Lisensi: Apache-2.0
-Deklarasi dari POM induk: com.squareup.okio:okio-parent:1.6.0
-
-javax.inject:javax.inject:1
 Lisensi: Apache-2.0
 
 org.checkerframework:checker-qual:3.43.0
