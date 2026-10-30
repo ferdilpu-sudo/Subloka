@@ -1,26 +1,18 @@
 package app.subloka.feature.projects
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import app.subloka.core.designsystem.DemoBadge
 import app.subloka.core.designsystem.PrimaryAction
 import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.MediaDescriptor
@@ -28,108 +20,69 @@ import app.subloka.core.domain.SourceLanguage
 
 @Composable
 fun NewProjectScreen(
-    selectedMedia: MediaDescriptor?,
-    mediaLoading: Boolean,
-    mediaError: String?,
-    onPickVideo: () -> Unit,
-    onBack: () -> Unit,
-    onContinue: (SourceLanguage) -> Unit,
+    selectedMedia: MediaDescriptor?, mediaLoading: Boolean, mediaError: String?,
+    onPickVideo: () -> Unit, onBack: () -> Unit, onContinue: (SourceLanguage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var sourceLanguage by remember { mutableStateOf(SourceLanguage.ENGLISH) }
-
-    Column(
-        modifier = modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.clickable(onClick = onBack))
-            Text("New Project", style = MaterialTheme.typography.headlineSmall)
-        }
-
-        DemoBadge()
-
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = SubLokaColors.Surface,
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    when {
-                        mediaLoading -> "Memeriksa video…"
-                        selectedMedia != null -> selectedMedia.displayName
-                        else -> "Belum ada video"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    when {
-                        mediaLoading -> "Membaca metadata, audio track, dan fingerprint lokal."
+    var sourceLanguage by rememberSaveable { mutableStateOf(SourceLanguage.ENGLISH) }
+    val validVideo = selectedMedia != null && selectedMedia.durationUs <= 600_000_000L
+    Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            TextButton(onClick = onBack, enabled = !mediaLoading) { Text("Kembali") }
+            Text("Proyek baru", style = MaterialTheme.typography.headlineSmall)
+            Text("Langkah 1 dari 2 · Video dan bahasa", color = SubLokaColors.TextSecondary)
+            Text("Pilih video maksimal 10 menit. Periksa hasil caption sebelum digunakan.", style = MaterialTheme.typography.bodyMedium)
+            Surface(color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (mediaLoading) "Memeriksa video…" else selectedMedia?.displayName ?: "Belum ada video",
+                        style = MaterialTheme.typography.titleMedium)
+                    Text(when {
+                        mediaLoading -> "Memastikan video dan audionya dapat dibaca."
                         selectedMedia != null -> mediaSummary(selectedMedia)
-                        else -> "Pilih satu video dari perangkat."
-                    },
-                    color = SubLokaColors.TextSecondary,
-                )
-            }
-        }
-
-        if (mediaError != null) {
-            Surface(color = SubLokaColors.Error.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp)) {
-                Text(mediaError, modifier = Modifier.padding(12.dp), color = SubLokaColors.Error)
-            }
-        }
-
-        if (selectedMedia != null) {
-            Text("Bahasa audio", style = MaterialTheme.typography.titleMedium)
-            LanguageRadio(SourceLanguage.ENGLISH, sourceLanguage == SourceLanguage.ENGLISH) { sourceLanguage = SourceLanguage.ENGLISH }
-            LanguageRadio(SourceLanguage.INDONESIA, sourceLanguage == SourceLanguage.INDONESIA) { sourceLanguage = SourceLanguage.INDONESIA }
-
-            Surface(color = SubLokaColors.SurfaceHigh, shape = RoundedCornerShape(8.dp)) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Caption akan dibuat", style = MaterialTheme.typography.labelMedium)
-                    Text("${sourceLanguage.label} + ${sourceLanguage.target.label}")
+                        else -> "Pilih satu video dari perangkat. Video asli tetap utuh."
+                    }, color = SubLokaColors.TextSecondary)
+                    if (mediaLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                    if (selectedMedia != null) TextButton(onClick = onPickVideo, enabled = !mediaLoading) { Text("Ganti video") }
                 }
             }
+            if (mediaError != null) Text(mediaError, color = SubLokaColors.Error)
+            if (selectedMedia != null) {
+                if (!validVideo) Text("Video melebihi 10 menit. Tekan Ganti video untuk memilih video yang lebih pendek.", color = SubLokaColors.Error)
+                Text("Bahasa yang diucapkan", style = MaterialTheme.typography.titleMedium)
+                Column(Modifier.selectableGroup()) {
+                    LanguageRadio("Inggris", sourceLanguage == SourceLanguage.ENGLISH, !mediaLoading) { sourceLanguage = SourceLanguage.ENGLISH }
+                    LanguageRadio("Indonesia", sourceLanguage == SourceLanguage.INDONESIA, !mediaLoading) { sourceLanguage = SourceLanguage.INDONESIA }
+                }
+                Text("Caption dibuat dalam bahasa audio yang dipilih. Terjemahan dapat dibuat nanti dari editor.", color = SubLokaColors.TextSecondary)
+            }
         }
-
         PrimaryAction(
             text = when {
                 mediaLoading -> "Memeriksa video…"
-                selectedMedia != null -> "Buat Caption"
+                selectedMedia != null -> if (mediaError != null) "Coba lanjut lagi" else "Lanjut ke model"
                 else -> "Pilih video"
             },
-            onClick = {
-                if (selectedMedia != null) onContinue(sourceLanguage) else onPickVideo()
-            },
-            enabled = !mediaLoading,
+            onClick = { if (selectedMedia == null) onPickVideo() else onContinue(sourceLanguage) },
+            enabled = !mediaLoading && (selectedMedia == null || validVideo),
             modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 private fun mediaSummary(media: MediaDescriptor): String {
-    val seconds = media.durationUs / 1_000_000
-    val minutes = seconds / 60
-    val remainingSeconds = seconds % 60
-    val orientation = if (media.rotationDegrees == 90 || media.rotationDegrees == 270) "portrait" else "landscape"
-    return "%02d:%02d · %dx%d · %s · %d audio".format(
-        minutes,
-        remainingSeconds,
-        media.widthPx,
-        media.heightPx,
-        orientation,
-        media.audioTracks.size,
-    )
+    val rotated = media.rotationDegrees == 90 || media.rotationDegrees == 270
+    val width = if (rotated) media.heightPx else media.widthPx
+    val height = if (rotated) media.widthPx else media.heightPx
+    val orientation = when { height > width -> "Vertikal"; width > height -> "Horizontal"; else -> "Persegi" }
+    return "%02d:%02d · %d × %d · %s".format(media.durationUs / 60_000_000, media.durationUs / 1_000_000 % 60, width, height, orientation)
 }
 
 @Composable
-private fun LanguageRadio(language: SourceLanguage, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(language.label)
+private fun LanguageRadio(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
+        .selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
+        .padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = null, enabled = enabled)
+        Text(label, modifier = Modifier.padding(start = 12.dp))
     }
 }

@@ -1,6 +1,6 @@
 # Arsitektur Aplikasi
 
-Status: baseline diimplementasikan sampai T08 untuk frontend, domain, dan persistence lokal. Media/ASR/translation/export produksi masih mengikuti task berikutnya. Tidak ada backend server; seluruh komputasi konten dirancang lokal dan jaringan hanya untuk penyiapan model yang disetujui pengguna.
+Status: baseline T09 mencakup frontend, domain, persistence dan media lokal. T11 kini mengintegrasikan prototipe ASR foreground sesuai ADR-029; validasi fisik, translation dan export produksi masih mengikuti task berikutnya. Tidak ada backend server; seluruh komputasi konten dirancang lokal dan jaringan hanya untuk penyiapan model yang disetujui pengguna.
 
 ## Stack dan batas kepastian
 
@@ -80,3 +80,54 @@ Tidak ada HTTP client untuk upload konten. Network dependency SDK harus ditinjau
 - [Media3 Transformer](https://developer.android.com/media/media3/transformer)
 
 Tautan mendukung arah evaluasi, bukan bukti bahwa integrasi proyek ini telah diuji. Setiap perubahan arsitektur baru membutuhkan ADR di decisions.md dan update task terkait.
+
+
+## T11 prototype integration (2026-10-13; ADR-029)
+`SubLokaViewModel` owns one foreground operation: explicit model provisioning → media fingerprint check → `WhisperTranscriptionPipeline` → revision-guarded Room publication. `engine:asr` bundles JNI/whisper.cpp CPU inference (pinned v1.9.4), injectable `SpeechSession`, bounded streaming PCM conversion and 30-second staging. Temp PCM and native contexts are released on completion/failure/cancel. Activity stop cancels except configuration changes. No service/checkpoint resume yet. Actual projects never invoke demo translation/export. Independent CP4 criteria remain blocked.
+
+
+## T12 foreground translation (ADR-030)
+App now composes the existing ML Kit adapter with `CaptionTranslationPipeline`. Enter translation from the editor after its write barrier; one shared heavy-operation lock excludes ASR, model setup, editing and project switching. Model checking never invokes provisioning; download is explicit. The pipeline accepts immutable caption snapshots, skips current/manual/blank-source entries, passes the actual EN/ID direction to the adapter, and applies each complete output through Room revision/manual-origin CAS. Translation failures remain eligible for retry; completed records persist. Cancellation is checked before publication, then the ViewModel reloads stored captions before unlocking the editor. SDK downloads already requested may outlive cancellation. No persistent RUNNING/PENDING state or background-resume claim.
+
+
+## T14 bounded SRT prototype (ADR-031)
+`core:domain/SrtExport` validates immutable saved captions and produces language-specific SRT documents. App `SrtExportViewModel` keeps the prepared snapshot across rotation and document-picker transitions; `SrtDocumentWriter` writes UTF-8 off-main and only returns after close. Compose export flow locks controls during picker/write, saves each file independently through CreateDocument, and never claims MP4 output. Picker cancellation preserves other saved files. Failures attempt deletion of the newly created document, report possible leftovers if deletion fails. Process restart loses the snapshot and refuses to write a stale callback. No broad storage permission, background job or automatic network destination.
+
+Platform API reference: https://developer.android.com/reference/kotlin/androidx/activity/result/contract/ActivityResultContracts.CreateDocument and https://developer.android.com/training/data-storage/shared/documents-files (reviewed 2026-10-13). CreateDocument creates a new document; unlike OpenDocument it does not authorize editing the original video.
+
+
+## Foreground MP4 prototype (ADR-032)
+`core:media/SubtitlePainter` shares Canvas/StaticLayout geometry between oriented, letterboxed editor preview and timestamp-driven Media3 CanvasOverlay. `CaptionVideoExporter` verifies source identity, caption eligibility/timeline/overflow, SDR input and duration, then encodes H.264/AAC using pinned Transformer/effect 1.11.1. Presentation caps longest dimension to 1280 with even dimensions, no upscale and format fallback disabled. Transformer API access and callbacks run on Main; engine and file I/O run off-main. Output is offered only after completion and track/duration/oriented-size checks. Cancellation/failure deletes private output. `VideoExportViewModel` owns private staging, progress and CreateDocument copy. UI excludes project/edit/other pipeline operations during render/save/picker; Activity stop cancels rendering except rotation. Picker runs only after render completion, so backgrounding for a save dialog does not cancel a completed render. Process restart cleans prior staging; no resume or durable completion record claimed. Full T13 remains pending.
+References reviewed 2026-10-13: https://developer.android.com/media/media3/transformer/getting-started , https://developer.android.com/reference/androidx/media3/effect/CanvasOverlay , https://developer.android.com/media/media3/transformer/customization .
+
+### ASR speech gating and timeline preservation (ADR-033)
+The explicit caption-model readiness set includes Whisper Base and Silero VAD 6.2.0. Model import selects a target and validates its pinned digest without downloading another model; explicit download installs only missing/invalid targets. JNI supplies the VAD model path to pinned whisper_full. Its segment timestamp getters map compressed speech time back to original-window time, then CaptionTranscription adds the outer PCM window offset. Silent windows do not compress the video timeline; punctuation-only output does not create captions. No schema or persistence contract change.
+
+
+### Caption model selection (ADR-034)
+Model setup defaults to multilingual Large-v3 Turbo q5_0; Base remains an explicit lightweight choice. ViewModel snapshots selection for provisioning/inference, clears readiness on changes, rejects obsolete asynchronous readiness results using a generation counter, and disables changes during jobs. No silent model fallback. Shared native VAD/30s original-clock pipeline and atomic caption publication are unchanged. Descriptor expectedSizeBytes enables a bounded 574041195-byte install instead of the old global 200 MiB ceiling; absent exact size retains the legacy bound. Model files are separate; existing captions/edits remain intact.
+
+
+### TranslateGemma adapter (ADR-035)
+engine:translation owns pinned GGUF install, JNI and dedicated llama.cpp CPU runtime. TranslateGemmaOfflineTranslator owns one model/context per foreground operation, reuses it across captions, and closes after worker completion; UI cancellation signals native abort before coroutine cancellation. Model loading itself may finish before cancellation unwinds. TranslationModelStore validates size/SHA before atomic replacement and removes partial files on errors. Native source tokenization disables special-token recognition; oversized input and incomplete generation fail without publication. JNI uses standard UTF-8 bytes. Both static ggml versions are hidden from dynamic exports. ML Kit remains explicitly selectable; no cloud content processing. Android/device verification tracked in testing.md.
+
+
+### Translation recovery (ADR-036)
+TranslationRecoveryStore reuses processing_jobs and owns atomic nested Room transactions with RoomCaptionRepository. Each accepted caption and removal from pending commit together. ViewModel writes a checkpoint before inference, loads pending work on project open, binds the original engine, and recovers orphan RUNNING attempts on startup. Resume creates a new attempt with validated pending identities; stale/deleted/manual rows are pruned. Completed current replacement rows are excluded durably. Cancel retains pending work; explicit discard preserves captions. No continuous background service, ASR chunk resume or MP4 checkpoint yet.
+
+
+### Prototype delivery signing (ADR-037)
+Android CI build/emulator remain independent of production secrets. A manual, prototype-branch-only dependent job downloads that run's tested APK, invokes tools/prototype_signing.py with owner-held secret, verifies its signer fingerprint and publishes only the signed APK plus verification text. Temporary key material exists only inside a temporary directory. Owner setup reuses a validated private bundle and sends it to gh secret set over stdin. Engine/model/Room paths and processing lifecycle are unchanged.
+
+
+### ASR foreground service (ADR-038)
+AsrForegroundService owns the coroutine, LocalAsrTask native pipeline, bounded partial wake lock and ongoing cancel/open notification. AsrSession is process-local observable job identity/state, not a durable checkpoint. SubLokaViewModel observes and reloads Room results, survives Activity recreation via service reattachment, and does not cancel ASR on stop/clear. LocalAsrTask checks model readiness and source fingerprint, transcribes into memory, then atomically publishes via a separate Room connection using project revision CAS. Cancellation before publication leaves old captions unchanged; noncancellable commit records savedMessage so cancellation during dispatcher return cannot mislabel committed output. Translation/model setup/MP4 remain foreground-only. Service START_NOT_STICKY never restarts orphan inference after process death.
+
+
+### Background translation prototype0.6.4
+TranslationForegroundService owns LocalTranslationTask and separate persistence/translator handles. TranslationSession carries process-local request/stage/terminal state to ViewModels; durable remaining segment IDs and CAS remain in TranslationRecoveryStore. ViewModel recreation must not recover a live service job as interrupted. ASR and translation session reservation exclude each other. Model provisioning remains Activity-owned. Translation task holds storage until NonCancellable checkpoint cleanup; process death uses existing explicit resume. No Room migration or engine change.
+
+
+
+## GEMMA-FOCUS-002 current translation architecture / 2026-10-29
+Supersedes historical ML Kit stack references above: production translation adapter is TranslateGemmaOfflineTranslator only, using existing pinned native runtime/weights. ML Kit SDK dependency/adapter removed; legacy output origin enum retained for reading existing data. UI reports old checkpoint and requires explicit Gemma resume; recovery store validates pending identity/revision and one-way legacy transition atomically. No automatic download or project mutation when merely opening the legacy queue.

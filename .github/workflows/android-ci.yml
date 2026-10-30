@@ -7,6 +7,7 @@ on:
       - ".agents/**"
       - "README.md"
       - "FILELIST.txt"
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -16,6 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      SUBLOKA_VERSION_CODE: ${{ github.run_number }}
 
     steps:
       - name: Checkout
@@ -42,7 +45,7 @@ jobs:
           echo "Updated sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
 
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Configure Gradle cache
         uses: gradle/actions/setup-gradle@v4
@@ -56,6 +59,18 @@ jobs:
       - name: Validate project guardrails
         run: python3 tools/validate_project.py
 
+      - name: Beta package verifier regression tests
+        run: python3 tools/test_verify_beta_package.py
+
+      - name: Signing verifier regression tests
+        run: python3 tools/test_prototype_signing.py
+
+      - name: Instrumentation log verifier regression tests
+        run: python3 tools/test_instrumentation_result.py
+
+      - name: Turbo research harness regression tests
+        run: python3 tools/test_turbo_research_benchmark.py
+
       - name: Domain unit tests
         run: ./gradlew --stacktrace :core:domain:testDebugUnitTest
 
@@ -68,7 +83,7 @@ jobs:
       - name: ASR model-store unit tests
         run: ./gradlew --stacktrace :engine:asr:testDebugUnitTest
 
-      - name: Translation fidelity warning unit tests
+      - name: Translation pipeline and fidelity unit tests
         run: ./gradlew --stacktrace :engine:translation:testDebugUnitTest
 
       - name: Compile translation device tests
@@ -89,9 +104,51 @@ jobs:
       - name: Assemble debug
         run: ./gradlew --stacktrace :app:assembleDebug
 
+      - name: Test dependency evidence collector
+        run: python3 tools/test_collect_dependency_notices.py
+
+      - name: Record resolved release dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/build/reports/distribution
+          ./gradlew --console=plain :app:dependencies --configuration releaseRuntimeClasspath > app/build/reports/distribution/release-runtime-dependencies.txt
+          if grep -q 'FAILED' app/build/reports/distribution/release-runtime-dependencies.txt; then
+            cat app/build/reports/distribution/release-runtime-dependencies.txt
+            exit 1
+          fi
+
+      - name: Assemble release candidate
+        run: ./gradlew --stacktrace :app:assembleRelease :app:lintRelease
+
+      - name: Reject retired ML Kit runtime dependency
+        run: |
+          if grep -E 'com\.google\.mlkit:|com\.google\.android\.gms:play-services-mlkit' app/build/reports/distribution/release-runtime-dependencies.txt; then
+            echo "Retired ML Kit dependency remains in release runtime."
+            exit 1
+          fi
+
+      - name: Collect dependency license evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/collect_dependency_notices.py --report app/build/reports/distribution/release-runtime-dependencies.txt --cache "${GRADLE_USER_HOME:-$HOME/.gradle}/caches/modules-2/files-2.1" --output app/build/reports/distribution/license-evidence --fetch-missing-poms
+
       - name: Lint debug
         run: ./gradlew --stacktrace :app:lintDebug
 
+      - name: Upload debug APK and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: subloka-ci-test-only-and-reports
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/androidTest/debug/*.apk
+            **/build/reports/tests/
+            app/build/reports/lint-results-debug.html
+            app/build/reports/distribution/
 
   media-device:
     runs-on: ubuntu-latest
@@ -117,7 +174,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Enable KVM
         shell: bash
@@ -133,4 +190,134 @@ jobs:
           arch: x86_64
           profile: pixel_4
           disable-animations: true
-          script: bash tools/run_media_device_tests.sh
+          script: |
+            bash tools/run_media_device_tests.sh
+            ./gradlew --stacktrace :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.subloka.NativeAsrLoadingTest,app.subloka.TranslationAdapterLoadingTest,app.subloka.SrtDocumentWriterTest,app.subloka.EditorLayoutTest,app.subloka.ProjectsScreenTest,app.subloka.ProjectSetupUiTest,app.subloka.ExportFlowUiTest,app.subloka.ProcessingStatusUiTest,app.subloka.TranslationRecoveryUiTest,app.subloka.AsrForegroundServiceTest,app.subloka.TranslationForegroundServiceTest,app.subloka.RenderForegroundServiceTest,app.subloka.VideoExportSaveTest,app.subloka.SourceRelinkUiTest
+
+  modern-services:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Configure Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Android 17 compile SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Test services with notification permission granted and denied on Android 15
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_4
+          disable-animations: true
+          script: bash tools/run_modern_service_tests.sh
+
+      - name: Upload modern service test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-service-test-logs
+          path: app/build/modern-service-tests/
+          if-no-files-found: warn
+
+  stable-prototype-apk:
+    # Never expose the signing secret to pull_request runs, including same-repo PRs.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/t11-offline-asr-prototype'
+    needs: [build, media-device, modern-services]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/download-artifact@v4
+        with:
+          name: subloka-ci-test-only-and-reports
+          path: unsigned-input
+      - name: Sign and verify owner-key APK
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          "$SDKMANAGER" "build-tools;37.0.0"
+          APK="$(find unsigned-input -name app-debug.apk -type f)"
+          test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output stable-apk/subloka-prototype.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subloka-stable-prototype-apk
+          path: stable-apk/
+          if-no-files-found: error
+      - name: Sign and verify research test APK
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find unsigned-input -name app-debug-androidTest.apk -type f)"
+          test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output research-apk/subloka-research-test.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subloka-research-test-apk
+          path: research-apk/
+          if-no-files-found: error
+      - name: Sign and verify non-debug beta APK
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find unsigned-input -name app-release-unsigned.apk -type f)"
+          test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output beta-apk/subloka-beta.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging beta-apk/subloka-beta.apk > beta-apk/package-info.txt
+          python3 tools/verify_beta_package.py beta-apk/package-info.txt beta-apk/subloka-beta.apk
+      - name: Enable KVM for beta launch check
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Launch signed release on clean Android 11 emulator
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_4
+          disable-animations: true
+          script: python3 tools/check_beta_launch.py beta-apk/subloka-beta.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: subloka-beta-apk
+          path: beta-apk/
+          if-no-files-found: error
+

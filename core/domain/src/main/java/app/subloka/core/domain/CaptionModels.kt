@@ -20,6 +20,8 @@ enum class TranslationOrigin {
     NONE,
     MACHINE,
     MANUAL,
+    MACHINE_GEMMA,
+    MACHINE_MLKIT,
 }
 
 data class CaptionSegment(

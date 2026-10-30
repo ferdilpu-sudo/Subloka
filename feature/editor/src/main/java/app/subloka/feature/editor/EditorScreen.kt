@@ -1,6 +1,13 @@
 package app.subloka.feature.editor
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Tab
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -27,6 +34,7 @@ import app.subloka.core.domain.CaptionEditingRules
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.CaptionStyle
 import app.subloka.core.domain.EditorWorkspace
+import app.subloka.core.domain.TranslationEligibility
 import app.subloka.core.domain.TranslationOrigin
 import app.subloka.core.domain.TranslationStatus
 import java.util.UUID
@@ -43,7 +51,31 @@ fun EditorScreen(
     onBack: () -> Unit,
     onExport: (List<CaptionSegment>) -> Unit,
     modifier: Modifier = Modifier,
+    projectTitle: String = "Proyek",
+    demoMode: Boolean = true,
+    durationUs: Long = initialSegments.maxOfOrNull { it.endUs } ?: 1L,
+    videoWidth: Int = 16,
+    videoHeight: Int = 9,
+    sourceUnavailable: Boolean = false,
+    onRelink: () -> Unit = {},
+    onVideoError: () -> Unit = {},
+    onGenerate: () -> Unit = {},
+    onRequestTranslation: (String?) -> Unit = {},
+    onRetrySave: ((List<CaptionSegment>, CaptionStyle) -> Unit)? = null,
 ) {
+    if (initialSegments.isEmpty()) {
+        Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(projectTitle, style = MaterialTheme.typography.headlineSmall)
+            if (!demoMode) {
+                if (sourceUnavailable) Text("Video sumber tidak dapat diakses. Caption tetap tersimpan.")
+                app.subloka.core.designsystem.SecondaryAction("Tautkan ulang video", onRelink)
+            }
+            Text("Belum ada caption. Audio hening juga dapat menghasilkan daftar kosong.")
+            app.subloka.core.designsystem.PrimaryAction("Buat caption", onGenerate)
+            app.subloka.core.designsystem.SecondaryAction("Kembali", onBack)
+        }
+        return
+    }
     var segments by remember { mutableStateOf(initialSegments) }
     var selectedId by remember { mutableStateOf(initialSegments.first().id) }
     var workspace by remember { mutableStateOf(EditorWorkspace.CAPTION) }
@@ -107,12 +139,7 @@ fun EditorScreen(
         val second = ordered[index + 1]
         val mergedTranslation = CaptionEditingRules.mergeText(first.translationText, second.translationText)
         val hasTranslation = mergedTranslation.isNotBlank()
-        val origin = when {
-            !hasTranslation -> TranslationOrigin.NONE
-            first.translationOrigin == TranslationOrigin.MANUAL ||
-                second.translationOrigin == TranslationOrigin.MANUAL -> TranslationOrigin.MANUAL
-            else -> TranslationOrigin.MACHINE
-        }
+        val origin = app.subloka.core.domain.TranslationOrigins.merge(first, second)
         val merged = first.copy(
             id = UUID.randomUUID().toString(),
             endUs = second.endUs,
@@ -132,10 +159,16 @@ fun EditorScreen(
         commitSegments(next, merged.id)
     }
 
+    var previewRequested by remember { mutableStateOf(true) }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val expanded = maxWidth >= 840.dp
+        // Short landscape phones still need video context; height must not force
+        // them into the portrait path that intentionally hides the preview.
+        val expanded = maxWidth >= 600.dp && (maxWidth > maxHeight || maxWidth >= 840.dp)
+        val compactLandscapePreview = maxHeight < 480.dp
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
+        val hasPreviewSpace = maxHeight >= if (keyboardLikelyVisible) 560.dp else 600.dp
+        val showPreview = previewRequested && hasPreviewSpace
         val selected = segments.first { it.id == selectedId }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -144,19 +177,45 @@ fun EditorScreen(
                 onExport = { onExport(segments) },
                 saveStatusText = saveStatusText,
                 saveFailed = saveFailed,
+                title = projectTitle,
+                exportAvailable = !saveFailed,
+                onRetrySave = onRetrySave?.let { retry -> { retry(segments, style) } },
             )
-            DemoBadge()
+            if (!demoMode && sourceUnavailable) {
+                Text("Video tidak dapat dibuka. Tautkan file asli untuk memulihkan pemutaran.",
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            if (!demoMode && sourceUnavailable) {
+                androidx.compose.material3.TextButton(onClick = onRelink) { Text("Tautkan ulang video") }
+            }
+            if (hasPreviewSpace && !keyboardLikelyVisible) {
+                if (demoMode) DemoBadge() else Text("Periksa teks, waktu, dan terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
+            }
+
+            if (!demoMode && !keyboardLikelyVisible && !expanded) {
+                val count = segments.count(TranslationEligibility::canGenerate)
+                app.subloka.core.designsystem.SecondaryAction(if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
+                    { onRequestTranslation(null) }, enabled = segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
+            }
 
             if (expanded) {
                 Row(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    Column(modifier = Modifier.weight(0.95f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = false)
+                    Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = compactLandscapePreview)
+                        if (!demoMode && !keyboardLikelyVisible) {
+                            val count = segments.count(TranslationEligibility::canGenerate)
+                            app.subloka.core.designsystem.SecondaryAction(
+                                if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
+                                { onRequestTranslation(null) }, enabled = segments.isNotEmpty(),
+                                modifier = Modifier.fillMaxWidth())
+                        }
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
                     WorkspacePanel(
+                        demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
                         workspace = workspace,
                         segments = segments,
                         selectedId = selectedId,
@@ -173,9 +232,15 @@ fun EditorScreen(
                     )
                 }
             } else {
-                VideoPreview(segment = selected, mediaUri = mediaUri, compactHeight = keyboardLikelyVisible)
+                if (hasPreviewSpace && !keyboardLikelyVisible) {
+                    TextButton(onClick = { previewRequested = !previewRequested }) {
+                        Text(if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau")
+                    }
+                }
+                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
+                    demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
                     workspace = workspace,
                     segments = segments,
                     selectedId = selectedId,
@@ -201,28 +266,28 @@ private fun ProjectTopBar(
     onExport: () -> Unit,
     saveStatusText: String,
     saveFailed: Boolean,
+    title: String,
+    exportAvailable: Boolean,
+    onRetrySave: (() -> Unit)?,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", modifier = Modifier.clickable(onClick = onBack), style = MaterialTheme.typography.headlineSmall)
-            Column {
-                Text("Traveling", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    saveStatusText,
-                    color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
-                    style = MaterialTheme.typography.labelSmall,
-                )
+        TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Kembali" }) {
+            Text("‹", style = MaterialTheme.typography.headlineSmall)
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+            Text(saveStatusText, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
+                style = MaterialTheme.typography.labelSmall)
+            if (saveFailed && onRetrySave != null) {
+                TextButton(onClick = onRetrySave) { Text("Coba simpan lagi") }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("↶", color = SubLokaColors.TextSecondary)
-            Text("↷", color = SubLokaColors.TextSecondary)
-            Text("Export", modifier = Modifier.clickable(onClick = onExport), color = SubLokaColors.Primary)
-        }
+        FilledTonalButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
     }
 }
 
@@ -230,18 +295,22 @@ private fun ProjectTopBar(
 private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (EditorWorkspace) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
         EditorWorkspace.entries.forEach { item ->
-            Text(
-                text = item.name.lowercase().replaceFirstChar { it.uppercase() },
-                modifier = Modifier.clickable { onWorkspaceChange(item) }.padding(horizontal = 12.dp, vertical = 10.dp),
-                color = if (workspace == item) SubLokaColors.Primary else SubLokaColors.TextSecondary,
-                style = MaterialTheme.typography.labelLarge,
-            )
+            Tab(selected = workspace == item, onClick = { onWorkspaceChange(item) },
+                modifier = Modifier.weight(1f),
+                text = { Text(when (item) {
+                    EditorWorkspace.CAPTION -> "Teks"
+                    EditorWorkspace.TIMING -> "Waktu"
+                    EditorWorkspace.STYLE -> "Gaya"
+                }) })
         }
     }
 }
 
 @Composable
 private fun WorkspacePanel(
+    onRequestTranslation: (String?) -> Unit,
+    demoMode: Boolean,
+    durationUs: Long,
     workspace: EditorWorkspace,
     segments: List<CaptionSegment>,
     selectedId: String,
@@ -288,26 +357,20 @@ private fun WorkspacePanel(
                     },
                 )
             },
-            onRetranslate = {
-                onSegmentsChange(
-                    segments.toMutableList().also { list ->
-                        list[selectedIndex] = selected.copy(
-                            translationText = demoRetranslation(selected.sourceText, selected.sourceLanguage.code),
-                            translationStatus = TranslationStatus.CURRENT,
-                            translationOrigin = TranslationOrigin.MACHINE,
-                            translationSourceRevision = selected.sourceRevision,
-                        )
-                    },
-                )
-            },
+            demoMode = demoMode,
+            translationAvailable = !demoMode && TranslationEligibility.canGenerate(selected, true),
+            onRetranslate = { if (!demoMode) onRequestTranslation(selected.id) },
             onSplit = onSplit,
             onMergeNext = onMergeNext,
             modifier = modifier,
         )
-        EditorWorkspace.TIMING -> TimingWorkspace(segment = selected, modifier = modifier)
+        EditorWorkspace.TIMING -> TimingWorkspace(segment = selected,
+            navigation = { CaptionNavigation(segments, selectedId, onSelect) },
+            minimumStartUs = segments.getOrNull(selectedIndex - 1)?.endUs ?: 0L,
+            maximumEndUs = segments.getOrNull(selectedIndex + 1)?.startUs ?: durationUs,
+            onChange = { start, end ->
+                onSegmentsChange(segments.toMutableList().also { it[selectedIndex] = selected.copy(startUs = start, endUs = end) })
+            }, modifier = modifier)
         EditorWorkspace.STYLE -> StyleWorkspace(style = style, onStyleChange = onStyleChange, modifier = modifier)
     }
 }
-
-private fun demoRetranslation(source: String, sourceCode: String): String =
-    if (sourceCode == "EN") "[Demo ID] $source" else "[Demo EN] $source"

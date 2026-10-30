@@ -1,0 +1,2 @@
+-keep class app.subloka.engine.asr.NativeWhisper { *; }
+-keep class app.subloka.engine.asr.RawSpeechSegment { *; }

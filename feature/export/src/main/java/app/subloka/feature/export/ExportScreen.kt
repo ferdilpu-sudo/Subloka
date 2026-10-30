@@ -1,95 +1,123 @@
 package app.subloka.feature.export
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import app.subloka.core.designsystem.DemoBadge
 import app.subloka.core.designsystem.PrimaryAction
 import app.subloka.core.designsystem.SecondaryAction
-import app.subloka.core.designsystem.SubLokaColors
-import app.subloka.core.domain.CaptionSegment
-import app.subloka.core.domain.TranslationStatus
-
-private enum class CaptionExportMode { DUAL, SOURCE, TRANSLATION }
+import app.subloka.core.domain.*
 
 @Composable
 fun ExportScreen(
     segments: List<CaptionSegment>,
+    sourceLanguage: SourceLanguage,
+    demoMode: Boolean,
+    busy: Boolean,
+    pending: Boolean,
+    documents: List<SrtDocument>,
+    saved: Set<Int>,
+    message: String?,
+    onPrepare: (SrtExportMode) -> Unit,
+    onSave: (Int) -> Unit,
     onBack: () -> Unit,
-    onDone: () -> Unit,
+    videoReady: Boolean,
+    videoRendering: Boolean,
+    videoMessage: String?,
+    videoProgress: Int?,
+    onRender: (SrtExportMode) -> Unit,
+    onSaveVideo: () -> Unit,
+    onCancelVideo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var mode by remember { mutableStateOf(CaptionExportMode.DUAL) }
-    val translationComplete = segments.all { it.translationStatus == TranslationStatus.CURRENT }
-    val blocked = mode != CaptionExportMode.SOURCE && !translationComplete
-
-    Column(
-        modifier = modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.clickable(onClick = onBack))
-            Text("Export", style = MaterialTheme.typography.headlineSmall)
-        }
-        DemoBadge()
-
-        Text("Caption", style = MaterialTheme.typography.titleMedium)
-        ExportRadio("English + Indonesia", mode == CaptionExportMode.DUAL, translationComplete) { mode = CaptionExportMode.DUAL }
-        ExportRadio("Original", mode == CaptionExportMode.SOURCE, true) { mode = CaptionExportMode.SOURCE }
-        ExportRadio("Translation", mode == CaptionExportMode.TRANSLATION, translationComplete) { mode = CaptionExportMode.TRANSLATION }
-
-        if (blocked) {
-            Surface(color = SubLokaColors.Error.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp)) {
-                Text(
-                    "Export bilingual/translation diblokir karena ada terjemahan missing, stale, atau gagal. Original-only tetap tersedia.",
-                    modifier = Modifier.padding(12.dp),
-                    color = SubLokaColors.Error,
-                )
+    var mode by rememberSaveable { mutableStateOf(SrtExportMode.SOURCE) }
+    var mp4 by rememberSaveable { mutableStateOf(false) }
+    // Reattached renders must expose their progress and save action immediately.
+    LaunchedEffect(videoRendering, videoReady) {
+        if (videoRendering || videoReady) mp4 = true
+    }
+    val translationComplete = segments.isNotEmpty() && segments.all {
+        it.translationStatus == TranslationStatus.CURRENT && it.translationText.isNotBlank() &&
+            it.translationSourceRevision == it.sourceRevision
+    }
+    val locked = busy || pending || videoRendering
+    val blocked = mode != SrtExportMode.SOURCE && !translationComplete
+    val canPrepare = !locked && !blocked && segments.isNotEmpty()
+    Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            TextButton(onClick = onBack, enabled = !locked) { Text("Kembali ke editor") }
+            Text("Ekspor caption", style = MaterialTheme.typography.headlineSmall)
+            if (demoMode) Text("Proyek contoh · SRT berisi contoh caption. Render MP4 tersedia pada proyek video.")
+            Text("Format hasil", style = MaterialTheme.typography.titleMedium)
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                SegmentedButton(selected = !mp4, onClick = { mp4 = false }, enabled = !locked,
+                    shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text("SRT") }
+                SegmentedButton(selected = mp4, onClick = { mp4 = true }, enabled = !locked,
+                    shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text("MP4") }
             }
+            Text(if (mp4) "Video dengan caption tertanam, memakai gaya dari editor."
+                else "File teks dan timing untuk pemutar atau editor video. Gaya, font, dan warna tidak disertakan.")
+            Text("Bahasa caption", style = MaterialTheme.typography.titleMedium)
+            Column(Modifier.selectableGroup()) {
+                ExportRadio("Asli (${sourceLanguage.label})", mode == SrtExportMode.SOURCE, !locked) { mode = SrtExportMode.SOURCE }
+                ExportRadio("Terjemahan (${sourceLanguage.target.label})", mode == SrtExportMode.TRANSLATION, !locked) { mode = SrtExportMode.TRANSLATION }
+                ExportRadio("Keduanya", mode == SrtExportMode.BOTH, !locked) { mode = SrtExportMode.BOTH }
+            }
+            if (mode == SrtExportMode.BOTH) Text(if (mp4) "Dua bahasa ditampilkan dalam satu video." else "Dua file SRT disiapkan dan disimpan satu per satu.")
+            if (segments.isEmpty()) Text("Belum ada caption. Kembali ke editor untuk membuat caption.", color = MaterialTheme.colorScheme.error)
+            else if (blocked) Text("Lengkapi atau perbarui terjemahan di editor, atau pilih Asli untuk melanjutkan.", color = MaterialTheme.colorScheme.error)
+            if (mp4) {
+                Text("SDR · sisi terpanjang maksimal 1280 piksel. Render tetap berjalan saat berpindah aplikasi atau layar mati.", style = MaterialTheme.typography.bodySmall)
+                if (videoRendering) {
+                    Text(videoProgress?.let { "Render $it%" } ?: "Render sedang berjalan…", style = MaterialTheme.typography.titleMedium)
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
+                videoMessage?.let { Text(it) }
+                if (videoReady) {
+                    Text("Hasil render tersedia", style = MaterialTheme.typography.titleMedium)
+                    Text("Tekan Simpan MP4 untuk memilih lokasi. Membatalkan pemilih lokasi tidak menghapus hasil render.")
+                    Text("Pilihan bahasa baru berlaku setelah render ulang. Render ulang mengganti hasil sementara yang belum disimpan.", style = MaterialTheme.typography.bodySmall)
+                    SecondaryAction("Render ulang dengan pilihan ini", { onRender(mode) }, enabled = canPrepare && !demoMode, modifier = Modifier.fillMaxWidth())
+                }
+            } else {
+                message?.let { Text(it) }
+                if (documents.isNotEmpty()) {
+                    Text("SRT yang sudah disiapkan", style = MaterialTheme.typography.titleMedium)
+                    Text("Pilih lokasi untuk setiap file. Gunakan penyimpanan perangkat agar tetap offline. Perubahan pilihan bahasa berlaku setelah menyiapkan SRT lagi.")
+                    documents.forEachIndexed { index, document ->
+                        Text(document.name, style = MaterialTheme.typography.bodyMedium)
+                        if (index in saved) Text("Tersimpan", style = MaterialTheme.typography.labelMedium)
+                        SecondaryAction(if (index in saved) "Simpan lagi file ${index + 1}" else "Simpan file ${index + 1}",
+                            { onSave(index) }, enabled = !locked, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            }
+            if (busy && !videoRendering) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (pending) Text("Pilih lokasi penyimpanan. Jika dibatalkan, hasil tetap tersedia untuk disimpan lagi.")
         }
-
-        Text("Quality", style = MaterialTheme.typography.titleMedium)
-        Text("1080p · kandidat demo, dukungan codec belum diverifikasi", color = SubLokaColors.TextSecondary)
-
-        PrimaryAction(
-            text = "Export Video",
-            onClick = onDone,
-            enabled = !blocked,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        SecondaryAction("Export .SRT", onClick = onDone, modifier = Modifier.fillMaxWidth(), enabled = !blocked)
-        Text(
-            "Tombol demo tidak membuat file media. Renderer dan pipeline export baru masuk T14.",
-            color = SubLokaColors.TextSecondary,
-            style = MaterialTheme.typography.bodySmall,
-        )
+        when {
+            videoRendering -> SecondaryAction("Hentikan render", onCancelVideo, modifier = Modifier.fillMaxWidth())
+            mp4 && videoReady -> PrimaryAction("Simpan MP4", onSaveVideo, enabled = !locked, modifier = Modifier.fillMaxWidth())
+            mp4 -> PrimaryAction("Render MP4", { onRender(mode) }, enabled = canPrepare && !demoMode, modifier = Modifier.fillMaxWidth())
+            else -> PrimaryAction(if (documents.isEmpty()) "Siapkan SRT" else "Siapkan SRT lagi", { onPrepare(mode) }, enabled = canPrepare, modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 
 @Composable
 private fun ExportRadio(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onClick).padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = onClick, enabled = enabled)
-        Text(label, color = if (enabled) SubLokaColors.TextPrimary else SubLokaColors.TextSecondary)
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
+        .selectable(selected, enabled = enabled, role = Role.RadioButton, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected, onClick = null, enabled = enabled)
+        Text(label, modifier = Modifier.padding(start = 12.dp))
     }
 }

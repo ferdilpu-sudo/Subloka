@@ -1,0 +1,467 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-17",
+  "code_revision": "60ae2914c2c17e436078ca72d0147f98cf3efbaf",
+  "runtime_commit": "2a667032dc788c3a071d538e0b572e45a3f12731",
+  "model_sha256": "81200d03e843d2ec1ece6eeafe7d13cb6e5211e1fcd336ade55790b683a08330",
+  "model_bytes": 2489909760,
+  "environment": "Linux x86_64 native CPU, 4 threads, same gemma_session.h as Android, no remote inference",
+  "settings": {
+    "context": 1024,
+    "max_source_tokens": 384,
+    "max_generated_tokens": 256,
+    "sampling": "greedy",
+    "extra_weight_buffers": false
+  },
+  "metrics": {
+    "exit_code": 0,
+    "wall_seconds": 128.16517654099994,
+    "peak_rss_kib": 2640928
+  },
+  "input_size_rejection": "PASS",
+  "native_decode_cancellation": "PASS",
+  "quality_status": "AI-assisted observations only; no human signoff or CP4 pass",
+  "baseline_review_reference": "t10-translation-ai-provisional-recheck-60.json",
+  "previously_flagged_failures_improved": [
+    "en-08",
+    "en-24",
+    "en-27",
+    "id-02",
+    "id-05",
+    "id-10",
+    "id-17",
+    "id-26"
+  ],
+  "remaining_concerns": {
+    "id-30": "Strong prohibition tidak boleh weakened to should not; materially incorrect modality.",
+    "id-09": "Gender-neutral dia becomes He; invoice/bill becomes debt. Context needed.",
+    "id-24": "Gender-neutral dia becomes He/his.",
+    "en-05": "Expected becomes scheduled; narrower assumption.",
+    "id-05": "Perkiraan becomes scheduled; timing direction recovered but expectation narrowed.",
+    "en-10": "Brother becomes generic saudara, losing explicit gender.",
+    "id-25": "Kedai becomes cafe; context-specific narrowing."
+  },
+  "limits": "Authored known fixture set only; no fresh blind set, no aggregate acceptance score, no Sony RSS/runtime claim. Floating-point kernels and tokenization may produce different outputs on Android.",
+  "samples": [
+    {
+      "id": "en-01",
+      "language": "en",
+      "text": "Rina has three red books, but she does not want to sell them.",
+      "elapsed_ms": 2471,
+      "translation": "Rina memiliki tiga buku berwarna merah, tetapi dia tidak ingin menjualnya."
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "text": "The meeting starts at 8:30 tomorrow morning.",
+      "elapsed_ms": 2651,
+      "translation": "Pertemuan akan dimulai pada pukul 8:30 pagi besok."
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "text": "Please turn off the lights before leaving the room.",
+      "elapsed_ms": 1993,
+      "translation": "Mohon matikan lampu sebelum meninggalkan ruangan."
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "text": "I have never visited Bali during the rainy season.",
+      "elapsed_ms": 1959,
+      "translation": "Saya belum pernah mengunjungi Bali selama musim hujan."
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "text": "The bus arrived fifteen minutes later than expected.",
+      "elapsed_ms": 2189,
+      "translation": "Bus tiba 15 menit setelah jadwal yang seharusnya."
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "text": "We bought two tickets for 125,000 rupiah each.",
+      "elapsed_ms": 2666,
+      "translation": "Kami membeli dua tiket seharga 125.000 rupiah masing-masing."
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "text": "Do not delete the original video file.",
+      "elapsed_ms": 1998,
+      "translation": "Jangan menghapus file video asli."
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "text": "The package will be delivered on Friday, October 16.",
+      "elapsed_ms": 2398,
+      "translation": "Paket tersebut akan sampai pada hari Jumat, 16 Oktober."
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "text": "She said the invoice was paid, not canceled.",
+      "elapsed_ms": 2434,
+      "translation": "Dia mengatakan bahwa tagihan tersebut telah dibayar, bukan dibatalkan."
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "text": "My brother is learning Indonesian at university.",
+      "elapsed_ms": 2125,
+      "translation": "Saudaraku sedang belajar bahasa Indonesia di universitas."
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "text": "The doctor asked us to return next week.",
+      "elapsed_ms": 2109,
+      "translation": "Dokter meminta kami untuk kembali pada minggu depan."
+    },
+    {
+      "id": "en-12",
+      "language": "en",
+      "text": "The restaurant is open until ten at night.",
+      "elapsed_ms": 2056,
+      "translation": "Restoran ini buka hingga pukul 10 malam."
+    },
+    {
+      "id": "en-13",
+      "language": "en",
+      "text": "I left my phone on the kitchen table.",
+      "elapsed_ms": 1829,
+      "translation": "Saya meninggalkan ponsel saya di atas meja dapur."
+    },
+    {
+      "id": "en-14",
+      "language": "en",
+      "text": "Although it was raining, they continued the trip.",
+      "elapsed_ms": 2027,
+      "translation": "Meskipun hujan, mereka tetap melanjutkan perjalanan."
+    },
+    {
+      "id": "en-15",
+      "language": "en",
+      "text": "Only three out of the seven students passed the test.",
+      "elapsed_ms": 2275,
+      "translation": "Hanya tiga dari tujuh siswa yang berhasil lulus ujian tersebut."
+    },
+    {
+      "id": "en-16",
+      "language": "en",
+      "text": "You can change the subtitle timing without changing its text.",
+      "elapsed_ms": 2428,
+      "translation": "Anda dapat mengubah waktu penayangan teks terjemahan tanpa mengubah teksnya."
+    },
+    {
+      "id": "en-17",
+      "language": "en",
+      "text": "The train to Bandung leaves from platform four.",
+      "elapsed_ms": 2035,
+      "translation": "Kereta menuju Bandung berangkat dari peron keempat."
+    },
+    {
+      "id": "en-18",
+      "language": "en",
+      "text": "This is not the final version of the report.",
+      "elapsed_ms": 1944,
+      "translation": "Ini bukanlah versi final dari laporan tersebut."
+    },
+    {
+      "id": "en-19",
+      "language": "en",
+      "text": "The battery dropped from 80 percent to 25 percent.",
+      "elapsed_ms": 2375,
+      "translation": "Baterai berkurang dari 80 persen menjadi 25 persen."
+    },
+    {
+      "id": "en-20",
+      "language": "en",
+      "text": "Please call Maya if the delivery is delayed.",
+      "elapsed_ms": 2293,
+      "translation": "Mohon hubungi Maya jika ada keterlambatan dalam pengiriman."
+    },
+    {
+      "id": "en-21",
+      "language": "en",
+      "text": "We will meet at the library after lunch.",
+      "elapsed_ms": 2066,
+      "translation": "Kita akan bertemu di perpustakaan setelah makan siang."
+    },
+    {
+      "id": "en-22",
+      "language": "en",
+      "text": "The second speaker disagreed with the first suggestion.",
+      "elapsed_ms": 2366,
+      "translation": "Pembicara kedua tidak setuju dengan saran pertama tersebut."
+    },
+    {
+      "id": "en-23",
+      "language": "en",
+      "text": "How long does it take to translate a ten-minute video?",
+      "elapsed_ms": 2476,
+      "translation": "Berapa lama waktu yang dibutuhkan untuk menerjemahkan sebuah video berdurasi sepuluh menit?"
+    },
+    {
+      "id": "en-24",
+      "language": "en",
+      "text": "He speaks quietly, so the recording is difficult to hear.",
+      "elapsed_ms": 2236,
+      "translation": "Dia berbicara dengan pelan, sehingga rekaman tersebut sulit untuk didengar."
+    },
+    {
+      "id": "en-25",
+      "language": "en",
+      "text": "I wanted coffee, but the shop only had tea.",
+      "elapsed_ms": 2081,
+      "translation": "Saya ingin minum kopi, tetapi toko tersebut hanya menjual teh."
+    },
+    {
+      "id": "en-26",
+      "language": "en",
+      "text": "Their house is beside the bridge, not behind it.",
+      "elapsed_ms": 2305,
+      "translation": "Rumah mereka berada di samping jembatan, bukan di belakangnya."
+    },
+    {
+      "id": "en-27",
+      "language": "en",
+      "text": "The camera recorded in portrait mode at 30 frames per second.",
+      "elapsed_ms": 2405,
+      "translation": "Kamera merekam dalam mode potret dengan kecepatan 30 bingkai per detik."
+    },
+    {
+      "id": "en-28",
+      "language": "en",
+      "text": "Can you repeat the last sentence more slowly?",
+      "elapsed_ms": 2091,
+      "translation": "Bisakah Anda mengulangi kalimat terakhir dengan lebih lambat?"
+    },
+    {
+      "id": "en-29",
+      "language": "en",
+      "text": "We should save the edits before closing the app.",
+      "elapsed_ms": 2047,
+      "translation": "Sebaiknya, simpan perubahan sebelum menutup aplikasi."
+    },
+    {
+      "id": "en-30",
+      "language": "en",
+      "text": "If the model is missing, the translation must not start.",
+      "elapsed_ms": 2265,
+      "translation": "Jika model tersebut tidak tersedia, proses terjemahan tidak boleh dimulai."
+    },
+    {
+      "id": "id-01",
+      "language": "id",
+      "text": "Rina mempunyai tiga buku merah, tetapi dia tidak ingin menjualnya.",
+      "elapsed_ms": 2402,
+      "translation": "Rina has three red books, but she doesn't want to sell them."
+    },
+    {
+      "id": "id-02",
+      "language": "id",
+      "text": "Rapat dimulai besok pagi pukul delapan tiga puluh.",
+      "elapsed_ms": 2103,
+      "translation": "The meeting will begin tomorrow morning at 8:30."
+    },
+    {
+      "id": "id-03",
+      "language": "id",
+      "text": "Tolong matikan lampu sebelum meninggalkan ruangan.",
+      "elapsed_ms": 1887,
+      "translation": "Please turn off the lights before leaving the room."
+    },
+    {
+      "id": "id-04",
+      "language": "id",
+      "text": "Saya belum pernah mengunjungi Bali saat musim hujan.",
+      "elapsed_ms": 1989,
+      "translation": "I have never visited Bali during the rainy season."
+    },
+    {
+      "id": "id-05",
+      "language": "id",
+      "text": "Bus tiba lima belas menit lebih lambat dari perkiraan.",
+      "elapsed_ms": 1910,
+      "translation": "The bus arrived fifteen minutes later than scheduled."
+    },
+    {
+      "id": "id-06",
+      "language": "id",
+      "text": "Kami membeli dua tiket seharga seratus dua puluh lima ribu rupiah per tiket.",
+      "elapsed_ms": 2454,
+      "translation": "We purchased two tickets at a price of 125,000 Indonesian Rupiah each."
+    },
+    {
+      "id": "id-07",
+      "language": "id",
+      "text": "Jangan hapus berkas video asli.",
+      "elapsed_ms": 1908,
+      "translation": "Please do not delete the original video file."
+    },
+    {
+      "id": "id-08",
+      "language": "id",
+      "text": "Paket akan dikirim pada hari Jumat, tanggal enam belas Oktober.",
+      "elapsed_ms": 2200,
+      "translation": "The package will be shipped on Friday, October 16th."
+    },
+    {
+      "id": "id-09",
+      "language": "id",
+      "text": "Dia mengatakan tagihannya sudah dibayar, bukan dibatalkan.",
+      "elapsed_ms": 2066,
+      "translation": "He stated that the debt had been paid, not canceled."
+    },
+    {
+      "id": "id-10",
+      "language": "id",
+      "text": "Adik saya sedang belajar bahasa Inggris di sekolah.",
+      "elapsed_ms": 1906,
+      "translation": "My younger sibling is learning English at school."
+    },
+    {
+      "id": "id-11",
+      "language": "id",
+      "text": "Dokter meminta kami kembali minggu depan.",
+      "elapsed_ms": 1913,
+      "translation": "The doctor asked us to come back next week."
+    },
+    {
+      "id": "id-12",
+      "language": "id",
+      "text": "Restoran ini buka sampai pukul sepuluh malam.",
+      "elapsed_ms": 2072,
+      "translation": "This restaurant is open until 10:00 PM."
+    },
+    {
+      "id": "id-13",
+      "language": "id",
+      "text": "Saya meninggalkan ponsel di atas meja dapur.",
+      "elapsed_ms": 1854,
+      "translation": "I left my phone on the kitchen table."
+    },
+    {
+      "id": "id-14",
+      "language": "id",
+      "text": "Meskipun hujan, mereka tetap melanjutkan perjalanan.",
+      "elapsed_ms": 1945,
+      "translation": "Despite the rain, they continued their journey."
+    },
+    {
+      "id": "id-15",
+      "language": "id",
+      "text": "Hanya tiga dari tujuh siswa yang lulus ujian.",
+      "elapsed_ms": 1983,
+      "translation": "Only three out of the seven students passed the exam."
+    },
+    {
+      "id": "id-16",
+      "language": "id",
+      "text": "Kamu bisa mengubah waktu subtitle tanpa mengubah teksnya.",
+      "elapsed_ms": 2106,
+      "translation": "You can adjust the subtitle timing without changing the text itself."
+    },
+    {
+      "id": "id-17",
+      "language": "id",
+      "text": "Kereta menuju Bandung berangkat dari peron empat.",
+      "elapsed_ms": 1986,
+      "translation": "The train to Bandung departs from platform four."
+    },
+    {
+      "id": "id-18",
+      "language": "id",
+      "text": "Ini bukan versi terakhir dari laporan tersebut.",
+      "elapsed_ms": 1903,
+      "translation": "This is not the final version of the report."
+    },
+    {
+      "id": "id-19",
+      "language": "id",
+      "text": "Daya baterai turun dari delapan puluh persen menjadi dua puluh lima persen.",
+      "elapsed_ms": 2251,
+      "translation": "The battery level has dropped from 80 percent to 25 percent."
+    },
+    {
+      "id": "id-20",
+      "language": "id",
+      "text": "Hubungi Maya jika pengirimannya terlambat.",
+      "elapsed_ms": 1866,
+      "translation": "Contact Maya if your shipment is delayed."
+    },
+    {
+      "id": "id-21",
+      "language": "id",
+      "text": "Kita akan bertemu di perpustakaan setelah makan siang.",
+      "elapsed_ms": 1846,
+      "translation": "We will meet in the library after lunch."
+    },
+    {
+      "id": "id-22",
+      "language": "id",
+      "text": "Pembicara kedua tidak setuju dengan usulan pertama.",
+      "elapsed_ms": 1893,
+      "translation": "The second speaker disagreed with the first proposal."
+    },
+    {
+      "id": "id-23",
+      "language": "id",
+      "text": "Berapa lama waktu yang diperlukan untuk menerjemahkan video sepuluh menit?",
+      "elapsed_ms": 2195,
+      "translation": "How long does it take to translate a 10-minute video?"
+    },
+    {
+      "id": "id-24",
+      "language": "id",
+      "text": "Dia berbicara pelan sehingga rekamannya sulit didengar.",
+      "elapsed_ms": 2067,
+      "translation": "He spoke softly, making it difficult to hear his recording."
+    },
+    {
+      "id": "id-25",
+      "language": "id",
+      "text": "Saya ingin kopi, tetapi kedai itu hanya menyediakan teh.",
+      "elapsed_ms": 2021,
+      "translation": "I wanted coffee, but that cafe only served tea."
+    },
+    {
+      "id": "id-26",
+      "language": "id",
+      "text": "Rumah mereka berada di samping jembatan, bukan di belakangnya.",
+      "elapsed_ms": 2068,
+      "translation": "Their house was located next to the bridge, not behind it."
+    },
+    {
+      "id": "id-27",
+      "language": "id",
+      "text": "Kamera merekam secara vertikal dengan tiga puluh bingkai per detik.",
+      "elapsed_ms": 2033,
+      "translation": "The camera records vertically at 30 frames per second."
+    },
+    {
+      "id": "id-28",
+      "language": "id",
+      "text": "Bisakah kamu mengulang kalimat terakhir dengan lebih lambat?",
+      "elapsed_ms": 1996,
+      "translation": "Could you please repeat the last sentence more slowly?"
+    },
+    {
+      "id": "id-29",
+      "language": "id",
+      "text": "Kita harus menyimpan perubahan sebelum menutup aplikasi.",
+      "elapsed_ms": 1950,
+      "translation": "We should save any changes before closing the application."
+    },
+    {
+      "id": "id-30",
+      "language": "id",
+      "text": "Jika model belum tersedia, proses penerjemahan tidak boleh dimulai.",
+      "elapsed_ms": 2165,
+      "translation": "If the model is not yet available, the translation process should not begin."
+    }
+  ]
+}

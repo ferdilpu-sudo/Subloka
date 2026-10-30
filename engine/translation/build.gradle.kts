@@ -5,11 +5,16 @@ plugins {
 android {
     namespace = "app.subloka.engine.translation"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         minSdk = 26
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -19,7 +24,6 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
-    implementation("com.google.mlkit:translate:17.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     testImplementation("junit:junit:4.13.2")
@@ -27,3 +31,4 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test:core-ktx:1.7.0")
 }
+

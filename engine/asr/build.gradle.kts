@@ -5,9 +5,16 @@ plugins {
 android {
     namespace = "app.subloka.engine.asr"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         minSdk = 26
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        consumerProguardFiles("consumer-rules.pro")
+    }
+
+    externalNativeBuild {
+        cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" }
     }
 
     compileOptions {
@@ -17,6 +24,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.annotation:annotation:1.9.1")
     implementation(project(":core:domain"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 

@@ -11,7 +11,7 @@ object SubLokaColors {
     val SurfaceHigh = Color(0xFF21252D)
     val TextPrimary = Color(0xFFF5F7FA)
     val TextSecondary = Color(0xFFAEB6C5)
-    val Primary = Color(0xFFA7B5FF)
+    val Primary = Color(0xFF67DCCB)
     val OnPrimary = Color(0xFF101216)
     val Success = Color(0xFF7EDBA6)
     val Warning = Color(0xFFFFD18B)
@@ -21,6 +21,8 @@ object SubLokaColors {
 private val SubLokaScheme = darkColorScheme(
     primary = SubLokaColors.Primary,
     onPrimary = SubLokaColors.OnPrimary,
+    secondaryContainer = SubLokaColors.Primary,
+    onSecondaryContainer = SubLokaColors.OnPrimary,
     background = SubLokaColors.Canvas,
     onBackground = SubLokaColors.TextPrimary,
     surface = SubLokaColors.Surface,
