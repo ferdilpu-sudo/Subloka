@@ -4,8 +4,14 @@ Daftar ini berdasarkan releaseRuntimeClasspath CI 40803254126, commit 9e724bd938
 Terdapat 128 koordinat dependensi, termasuk BOM dan modul metadata; bukan jumlah pustaka yang dikemas terpisah di APK. ML Kit tidak tercantum dalam laporan dependensi runtime ini.
 Nama lisensi mengikuti deklarasi POM atau POM induk yang diperiksa. Indeks ini bukan pengganti teks lisensi, hak cipta, atau NOTICE khusus komponen. Pemeriksaan kelengkapan pemberitahuan distribusi masih berlangsung.
 
+Pemberitahuan tambahan dari sumber: beberapa anotasi JSR305 memakai CC BY 2.5; kode Instant Kotlin memuat bagian dari ThreeTenBP. Deklarasi POM di bawah tidak menggantikan pemberitahuan tambahan ini.
+
 Teks yang tersedia offline:
-- Apache 2.0: AndroidX-Apache-2.0-LICENSE.txt
+- Apache 2.0: AndroidX-Apache-2.0-LICENSE.txt dan Apache-2.0-LICENSE.txt
+- JetBrains annotations: JetBrains-annotations-LICENSE.txt
+- ThreeTenBP: ThreeTenBP-LICENSE.txt
+- Anotasi concurrency JSR305: JSR305-concurrency-NOTICE.txt
+- Kredit dari arsip sumber: Source-Copyright-Notices.txt
 - MIT dan hak cipta Checker Framework: Checker-Framework-MIT-LICENSE.txt
 - Hak cipta Kotlin 2.3.21: Kotlin-stdlib-COPYRIGHT.txt
 - NOTICE kotlinx.coroutines 1.10.2: Kotlinx-coroutines-NOTICE.txt

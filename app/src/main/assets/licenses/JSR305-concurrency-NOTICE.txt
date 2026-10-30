@@ -1,0 +1,13 @@
+JSR305 3.0.2 — anotasi concurrency
+
+Berkas: GuardedBy, Immutable, NotThreadSafe, ThreadSafe
+Sumber: https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar
+
+/*
+ * Copyright (c) 2005 Brian Goetz
+ * Released under the Creative Commons Attribution License
+ *   (http://creativecommons.org/licenses/by/2.5)
+ * Official home: http://www.jcip.net
+ */
+
+Tautan lisensi: https://creativecommons.org/licenses/by/2.5/

@@ -3,7 +3,7 @@
   "commit": "9e724bd9386b07fc8f3bfe4fb13ea7afdba95a6c",
   "artifact_id": 12867721118,
   "inventory_sha256": "f6cc15fab78e447a41895b735178bc3a94d230dbf2c01ed3ce67033208edb1f5",
-  "scope": "POM declarations and parent declarations; includes BOM/metadata modules. Not proof of packaged code, complete notice review, or distribution compliance.",
+  "scope": "POM declarations and parent declarations; includes BOM/metadata modules. Not proof of packaged code, complete notice review, or distribution compliance. POM license families do not replace source-level third-party notices; see supplemental_source_notices and source-notice-audit.json.",
   "review_status": "METADATA_MAPPED_NOTICE_REVIEW_OPEN",
   "parents": [
     {
@@ -1121,7 +1121,14 @@
         "The Apache Software License, Version 2.0"
       ],
       "notice_sha256": [],
-      "license_family": "Apache-2.0"
+      "license_family": "Apache-2.0",
+      "supplemental_source_notices": [
+        {
+          "license": "CC-BY-2.5",
+          "scope": "Four javax.annotation.concurrent classes; original headers retained",
+          "asset": "JSR305-concurrency-NOTICE.txt"
+        }
+      ]
     },
     {
       "coordinate": "com.google.errorprone:error_prone_annotations:2.28.0",
@@ -1189,7 +1196,14 @@
         "Apache-2.0"
       ],
       "notice_sha256": [],
-      "license_family": "Apache-2.0"
+      "license_family": "Apache-2.0",
+      "supplemental_source_notices": [
+        {
+          "license": "BSD-3-Clause",
+          "scope": "ThreeTenBP-derived kotlin.time.Instant",
+          "asset": "ThreeTenBP-LICENSE.txt"
+        }
+      ]
     },
     {
       "coordinate": "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2",

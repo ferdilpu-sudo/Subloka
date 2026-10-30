@@ -20,12 +20,59 @@
       "source_url": "https://api.github.com/repos/Kotlin/kotlinx.serialization/contents/license/NOTICE.txt?ref=v1.7.3",
       "sha256": "ec77bba5c852830abfdefcdefbf4a22577ff4df79ec323a898d5100ca1d6f8d6",
       "scope": "kotlinx.serialization 1.7.3"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/Apache-2.0-LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "source_url": "https://api.github.com/repos/google/guava/contents/LICENSE?ref=v33.3.1",
+      "scope": "Exact upstream text"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/JetBrains-annotations-LICENSE.txt",
+      "sha256": "8c1e966c7855fb54027bcaf6ebe7a43abe4785791e8cf9148c363761d493d097",
+      "source_url": "https://api.github.com/repos/JetBrains/java-annotations/contents/LICENSE.txt?ref=23.0.0",
+      "scope": "Exact upstream text"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/ThreeTenBP-LICENSE.txt",
+      "sha256": "d1bc53b493a3ab387b42717ed5c4b1976a5048996f81154278100bff86d39331",
+      "source_url": "https://api.github.com/repos/JetBrains/kotlin/contents/license/third_party/threetenbp_license.txt?ref=v2.3.21",
+      "scope": "Exact upstream text"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/Source-Copyright-Notices.txt",
+      "sha256": "23085750f2e58b410135917eabd1482218074eb506e18bafd0a0316a89bee071",
+      "source_url": ".agents/evidence/source-notice-audit.json",
+      "scope": "Source-derived attribution; source archive paths and hashes recorded in source-notice-audit.json"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/JSR305-concurrency-NOTICE.txt",
+      "sha256": "2c93fe567b84ae3ad0e6e47cea1cbca397c2a1f022e760e35064d1b69da69ce4",
+      "source_url": ".agents/evidence/source-notice-audit.json",
+      "scope": "Source-derived attribution; source archive paths and hashes recorded in source-notice-audit.json"
     }
   ],
   "excluded": [
     {
       "source_url": "https://api.github.com/repos/JetBrains/kotlin/contents/license/NOTICE.txt?ref=v2.3.21",
       "reason": "Explicitly scoped to Kotlin Compiler distribution, not automatically treated as stdlib NOTICE."
+    }
+  ],
+  "equivalent_license_sources": [
+    {
+      "name": "Guava",
+      "url": "https://api.github.com/repos/google/guava/contents/LICENSE?ref=v33.3.1",
+      "asset": "app/src/main/assets/licenses/Apache-2.0-LICENSE.txt"
+    },
+    {
+      "name": "ErrorProne",
+      "url": "https://api.github.com/repos/google/error-prone/contents/COPYING?ref=v2.28.0",
+      "asset": "app/src/main/assets/licenses/Apache-2.0-LICENSE.txt"
+    },
+    {
+      "name": "JSpecify",
+      "url": "https://api.github.com/repos/jspecify/jspecify/contents/LICENSE?ref=v1.0.0",
+      "asset": "app/src/main/assets/licenses/Apache-2.0-LICENSE.txt"
     }
   ]
 }
