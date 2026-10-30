@@ -7,6 +7,9 @@ Nama lisensi mengikuti deklarasi POM atau POM induk yang diperiksa. Indeks ini b
 Teks yang tersedia offline:
 - Apache 2.0: AndroidX-Apache-2.0-LICENSE.txt
 - MIT dan hak cipta Checker Framework: Checker-Framework-MIT-LICENSE.txt
+- Hak cipta Kotlin 2.3.21: Kotlin-stdlib-COPYRIGHT.txt
+- NOTICE kotlinx.coroutines 1.10.2: Kotlinx-coroutines-NOTICE.txt
+- NOTICE kotlinx.serialization 1.7.3: Kotlinx-serialization-NOTICE.txt
 - Model dan engine native: lihat dokumen Whisper, whisper.cpp, Silero, Gemma, llama.cpp, llama-json dan llamafile pada daftar lisensi. Model/engine tersebut tidak dihitung sebagai koordinat Maven di bawah.
 
 Komponen dan versi:

@@ -1,0 +1,31 @@
+{
+  "review_date": "2026-10-30",
+  "baseline_run": 40803254126,
+  "scope": "Exact upstream texts supplement collected binary-archive evidence. Not a complete per-component NOTICE audit.",
+  "documents": [
+    {
+      "asset": "app/src/main/assets/licenses/Kotlin-stdlib-COPYRIGHT.txt",
+      "source_url": "https://api.github.com/repos/JetBrains/kotlin/contents/license/COPYRIGHT.txt?ref=v2.3.21",
+      "sha256": "8f1a1700adb5490604c6094fb137bf73f6c28d3ee554b58f3ff8ef975a79672d",
+      "scope": "Kotlin standard library 2.3.21 copyright header; compiler-specific NOTICE excluded"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/Kotlinx-coroutines-NOTICE.txt",
+      "source_url": "https://api.github.com/repos/Kotlin/kotlinx.coroutines/contents/license/NOTICE.txt?ref=1.10.2",
+      "sha256": "1ab6de67ef738bffae63f9aa6a8798a35e87341c83ea28d09c8dc8ca6993232a",
+      "scope": "kotlinx.coroutines 1.10.2"
+    },
+    {
+      "asset": "app/src/main/assets/licenses/Kotlinx-serialization-NOTICE.txt",
+      "source_url": "https://api.github.com/repos/Kotlin/kotlinx.serialization/contents/license/NOTICE.txt?ref=v1.7.3",
+      "sha256": "ec77bba5c852830abfdefcdefbf4a22577ff4df79ec323a898d5100ca1d6f8d6",
+      "scope": "kotlinx.serialization 1.7.3"
+    }
+  ],
+  "excluded": [
+    {
+      "source_url": "https://api.github.com/repos/JetBrains/kotlin/contents/license/NOTICE.txt?ref=v2.3.21",
+      "reason": "Explicitly scoped to Kotlin Compiler distribution, not automatically treated as stdlib NOTICE."
+    }
+  ]
+}
