@@ -72,6 +72,13 @@ fun ExportScreen(
                 ExportRadio("Keduanya", mode == SrtExportMode.BOTH, !locked) { mode = SrtExportMode.BOTH }
             }
             if (mode == SrtExportMode.BOTH) Text(if (mp4) "Dua bahasa ditampilkan dalam satu video." else "Dua file SRT disiapkan dan disimpan satu per satu.")
+            // Show provenance only when translated text is part of the selected output.
+            // This is an advisory, not proof that downstream files meet Google branding rules.
+            if (mode != SrtExportMode.SOURCE) {
+                TranslationOrigins.exportWarnings(segments).forEach { warning ->
+                    Text(warning, style = MaterialTheme.typography.bodySmall)
+                }
+            }
             if (segments.isEmpty()) Text("Belum ada caption. Kembali ke editor untuk membuat caption.", color = MaterialTheme.colorScheme.error)
             else if (blocked) Text("Lengkapi atau perbarui terjemahan di editor, atau pilih Asli untuk melanjutkan.", color = MaterialTheme.colorScheme.error)
             if (mp4) {
