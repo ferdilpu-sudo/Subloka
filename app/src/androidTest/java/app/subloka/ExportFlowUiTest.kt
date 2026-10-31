@@ -70,4 +70,33 @@ class ExportFlowUiTest {
         compose.onNodeWithText("Simpan MP4").performClick()
         compose.runOnIdle { assertEquals(2, saves) }
     }
+
+    @Test fun historicalGoogleNoticeFollowsTranslationSelection() {
+        val rows = listOf(
+            CaptionSegment("google", 0, 1_000_000, SourceLanguage.ENGLISH, "Hello", "Halo",
+                TranslationStatus.CURRENT, TranslationOrigin.MACHINE_MLKIT, 1, 1),
+            CaptionSegment("gemma", 1_000_000, 2_000_000, SourceLanguage.ENGLISH, "Thanks", "Terima kasih",
+                TranslationStatus.CURRENT, TranslationOrigin.MACHINE_GEMMA, 1, 1)
+        )
+        compose.setContent {
+            SubLokaTheme {
+                ExportScreen(
+                    segments = rows, sourceLanguage = SourceLanguage.ENGLISH,
+                    demoMode = false, busy = false, pending = false,
+                    documents = emptyList(), saved = emptySet(), message = null,
+                    onPrepare = {}, onSave = {}, onBack = {},
+                    videoReady = false, videoRendering = false,
+                    videoMessage = null, videoProgress = null,
+                    onRender = {}, onSaveVideo = {}, onCancelVideo = {},
+                )
+            }
+        }
+        compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("Terjemahan (Indonesia)").performScrollTo().performClick()
+        compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Asli (English)").performScrollTo().performClick()
+        compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true).assertDoesNotExist()
+    }
+
 }
