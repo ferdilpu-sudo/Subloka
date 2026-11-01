@@ -81,6 +81,7 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/autocap-mobile-editor-v1.md](evidence/autocap-mobile-editor-v1.md) | Adaptasi visual AutoCap Desktop untuk editor mobile, scope dan QA |
 | [architecture.md](architecture.md) | Batas modul, aliran proses, integrasi dan dependensi |
 | [schema.md](schema.md) | Kontrak data, invariant, dan migrasi |
 | [plan.md](plan.md) | Task, dependensi, checkpoint, dan ledger status |
