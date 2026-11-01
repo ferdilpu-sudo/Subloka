@@ -12,6 +12,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import app.subloka.core.domain.*
 import app.subloka.feature.editor.EditorScreen
+import app.subloka.feature.editor.StyleWorkspace
+import app.subloka.feature.editor.TimingWorkspace
+import androidx.compose.runtime.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.Assert.assertTrue
@@ -170,6 +173,53 @@ class EditorLayoutTest {
         compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Kalimat nomor 26")
         compose.onNodeWithText("Daftar caption (40)").performClick()
         compose.onNodeWithText("Kalimat nomor 26").assertIsDisplayed()
+    }
+
+    @Test fun timingBoundaryCardsRetainNudgeConstraintsAtCompactFontScale() {
+        val segment = CaptionSegment("timing", 0L, 2_000_000L, SourceLanguage.INDONESIA,
+            "Caption pendek", "", TranslationStatus.MISSING)
+        var result: Pair<Long, Long>? = null
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.5f)) {
+                MaterialTheme {
+                    Box(Modifier.size(320.dp, 480.dp)) {
+                        TimingWorkspace(
+                            segment = segment, minimumStartUs = 0L, maximumEndUs = 3_000_000L,
+                            onChange = { start, end -> result = start to end },
+                        )
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("CAPTION TERPILIH").performScrollTo().assertExists()
+        compose.onNodeWithText("Awal: 00:00.00").performScrollTo().assertExists()
+        compose.onAllNodesWithText("-10 ms")[0].performScrollTo().assertIsNotEnabled()
+        compose.onAllNodesWithText("+10 ms")[0].performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(result == (10_000L to 2_000_000L)) }
+        compose.onNodeWithText("Akhir: 00:02.00").performScrollTo().assertExists()
+        compose.onAllNodesWithText("+10 ms")[1].performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(result == (0L to 2_010_000L)) }
+    }
+
+    @Test fun styleSectionsRemainReachableAndPreserveStyleCallbacksAtLargeFont() {
+        var style by mutableStateOf(CaptionStyle())
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.5f)) {
+                MaterialTheme {
+                    Box(Modifier.size(320.dp, 480.dp)) {
+                        StyleWorkspace(style = style, onStyleChange = { style = it })
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("Bahasa dan urutan").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Ukuran teks").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Keterbacaan dan posisi").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Latar subtitle").performScrollTo().performClick()
+        compose.runOnIdle { assertTrue(style.backgroundEnabled) }
+        compose.onNodeWithText("Pratinjau dan MP4", substring = true).performScrollTo().assertIsDisplayed()
     }
 
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {
