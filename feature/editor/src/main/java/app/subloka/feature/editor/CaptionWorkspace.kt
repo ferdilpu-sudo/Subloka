@@ -1,5 +1,6 @@
 package app.subloka.feature.editor
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,8 +114,13 @@ private fun SelectedCaptionEditor(
     onMergeNext: () -> Unit,
 ) {
     var translationExpanded by rememberSaveable(segment.id) { mutableStateOf(false) }
-    Surface(color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
+    Surface(
+        color = SubLokaColors.Surface,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, SubLokaColors.SurfaceHigh),
+    ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("KOREKSI CAPTION", style = MaterialTheme.typography.labelSmall, color = SubLokaColors.Primary)
             Text("${segment.sourceLanguage.label.uppercase()} · ASLI", style = MaterialTheme.typography.labelMedium)
             OutlinedTextField(
                 label = { Text("Teks asli") },
@@ -173,6 +179,7 @@ private fun SegmentCard(segment: CaptionSegment, selected: Boolean, onClick: () 
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics { this.selected = selected }.clickable(onClick = onClick),
         color = if (selected) SubLokaColors.Primary.copy(alpha = 0.12f) else SubLokaColors.Surface,
         shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, if (selected) SubLokaColors.Primary.copy(alpha = 0.75f) else SubLokaColors.SurfaceHigh),
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("${formatTime(segment.startUs)} – ${formatTime(segment.endUs)}", color = SubLokaColors.TextSecondary, style = MaterialTheme.typography.labelSmall)
