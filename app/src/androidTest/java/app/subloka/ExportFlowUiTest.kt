@@ -99,4 +99,54 @@ class ExportFlowUiTest {
         compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true).assertDoesNotExist()
     }
 
+
+    @Test fun exportSectionsPreserveProviderWarningsAndFixedActionAtLargeFont() {
+        val captions = listOf(
+            CaptionSegment("google", 0L, 1_000_000L, SourceLanguage.INDONESIA, "Halo", "Hello",
+                TranslationStatus.CURRENT, TranslationOrigin.MACHINE_MLKIT, 1L, 1L),
+            CaptionSegment("unknown", 1_000_000L, 2_000_000L, SourceLanguage.INDONESIA, "Apa kabar", "How are you",
+                TranslationStatus.CURRENT, TranslationOrigin.MACHINE, 1L, 1L),
+            CaptionSegment("manual", 2_000_000L, 3_000_000L, SourceLanguage.INDONESIA, "Terima kasih", "Thanks",
+                TranslationStatus.CURRENT, TranslationOrigin.MANUAL, 1L, 1L)
+        )
+        var prepared: SrtExportMode? = null
+        var rendered: SrtExportMode? = null
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.5f)) {
+                SubLokaTheme {
+                    Box(Modifier.size(320.dp, 480.dp)) {
+                        ExportScreen(
+                            segments = captions, sourceLanguage = SourceLanguage.INDONESIA,
+                            demoMode = false, busy = false, pending = false,
+                            documents = emptyList(), saved = emptySet(), message = null,
+                            onPrepare = { prepared = it }, onSave = {}, onBack = {},
+                            videoReady = false, videoRendering = false,
+                            videoMessage = null, videoProgress = null,
+                            onRender = { rendered = it }, onSaveVideo = {}, onCancelVideo = {},
+                        )
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("Format hasil").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Bahasa caption").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("File SRT").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Asal terjemahan").assertDoesNotExist()
+        compose.onNodeWithText("Terjemahan (English)").performScrollTo().performClick()
+        compose.onNodeWithText("Asal terjemahan").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("1 caption terjemahan otomatis tidak memiliki catatan penyedia", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Siapkan SRT").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(SrtExportMode.TRANSLATION, prepared) }
+        compose.onNodeWithText("MP4").performScrollTo().performClick()
+        compose.onNodeWithText("Hasil video").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Render MP4").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(SrtExportMode.TRANSLATION, rendered) }
+        compose.onNodeWithText("Asli (Indonesia)").performScrollTo().performClick()
+        compose.onNodeWithText("Asal terjemahan").assertDoesNotExist()
+    }
+
 }
