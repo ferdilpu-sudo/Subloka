@@ -172,6 +172,29 @@ class EditorLayoutTest {
         compose.onNodeWithText("Kalimat nomor 26").assertIsDisplayed()
     }
 
+    @Test fun studioSwitcherClearlySelectsCaptionTimingAndStyleWithoutLosingEdits() {
+        val caption = CaptionSegment("studio", 0, 2_000_000, SourceLanguage.INDONESIA,
+            "Kalimat awal", "", TranslationStatus.MISSING)
+        var saved = listOf(caption)
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 640.dp)) {
+                    EditorScreen(saved, CaptionStyle(), null, "Tersimpan", false,
+                        { saved = it }, {}, {}, {}, demoMode = false)
+                }
+            }
+        }
+        compose.onNodeWithText("Teks").assertIsSelected()
+        compose.onNodeWithText("KOREKSI CAPTION").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Teks asli").performScrollTo().performTextReplacement("Caption dikoreksi")
+        compose.onNodeWithText("Waktu").performClick().assertIsSelected()
+        compose.onNodeWithText("Gaya").performClick().assertIsSelected()
+        compose.onNodeWithText("Teks").performClick().assertIsSelected()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Caption dikoreksi")
+        compose.runOnIdle { assertTrue(saved.single().sourceText == "Caption dikoreksi") }
+        compose.onNodeWithText("Ekspor").assertIsDisplayed()
+    }
+
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {
         var exported = false
         val caption = CaptionSegment("one", 0, 2_000_000, SourceLanguage.INDONESIA,
