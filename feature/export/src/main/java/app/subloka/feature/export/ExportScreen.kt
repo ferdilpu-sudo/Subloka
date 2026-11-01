@@ -105,32 +105,32 @@ fun ExportScreen(
             if (segments.isEmpty()) Text("Belum ada caption. Kembali ke editor untuk membuat caption.", color = MaterialTheme.colorScheme.error)
             else if (blocked) Text("Lengkapi atau perbarui terjemahan di editor, atau pilih Asli untuk melanjutkan.", color = MaterialTheme.colorScheme.error)
             ExportSection(if (mp4) "Hasil video" else "File SRT") {
-            if (mp4) {
-                Text("SDR · sisi terpanjang maksimal 1280 piksel. Render tetap berjalan saat berpindah aplikasi atau layar mati.", style = MaterialTheme.typography.bodySmall)
-                if (videoRendering) {
-                    Text(videoProgress?.let { "Render $it%" } ?: "Render sedang berjalan…", style = MaterialTheme.typography.titleMedium)
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
-                }
-                videoMessage?.let { Text(it) }
-                if (videoReady) {
-                    Text("Hasil render tersedia", style = MaterialTheme.typography.titleMedium)
-                    Text("Tekan Simpan MP4 untuk memilih lokasi. Membatalkan pemilih lokasi tidak menghapus hasil render.")
-                    Text("Pilihan bahasa baru berlaku setelah render ulang. Render ulang mengganti hasil sementara yang belum disimpan.", style = MaterialTheme.typography.bodySmall)
-                    SecondaryAction("Render ulang dengan pilihan ini", { onRender(mode) }, enabled = canPrepare && !demoMode, modifier = Modifier.fillMaxWidth())
-                }
-            } else {
-                message?.let { Text(it) }
-                if (documents.isNotEmpty()) {
-                    Text("SRT yang sudah disiapkan", style = MaterialTheme.typography.titleMedium)
-                    Text("Pilih lokasi untuk setiap file. Gunakan penyimpanan perangkat agar tetap offline. Perubahan pilihan bahasa berlaku setelah menyiapkan SRT lagi.")
-                    documents.forEachIndexed { index, document ->
-                        Text(document.name, style = MaterialTheme.typography.bodyMedium)
-                        if (index in saved) Text("Tersimpan", style = MaterialTheme.typography.labelMedium)
-                        SecondaryAction(if (index in saved) "Simpan lagi file ${index + 1}" else "Simpan file ${index + 1}",
-                            { onSave(index) }, enabled = !locked, modifier = Modifier.fillMaxWidth())
+                if (mp4) {
+                    Text("SDR · sisi terpanjang maksimal 1280 piksel. Render tetap berjalan saat berpindah aplikasi atau layar mati.", style = MaterialTheme.typography.bodySmall)
+                    if (videoRendering) {
+                        Text(videoProgress?.let { "Render $it%" } ?: "Render sedang berjalan…", style = MaterialTheme.typography.titleMedium)
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
+                    videoMessage?.let { Text(it) }
+                    if (videoReady) {
+                        Text("Hasil render tersedia", style = MaterialTheme.typography.titleMedium)
+                        Text("Tekan Simpan MP4 untuk memilih lokasi. Membatalkan pemilih lokasi tidak menghapus hasil render.")
+                        Text("Pilihan bahasa baru berlaku setelah render ulang. Render ulang mengganti hasil sementara yang belum disimpan.", style = MaterialTheme.typography.bodySmall)
+                        SecondaryAction("Render ulang dengan pilihan ini", { onRender(mode) }, enabled = canPrepare && !demoMode, modifier = Modifier.fillMaxWidth())
+                    }
+                } else {
+                    message?.let { Text(it) }
+                    if (documents.isNotEmpty()) {
+                        Text("SRT yang sudah disiapkan", style = MaterialTheme.typography.titleMedium)
+                        Text("Pilih lokasi untuk setiap file. Gunakan penyimpanan perangkat agar tetap offline. Perubahan pilihan bahasa berlaku setelah menyiapkan SRT lagi.")
+                        documents.forEachIndexed { index, document ->
+                            Text(document.name, style = MaterialTheme.typography.bodyMedium)
+                            if (index in saved) Text("Tersimpan", style = MaterialTheme.typography.labelMedium)
+                            SecondaryAction(if (index in saved) "Simpan lagi file ${index + 1}" else "Simpan file ${index + 1}",
+                                { onSave(index) }, enabled = !locked, modifier = Modifier.fillMaxWidth())
+                        }
                     }
                 }
-            }
             }
             if (busy && !videoRendering) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (pending) Text("Pilih lokasi penyimpanan. Jika dibatalkan, hasil tetap tersedia untuk disimpan lagi.")
