@@ -1,10 +1,15 @@
 package app.subloka.feature.editor
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Tab
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -270,38 +275,55 @@ private fun ProjectTopBar(
     exportAvailable: Boolean,
     onRetrySave: (() -> Unit)?,
 ) {
-    Row(
+    // AutoCap-inspired studio header: project and save state have their own hierarchy.
+    // Keep navigation/export actions reachable without growing the tool area.
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        color = SubLokaColors.Surface,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, SubLokaColors.SurfaceHigh),
     ) {
-        TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Kembali" }) {
-            Text("‹", style = MaterialTheme.typography.headlineSmall)
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
-            Text(saveStatusText, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
-                style = MaterialTheme.typography.labelSmall)
-            if (saveFailed && onRetrySave != null) {
-                TextButton(onClick = onRetrySave) { Text("Coba simpan lagi") }
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Kembali" }) {
+                Text("‹", style = MaterialTheme.typography.headlineSmall)
             }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium)
+                Text(saveStatusText, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    color = if (saveFailed) SubLokaColors.Error else SubLokaColors.TextSecondary,
+                    style = MaterialTheme.typography.labelSmall)
+                if (saveFailed && onRetrySave != null) {
+                    TextButton(onClick = onRetrySave) { Text("Coba simpan lagi") }
+                }
+            }
+            FilledTonalButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
         }
-        FilledTonalButton(onClick = onExport, enabled = exportAvailable) { Text("Ekspor") }
     }
 }
 
 @Composable
 private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (EditorWorkspace) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        EditorWorkspace.entries.forEach { item ->
-            Tab(selected = workspace == item, onClick = { onWorkspaceChange(item) },
-                modifier = Modifier.weight(1f),
-                text = { Text(when (item) {
-                    EditorWorkspace.CAPTION -> "Teks"
-                    EditorWorkspace.TIMING -> "Waktu"
-                    EditorWorkspace.STYLE -> "Gaya"
-                }) })
+    // Compact segmented navigation makes the selected tool explicit on touch screens.
+    // These are editor workspaces, not new application-level destinations.
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        EditorWorkspace.entries.forEachIndexed { index, item ->
+            SegmentedButton(
+                selected = workspace == item,
+                onClick = { onWorkspaceChange(item) },
+                shape = SegmentedButtonDefaults.itemShape(index, EditorWorkspace.entries.size),
+                label = {
+                    Text(when (item) {
+                        EditorWorkspace.CAPTION -> "Teks"
+                        EditorWorkspace.TIMING -> "Waktu"
+                        EditorWorkspace.STYLE -> "Gaya"
+                    })
+                },
+            )
         }
     }
 }

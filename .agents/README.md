@@ -81,6 +81,11 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/autocap-mobile-ui-adaptation.md](evidence/autocap-mobile-ui-adaptation.md) | AutoCap-inspired Home and Projects layout |
+| [evidence/autocap-mobile-editor-v1.md](evidence/autocap-mobile-editor-v1.md) | AutoCap-inspired caption editor shell |
+| [evidence/autocap-mobile-tools-v1.md](evidence/autocap-mobile-tools-v1.md) | Timing and Style mobile controls |
+| [evidence/autocap-mobile-integrated-qa.md](evidence/autocap-mobile-integrated-qa.md) | Combined branch source/QA and safe device upgrade gate |
+| [evidence/autocap-mobile-export-v1.md](evidence/autocap-mobile-export-v1.md) | Adaptasi panel Export dari AutoCap Desktop dengan dependensi atribusi PR #2 dan QA |
 | [architecture.md](architecture.md) | Batas modul, aliran proses, integrasi dan dependensi |
 | [schema.md](schema.md) | Kontrak data, invariant, dan migrasi |
 | [plan.md](plan.md) | Task, dependensi, checkpoint, dan ledger status |
