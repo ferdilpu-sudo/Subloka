@@ -1,33 +1,27 @@
 package app.subloka.feature.editor
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.unit.dp
 import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.CaptionDisplayMode
-import app.subloka.core.domain.CaptionStyle
 import app.subloka.core.domain.CaptionOrder
+import app.subloka.core.domain.CaptionStyle
 
+/**
+ * AutoCap-inspired studio grouping; the style contract, value ranges and callbacks
+ * stay identical to the stable mobile editor. Never add options unsupported by MP4.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StyleWorkspace(
@@ -35,9 +29,12 @@ fun StyleWorkspace(
     onStyleChange: (CaptionStyle) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(modifier = modifier, color = SubLokaColors.Surface, shape = RoundedCornerShape(12.dp)) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Tampilan subtitle", style = MaterialTheme.typography.titleSmall)
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("Tampilan subtitle", style = MaterialTheme.typography.titleMedium)
+        StyleSection("Bahasa dan urutan") {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CaptionDisplayMode.entries.forEach { mode ->
                     FilterChip(
@@ -51,10 +48,11 @@ fun StyleWorkspace(
                     )
                 }
             }
-
             ToggleRow("Terjemahan di atas", style.order == CaptionOrder.TRANSLATION_FIRST) {
                 onStyleChange(style.copy(order = if (it) CaptionOrder.TRANSLATION_FIRST else CaptionOrder.SOURCE_FIRST))
             }
+        }
+        StyleSection("Ukuran teks") {
             Text("Ukuran teks asli · ${style.sourceSizePercent}%")
             Slider(
                 modifier = Modifier.semantics {
@@ -65,7 +63,6 @@ fun StyleWorkspace(
                 onValueChange = { onStyleChange(style.copy(sourceSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
             )
-
             Text("Ukuran terjemahan · ${style.translationSizePercent}%")
             Slider(
                 modifier = Modifier.semantics {
@@ -76,10 +73,14 @@ fun StyleWorkspace(
                 onValueChange = { onStyleChange(style.copy(translationSizePercent = it.toInt())) },
                 valueRange = 70f..140f,
             )
-
-            ToggleRow("Garis tepi", style.outlineEnabled) { onStyleChange(style.copy(outlineEnabled = it)) }
-            ToggleRow("Latar subtitle", style.backgroundEnabled) { onStyleChange(style.copy(backgroundEnabled = it)) }
-
+        }
+        StyleSection("Keterbacaan dan posisi") {
+            ToggleRow("Garis tepi", style.outlineEnabled) {
+                onStyleChange(style.copy(outlineEnabled = it))
+            }
+            ToggleRow("Latar subtitle", style.backgroundEnabled) {
+                onStyleChange(style.copy(backgroundEnabled = it))
+            }
             Text("Jarak dari bawah · ${style.bottomPositionPercent}%")
             Slider(
                 modifier = Modifier.semantics {
@@ -90,11 +91,28 @@ fun StyleWorkspace(
                 onValueChange = { onStyleChange(style.copy(bottomPositionPercent = it.toInt())) },
                 valueRange = 8f..35f,
             )
-            Text(
-                "Pratinjau dan MP4 memakai tata letak yang sama. Caption terlalu panjang harus dipecah sebelum ekspor.",
-                color = SubLokaColors.TextSecondary,
-                style = MaterialTheme.typography.bodySmall,
-            )
+        }
+        Text(
+            "Pratinjau dan MP4 memakai tata letak yang sama. Caption terlalu panjang harus dipecah sebelum ekspor.",
+            color = SubLokaColors.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun StyleSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        color = SubLokaColors.Surface,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, SubLokaColors.SurfaceHigh),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            content()
         }
     }
 }
