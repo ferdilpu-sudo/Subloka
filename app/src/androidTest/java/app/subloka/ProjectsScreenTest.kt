@@ -50,6 +50,22 @@ class ProjectsScreenTest {
         compose.runOnIdle { assertTrue(closed) }
     }
 
+    @Test fun autocapInspiredHomeKeepsOnePrimaryCreateActionAndLocalHierarchy() {
+        var created = 0
+        compose.setContent {
+            SubLokaTheme {
+                Box(Modifier.size(320.dp, 480.dp)) {
+                    ProjectsScreen(emptyList(), { created++ }, {})
+                }
+            }
+        }
+        compose.onNodeWithText("Mulai dari video").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Proyek terbaru").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText("Proyek baru").assertCountEquals(1)
+        compose.onNodeWithText("Proyek baru").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, created) }
+    }
+
     @Test fun emptyProjectsKeepsCreateActionReachableAtLargeFont() {
         var created = false
         compose.setContent {
