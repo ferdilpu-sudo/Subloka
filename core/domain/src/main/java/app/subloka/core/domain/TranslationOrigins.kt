@@ -8,6 +8,23 @@ object TranslationOrigins {
         else -> TranslationOrigin.MACHINE
     }
 
+    /**
+     * Freshness records whether a translation matches the source revision, not
+     * whether its meaning has been checked by a bilingual reviewer.
+     *
+     * Do not infer model output quality from a CURRENT status or provider name.
+     */
+    fun isCurrentMachineTranslation(segment: CaptionSegment): Boolean =
+        segment.translationText.isNotBlank() &&
+            segment.translationStatus == TranslationStatus.CURRENT &&
+            segment.translationSourceRevision == segment.sourceRevision &&
+            when (segment.translationOrigin) {
+                TranslationOrigin.MACHINE,
+                TranslationOrigin.MACHINE_GEMMA,
+                TranslationOrigin.MACHINE_MLKIT -> true
+                else -> false
+            }
+
     fun merge(first: CaptionSegment, second: CaptionSegment): TranslationOrigin {
         val origins = listOf(first, second).filter { it.translationText.isNotBlank() }
             .map { it.translationOrigin }.distinct()
@@ -32,6 +49,7 @@ object TranslationOrigins {
         }
         val oldGoogle = current.count { it.translationOrigin == TranslationOrigin.MACHINE_MLKIT }
         val unknown = current.count { it.translationOrigin == TranslationOrigin.MACHINE }
+        val machineCount = current.count(::isCurrentMachineTranslation)
         return buildList {
             if (oldGoogle > 0) add(
                 "$oldGoogle caption hasil lama Google Translate (ML Kit) termasuk dalam ekspor. " +
@@ -41,6 +59,11 @@ object TranslationOrigins {
             if (unknown > 0) add(
                 "$unknown caption terjemahan otomatis tidak memiliki catatan penyedia. " +
                     "Jangan menganggapnya berasal dari Google Translate atau TranslateGemma."
+            )
+            if (machineCount > 0) add(
+                "$machineCount caption berisi terjemahan otomatis. Status terbaru bukan jaminan " +
+                    "makna benar; periksa pelaku, penerima, kata ganti, penyangkalan, nama, " +
+                    "dan angka sebelum ekspor."
             )
         }
     }
