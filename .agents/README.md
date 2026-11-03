@@ -81,6 +81,7 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/autocap-ui-beta-preview-signing.md](evidence/autocap-ui-beta-preview-signing.md) | Owner-key manual UI beta preview upgrade constraints and QA |
 | [evidence/autocap-mobile-ui-adaptation.md](evidence/autocap-mobile-ui-adaptation.md) | AutoCap-inspired Home and Projects layout |
 | [evidence/autocap-mobile-editor-v1.md](evidence/autocap-mobile-editor-v1.md) | AutoCap-inspired caption editor shell |
 | [evidence/autocap-mobile-tools-v1.md](evidence/autocap-mobile-tools-v1.md) | Timing and Style mobile controls |
