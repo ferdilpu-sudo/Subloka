@@ -321,3 +321,78 @@ jobs:
           path: beta-apk/
           if-no-files-found: error
 
+  ui-beta-preview:
+    # An owner must manually dispatch this workflow on the named preview branch.
+    # NEVER sign a pull_request/push run, even if the PR originates in this repo.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/ui/autocap-mobile-beta-preview'
+    needs: [build, media-device, modern-services]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout audited preview source
+        uses: actions/checkout@v5
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download release APK from this tested run
+        uses: actions/download-artifact@v4
+        with:
+          name: subloka-ci-test-only-and-reports
+          path: unsigned-input
+
+      - name: Sign and verify owner-key UI beta preview
+        env:
+          SUBLOKA_PROTOTYPE_SIGNING: ${{ secrets.SUBLOKA_PROTOTYPE_SIGNING }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_REF" = "refs/heads/ui/autocap-mobile-beta-preview"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          "$SDKMANAGER" "build-tools;37.0.0"
+          APK="$(find unsigned-input -name app-release-unsigned.apk -type f)"
+          test -n "$APK" && test -f "$APK"
+          python3 tools/prototype_signing.py sign --apk "$APK" --output preview-apk/subloka-ui-beta.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$ANDROID_HOME/build-tools/37.0.0/aapt" dump badging preview-apk/subloka-ui-beta.apk > preview-apk/package-info.txt
+          python3 tools/verify_beta_package.py preview-apk/package-info.txt preview-apk/subloka-ui-beta.apk
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose --print-certs preview-apk/subloka-ui-beta.apk > preview-apk/signing-info.txt
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "tools")
+          from prototype_signing import verify_signer_fingerprint
+          with open("preview-apk/signing-info.txt", encoding="utf-8") as fp:
+              verify_signer_fingerprint(
+                  fp.read(),
+                  "295b1bbcebb8419c8361b077e41b913410207ee3ecb3bc0da3acf150c8e1c325",
+              )
+          print("PASS: preview signing certificate matches installed Beta #310")
+          PY
+
+      - name: Enable KVM for clean emulator smoke
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch signed UI preview on clean Android 11 emulator
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_4
+          disable-animations: true
+          script: python3 tools/check_beta_launch.py preview-apk/subloka-ui-beta.apk
+
+      - name: Upload owner-signed UI preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: subloka-ui-beta-preview-apk
+          path: preview-apk/
+          if-no-files-found: error
