@@ -65,6 +65,9 @@ jobs:
       - name: Signing verifier regression tests
         run: python3 tools/test_prototype_signing.py
 
+      - name: UI preview signing workflow guards
+        run: python3 tools/test_ui_beta_preview_workflow.py
+
       - name: Instrumentation log verifier regression tests
         run: python3 tools/test_instrumentation_result.py
 
