@@ -2,6 +2,9 @@ package app.subloka.core.designsystem
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -37,6 +40,17 @@ fun SubLokaTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = SubLokaScheme,
         typography = MaterialTheme.typography,
-        content = content,
+        content = {
+            // MaterialTheme sets a ColorScheme, but does not install a root
+            // LocalContentColor. A full-window Surface prevents untranslated
+            // plain Text on screens from inheriting the black platform default.
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = SubLokaColors.Canvas,
+                contentColor = SubLokaColors.TextPrimary,
+            ) {
+                content()
+            }
+        },
     )
 }
