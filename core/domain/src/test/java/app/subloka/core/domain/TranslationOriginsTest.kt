@@ -52,9 +52,16 @@ class TranslationOriginsTest {
             assertEquals(false, TranslationOrigins.isCurrentMachineTranslation(
                 current.copy(translationStatus = TranslationStatus.STALE)))
             assertEquals(false, TranslationOrigins.isCurrentMachineTranslation(
-                current.copy(translationSourceRevision = 1)))
-            assertEquals(false, TranslationOrigins.isCurrentMachineTranslation(
-                current.copy(translationText = " ")))
+                current.copy(translationStatus = TranslationStatus.STALE, translationSourceRevision = 1)))
+            // CURRENT with stale revision or blank output is prohibited by
+            // CaptionSegment itself. Test the invariant rather than constructing
+            // an impossible live caption and falsely blaming the QA helper.
+            assertEquals(IllegalArgumentException::class.java, runCatching {
+                current.copy(translationSourceRevision = 1)
+            }.exceptionOrNull()?.javaClass)
+            assertEquals(IllegalArgumentException::class.java, runCatching {
+                current.copy(translationText = " ")
+            }.exceptionOrNull()?.javaClass)
         }
         val manual = translated("manual", TranslationOrigin.MANUAL)
         assertEquals(false, TranslationOrigins.isCurrentMachineTranslation(manual))
