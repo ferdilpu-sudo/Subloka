@@ -310,20 +310,30 @@ private fun ProjectTopBar(
 private fun WorkspaceSwitcher(workspace: EditorWorkspace, onWorkspaceChange: (EditorWorkspace) -> Unit) {
     // Compact segmented navigation makes the selected tool explicit on touch screens.
     // These are editor workspaces, not new application-level destinations.
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        EditorWorkspace.entries.forEachIndexed { index, item ->
-            SegmentedButton(
-                selected = workspace == item,
-                onClick = { onWorkspaceChange(item) },
-                shape = SegmentedButtonDefaults.itemShape(index, EditorWorkspace.entries.size),
-                label = {
-                    Text(when (item) {
-                        EditorWorkspace.CAPTION -> "Teks"
-                        EditorWorkspace.TIMING -> "Waktu"
-                        EditorWorkspace.STYLE -> "Gaya"
-                    })
-                },
-            )
+    // A solid, bounded switcher visually separates controls from the video
+    // preview's dark player surface and keeps subtitle pixels from showing
+    // through unselected segmented buttons.
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = SubLokaColors.Surface,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, SubLokaColors.SurfaceHigh),
+    ) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(6.dp)) {
+            EditorWorkspace.entries.forEachIndexed { index, item ->
+                SegmentedButton(
+                    selected = workspace == item,
+                    onClick = { onWorkspaceChange(item) },
+                    shape = SegmentedButtonDefaults.itemShape(index, EditorWorkspace.entries.size),
+                    label = {
+                        Text(when (item) {
+                            EditorWorkspace.CAPTION -> "Teks"
+                            EditorWorkspace.TIMING -> "Waktu"
+                            EditorWorkspace.STYLE -> "Gaya"
+                        })
+                    },
+                )
+            }
         }
     }
 }
