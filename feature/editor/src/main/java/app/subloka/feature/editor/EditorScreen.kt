@@ -170,6 +170,15 @@ fun EditorScreen(
         // them into the portrait path that intentionally hides the preview.
         val expanded = maxWidth >= 600.dp && (maxWidth > maxHeight || maxWidth >= 840.dp)
         val compactLandscapePreview = maxHeight < 480.dp
+        val portraitVideo = videoWidth > 0 && videoHeight > videoWidth
+        // In compact portrait windows, give tall video an actual portrait frame
+        // instead of a 112dp-tall 16:9 strip. Keep the preview bounded to about
+        // one third of the available editor height; tools remain scrollable.
+        val compactPreviewLimit = if (portraitVideo) minOf(288.dp, maxHeight * 0.32f) else 112.dp
+        // Wide/two-pane mode gets a little more room without occupying the
+        // entire editor. The horizontal video cap stays unchanged.
+        val expandedPreviewLimit = if (portraitVideo) minOf(288.dp, maxHeight * 0.58f)
+            else if (compactLandscapePreview) 112.dp else 248.dp
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
         val hasPreviewSpace = maxHeight >= if (keyboardLikelyVisible) 560.dp else 600.dp
@@ -209,7 +218,7 @@ fun EditorScreen(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = compactLandscapePreview)
+                        VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = compactLandscapePreview, maxPreviewHeight = expandedPreviewLimit)
                         if (!demoMode && !keyboardLikelyVisible) {
                             val count = segments.count(TranslationEligibility::canGenerate)
                             app.subloka.core.designsystem.SecondaryAction(
@@ -242,7 +251,7 @@ fun EditorScreen(
                         Text(if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau")
                     }
                 }
-                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true)
+                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true, maxPreviewHeight = compactPreviewLimit)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                 WorkspacePanel(
                     demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,

@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import app.subloka.core.domain.*
 import app.subloka.feature.editor.EditorScreen
+import app.subloka.feature.editor.VideoPreview
 import app.subloka.feature.editor.StyleWorkspace
 import app.subloka.feature.editor.TimingWorkspace
 import androidx.compose.runtime.mutableStateOf
@@ -245,6 +246,69 @@ class EditorLayoutTest {
         compose.onNodeWithContentDescription("Latar subtitle").performScrollTo().performClick()
         compose.runOnIdle { assertTrue(style.backgroundEnabled) }
         compose.onNodeWithText("Pratinjau dan MP4", substring = true).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun videoPreviewUsesActualPortraitAndLandscapeAspectWithoutOversizing() {
+        compose.setContent {
+            MaterialTheme {
+                androidx.compose.foundation.layout.Column(Modifier.size(360.dp, 660.dp)) {
+                    VideoPreview(
+                        segment = null, mediaUri = null, compactHeight = true,
+                        videoWidth = 1080, videoHeight = 1920,
+                        maxPreviewHeight = 248.dp,
+                    )
+                    VideoPreview(
+                        segment = null, mediaUri = null, compactHeight = true,
+                        videoWidth = 1920, videoHeight = 1080,
+                        maxPreviewHeight = 112.dp,
+                    )
+                }
+            }
+        }
+        val frames = compose.onAllNodesWithTag("video-preview-frame").fetchSemanticsNodes()
+        assertTrue("Expected one correctly bounded frame for each video orientation", frames.size == 2)
+        val portrait = frames[0].boundsInRoot
+        val landscape = frames[1].boundsInRoot
+        assertTrue("Portrait video should use its 9:16 aspect",
+            kotlin.math.abs(portrait.width / portrait.height - 9f / 16f) < 0.04f)
+        assertTrue("Landscape video should retain its 16:9 aspect",
+            kotlin.math.abs(landscape.width / landscape.height - 16f / 9f) < 0.04f)
+        assertTrue("Portrait video should receive meaningful extra height",
+            portrait.height > landscape.height * 1.8f)
+        assertTrue("Both frames must fit within the available 360dp width",
+            portrait.width <= landscape.width + 1f)
+    }
+
+    @Test fun tallPortraitVideoKeepsWorkspaceAndExportReachableAtLargeFont() {
+        val segment = CaptionSegment("portrait", 0L, 3_000_000L, SourceLanguage.INDONESIA,
+            "Caption video vertikal", "Caption for portrait video", TranslationStatus.CURRENT)
+        var exported = false
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density * 0.65f, 1.5f)) {
+                MaterialTheme {
+                    Box(Modifier.size(320.dp, 780.dp)) {
+                        EditorScreen(
+                            listOf(segment), CaptionStyle(), null, "Tersimpan", false,
+                            {}, {}, {}, { exported = true },
+                            demoMode = false, videoWidth = 1080, videoHeight = 1920,
+                        )
+                    }
+                }
+            }
+        }
+        val frame = compose.onNodeWithTag("video-preview-frame").fetchSemanticsNode().boundsInRoot
+        val switcher = compose.onNodeWithText("Teks").fetchSemanticsNode().boundsInRoot
+        assertTrue("Tall portrait video should not be squeezed into 16:9",
+            kotlin.math.abs(frame.width / frame.height - 9f / 16f) < 0.04f)
+        assertTrue("Preview must stop before studio workspace controls", frame.bottom <= switcher.top)
+        compose.onNodeWithText("Teks asli").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Waktu").performClick()
+        compose.onNodeWithText("Perubahan berhenti", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Gaya").performClick()
+        compose.onNodeWithText("Pratinjau dan MP4", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Ekspor").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertTrue(exported) }
     }
 
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {

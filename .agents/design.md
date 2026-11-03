@@ -582,6 +582,7 @@ Back behavior: Export → Editor; Editor → Projects; New Project → Projects.
 - **Expanded/supporting pane:** available width `≥ 840dp`. Video/context di kiri dan active workspace di kanan.
 - `600dp` bukan navigation breakpoint terpisah pada MVP; medium window tetap memakai compact composition agar jumlah perilaku yang diuji tidak meledak tanpa manfaat.
 - Preview normal compact maksimal **248dp**; ketika IME terlihat, preview maksimal **112dp**.
+- **Revisi setelah peninjauan Beta #332 (2026-11-03):** khusus preview video portrait 9:16 pada viewport tinggi, batas menjadi `min(288dp, 32% tinggi editor)` untuk compact dan `min(288dp, 58% tinggi editor)` untuk expanded. Rasio visual mengikuti metadata video yang sudah diorientasikan; video horizontal mempertahankan batas sebelumnya. Preview tidak boleh mengambil ruang editor secara penuh, dan harus hilang saat keyboard aktif.
 - Expanded preview mempertahankan aspect ratio konten dan tidak memaksa tinggi penuh. Hard cap runtime dapat dipoles setelah device test tanpa mengubah IA.
 
 ### 22.3 Compact portrait wireframe

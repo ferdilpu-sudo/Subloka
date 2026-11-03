@@ -7,14 +7,12 @@ import app.subloka.core.media.SubtitlePainter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -23,7 +21,9 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.ui.PlayerView
 import app.subloka.core.designsystem.SubLokaColors
@@ -41,8 +41,8 @@ fun VideoPreview(
     segments: List<CaptionSegment> = listOfNotNull(segment),
     onVideoError: () -> Unit = {},
     modifier: Modifier = Modifier,
+    maxPreviewHeight: Dp = if (compactHeight) 112.dp else 248.dp,
 ) {
-    val maxHeight = if (compactHeight) 112.dp else 248.dp
     val context = LocalContext.current
     val controller = remember(mediaUri) {
         mediaUri?.let { uri ->
@@ -75,41 +75,54 @@ fun VideoPreview(
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight)
-                .aspectRatio(16f / 9f)
-                .background(SubLokaColors.SurfaceHigh),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (controller != null) {
-                AndroidView(
-                    factory = { viewContext ->
-                        PlayerView(viewContext).apply {
-                            useController = true
-                            player = controller.player
-                        }
-                    },
-                    update = { playerView -> playerView.player = controller.player },
-                    modifier = Modifier.fillMaxSize(),
-                )
+        // Use the oriented source dimensions (rotation already applied by the
+        // project) so a 9:16 video is not letterboxed inside a forced 16:9 box.
+        // Bound BOTH width and height; a portrait video must never consume the
+        // full editor height or push the caption controls off screen.
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            val sourceAspect = if (videoWidth > 0 && videoHeight > 0) {
+                videoWidth.toFloat() / videoHeight.toFloat()
             } else {
-                Text("Pratinjau video belum tersedia", color = SubLokaColors.TextSecondary)
+                16f / 9f
             }
-
-            if (renderError == null) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val scale = minOf(size.width / videoWidth, size.height / videoHeight)
-                    val canvas = drawContext.canvas.nativeCanvas
-                    canvas.save()
-                    canvas.translate((size.width - videoWidth * scale) / 2, (size.height - videoHeight * scale) / 2)
-                    // Render at full oriented resolution, scaled into the player's fit rectangle.
-                    canvas.scale(scale, scale)
-                    painter.draw(canvas, videoWidth, videoHeight, if (controller == null) segment?.startUs ?: 0 else positionUs)
-                    canvas.restore()
+            val frameWidth = minOf(maxWidth, maxPreviewHeight * sourceAspect)
+            val frameHeight = frameWidth / sourceAspect
+            Box(
+                modifier = Modifier
+                    .width(frameWidth)
+                    .height(frameHeight)
+                    .testTag("video-preview-frame")
+                    .background(SubLokaColors.SurfaceHigh),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (controller != null) {
+                    AndroidView(
+                        factory = { viewContext ->
+                            PlayerView(viewContext).apply {
+                                useController = true
+                                player = controller.player
+                            }
+                        },
+                        update = { playerView -> playerView.player = controller.player },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    Text("Pratinjau video belum tersedia", color = SubLokaColors.TextSecondary)
                 }
-            } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
+
+                if (renderError == null) {
+                    Canvas(Modifier.fillMaxSize()) {
+                        val scale = minOf(size.width / videoWidth, size.height / videoHeight)
+                        val canvas = drawContext.canvas.nativeCanvas
+                        canvas.save()
+                        canvas.translate((size.width - videoWidth * scale) / 2, (size.height - videoHeight * scale) / 2)
+                        // Render at full oriented resolution, scaled into the player's fit rectangle.
+                        canvas.scale(scale, scale)
+                        painter.draw(canvas, videoWidth, videoHeight, if (controller == null) segment?.startUs ?: 0 else positionUs)
+                        canvas.restore()
+                    }
+                } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
+            }
         }
     }
 }
