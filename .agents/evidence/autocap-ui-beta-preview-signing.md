@@ -24,3 +24,22 @@ Before testing on Sony SO-03L: preserve original installation, do NOT run `adb u
 ## Verification
 - This source change is prepared; build, version-verifier regressions, Android 11/15 tests and manual signing/clean emulator preview launch: **NOT_RUN at writing**, pending GitHub CI and a separate owner manual run.
 - Prior combined UX PR #7 CI: [#41326384859](https://github.com/ferdilpu-sudo/Subloka/actions/runs/41326384859) SUCCESS, not proof of this signing preparation.
+
+## Failed manual run #321 — SDK archive download; root cause and mitigation
+
+Owner-dispatched [Android CI #321, run 41571806271](https://github.com/ferdilpu-sudo/Subloka/actions/runs/41571806271), based on initial preview source `ebae541a787efe680bf73c5645c634249ae8a861`, reported **build FAILURE** during the `Install Android 17 SDK` step, before any Gradle compilation:
+
+```
+Warning: An error occurred while preparing SDK package NDK (Side by side)
+28.2.13676358: Error on ZipFile unknown archive.
+Process completed with exit code 1.
+```
+
+The job's downloaded `android-ndk-r28c-linux` archive was not accepted by sdkmanager; this is evidence of an SDK download/archive error, **not proof of an app or engine regression**. Prior PR [CI #320](https://github.com/ferdilpu-sudo/Subloka/actions/runs/41561129960) was 3/3 SUCCESS for the exact original preview commit.
+
+Mitigation prepared on the **same preview branch**, not on main:
+- New `tools/retry_android_sdk_install.sh` wraps each sdkmanager installation in **at most three attempts**, using a short delay between transient failures; persistent failure exits nonzero. No bypass, no ignored exit code and no fallback to a different NDK revision.
+- Applied to commandline-tools and platform-tools/platforms/build-tools/NDK/CMake installs for build, Android 11 `media-device` and Android 15 `modern-services` jobs. The new preview signing job also retries its build-tools installation. The old prototype-only signing job remains untouched.
+- Added offline `tools/test_retry_android_sdk_install.py` checking first-attempt success, recovery on third attempt, and persistent fail-closed behavior; wired to CI build.
+
+**Verification of mitigation:** New PR CI is pending. Run #321 on the old commit cannot validate the changed workflow. After new CI succeeds, a new owner manual `workflow_dispatch` run on the updated preview branch is required to produce an eligible signed UI preview artifact. An old failed run or an unsigned PR artifact must **not** be installed on Sony SO-03L. All model/data/engine/API/signing gates remain as above.
