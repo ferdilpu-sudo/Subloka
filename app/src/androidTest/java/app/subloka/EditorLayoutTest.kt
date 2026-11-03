@@ -311,6 +311,39 @@ class EditorLayoutTest {
         compose.runOnIdle { assertTrue(exported) }
     }
 
+    @Test fun machineMeaningWarningClearsWhenManualTranslationIsCorrected() {
+        val caption = CaptionSegment(
+            "meaning", 0L, 2_000_000L, SourceLanguage.INDONESIA,
+            "Ibu tidak perlu mengantar saya.", "You don't have to take her.",
+            TranslationStatus.CURRENT, TranslationOrigin.MACHINE_GEMMA, 2L, 2L,
+        )
+        var saved = listOf(caption)
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 640.dp)) {
+                    EditorScreen(
+                        listOf(caption), CaptionStyle(), null, "Tersimpan", false,
+                        { saved = it }, {}, {}, {}, demoMode = false,
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Periksa makna terjemahan otomatis", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Buka terjemahan", substring = true)
+            .performScrollTo().performClick()
+        compose.onNodeWithText("Terjemahan", substring = false)
+            .performScrollTo().performTextReplacement("Mom, you don't need to take me.")
+        compose.onNodeWithText("Periksa makna terjemahan otomatis", substring = true)
+            .assertDoesNotExist()
+        compose.runOnIdle {
+            assertTrue(saved.single().translationOrigin == TranslationOrigin.MANUAL)
+            assertTrue(saved.single().translationStatus == TranslationStatus.CURRENT)
+            assertTrue(saved.single().translationText == "Mom, you don't need to take me.")
+            assertTrue(!TranslationEligibility.canGenerate(saved.single(), true))
+        }
+    }
+
     @Test fun narrowShortEditorKeepsExportAndScrollableToolsReachableAtLargeFont() {
         var exported = false
         val caption = CaptionSegment("one", 0, 2_000_000, SourceLanguage.INDONESIA,

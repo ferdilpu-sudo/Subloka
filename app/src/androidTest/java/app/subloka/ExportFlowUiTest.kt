@@ -92,11 +92,15 @@ class ExportFlowUiTest {
             }
         }
         compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("2 caption berisi terjemahan otomatis", substring = true).assertDoesNotExist()
         compose.onNodeWithText("Terjemahan (Indonesia)").performScrollTo().performClick()
         compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true)
             .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("2 caption berisi terjemahan otomatis", substring = true)
+            .performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Asli (English)").performScrollTo().performClick()
         compose.onNodeWithText("1 caption hasil lama Google Translate (ML Kit)", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("2 caption berisi terjemahan otomatis", substring = true).assertDoesNotExist()
     }
 
 

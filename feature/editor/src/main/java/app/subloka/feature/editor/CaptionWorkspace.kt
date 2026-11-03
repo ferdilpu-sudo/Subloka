@@ -38,6 +38,7 @@ import app.subloka.core.designsystem.SecondaryAction
 import app.subloka.core.designsystem.SubLokaColors
 import app.subloka.core.domain.CaptionSegment
 import app.subloka.core.domain.TranslationStatus
+import app.subloka.core.domain.TranslationOrigins
 
 @Composable
 fun CaptionWorkspace(
@@ -135,6 +136,16 @@ private fun SelectedCaptionEditor(
             }
             Text(translationLabel(segment.translationStatus), color = translationColor(segment.translationStatus),
                 style = MaterialTheme.typography.labelMedium)
+            if (TranslationOrigins.isCurrentMachineTranslation(segment)) {
+                // This is a review reminder, not an automatic semantic judgment.
+                // It disappears after an actual manual correction is saved.
+                Text(
+                    "Periksa makna terjemahan otomatis: siapa melakukan tindakan, " +
+                        "siapa menerima, kata ganti, dan penyangkalan bisa keliru.",
+                    color = SubLokaColors.Warning,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
             if (translationExpanded) {
                 if (segment.translationText.isNotBlank()) {
                     Text(app.subloka.core.domain.TranslationOrigins.label(segment.translationOrigin),
