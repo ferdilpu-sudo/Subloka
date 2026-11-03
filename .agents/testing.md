@@ -1370,3 +1370,7 @@ Previous UI fix PR #9 CI [#330](https://github.com/ferdilpu-sudo/Subloka/actions
 ## UI-AUTOCAP-PORTRAIT-PREVIEW-001 / 2026-11-03 / TEST SOURCES PREPARED — CI pending
 
 Added Android 11 instrumented tests to `EditorLayoutTest.kt`: `videoPreviewUsesActualPortraitAndLandscapeAspectWithoutOversizing` checks actual oriented 9:16 and 16:9 ratios and bounded geometry; `tallPortraitVideoKeepsWorkspaceAndExportReachableAtLargeFont` checks 150% font, preview-to-switcher separation, and Caption/Waktu/Gaya/Ekspor reachability with large portrait frame. Existing short landscape, narrow 320dp/150% font, transcription/translation, persistence and export tests must remain PASS. CI NOT_RUN at writing. Owner-signed new APK/physical Sony retest NOT_RUN. Test evidence and acceptance gates: `.agents/evidence/autocap-portrait-preview-v1.md`.
+
+## UI-AUTOCAP-PORTRAIT-BETA5-001 / 2026-11-03 / TEST GATE PENDING
+
+Prior PR #11 CI #333 SUCCESS 3/3 on source `f74596c44`, includes Android Compose aspect geometry 9:16 and 16:9, 150% font and editor tool reachability. New beta5 branch changes versionName `0.7.0-beta.5`, verifier `versionCode>332`, downgrade/old-version rejection tests and manual-only owner signing branch guard; model, media, output and DB unchanged. New branch CI, manual certificate validation and signed Android11 smoke **NOT_RUN** at writing. Physical Sony preview, older project preservation and subtitle readability **NOT_RUN**. Require success before marking PASS, and don't install debug artifact. See `.agents/evidence/autocap-portrait-beta5-signing.md`.
