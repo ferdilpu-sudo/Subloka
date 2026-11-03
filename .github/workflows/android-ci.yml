@@ -104,6 +104,9 @@ jobs:
       - name: Assemble debug
         run: ./gradlew --stacktrace :app:assembleDebug
 
+      - name: Test native evidence collector
+        run: python3 tools/test_collect_native_evidence.py
+
       - name: Test dependency evidence collector
         run: python3 tools/test_collect_dependency_notices.py
 
@@ -120,6 +123,12 @@ jobs:
 
       - name: Assemble release candidate
         run: ./gradlew --stacktrace :app:assembleRelease :app:lintRelease
+
+      - name: Collect native build evidence
+        if: always()
+        shell: bash
+        run: |
+          python3 tools/collect_native_evidence.py --ndk "$ANDROID_HOME/ndk/28.2.13676358" --output app/build/reports/distribution/native-evidence
 
       - name: Reject retired ML Kit runtime dependency
         run: |
