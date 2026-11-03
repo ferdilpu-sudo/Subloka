@@ -1,0 +1,114 @@
+{
+  "run_id": 40986221278,
+  "commit": "cd86dbf98c7ea9212a9b0794fdcb62a657a5efb3",
+  "apk_sha256": "7cc6b2e7c7cb177ce5db4802f25dc36fb462ec02c95abb836a4bc8e074db743e",
+  "libraries": [
+    {
+      "apk_entry": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "bytes": 10096,
+      "sha256": "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6",
+      "elf_needed": [
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    },
+    {
+      "apk_entry": "lib/arm64-v8a/libsubloka_asr.so",
+      "bytes": 1793072,
+      "sha256": "cf1350bbe8a50cea37f3e2e38d8e05f1fca571f4f178ed3bb59146b1300aa355",
+      "elf_needed": [
+        "libandroid.so",
+        "liblog.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    },
+    {
+      "apk_entry": "lib/arm64-v8a/libsubloka_translation.so",
+      "bytes": 4596496,
+      "sha256": "de1c532231539f6c42126b5ba49a5a510f5a3045858f6a74984a7a7385707087",
+      "elf_needed": [
+        "libandroid.so",
+        "liblog.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    },
+    {
+      "apk_entry": "lib/x86_64/libandroidx.graphics.path.so",
+      "bytes": 10760,
+      "sha256": "4e56c996f13670e70082658de7880c4020eabf4f25e43387f88ed78a713fc9f0",
+      "elf_needed": [
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    },
+    {
+      "apk_entry": "lib/x86_64/libsubloka_asr.so",
+      "bytes": 2085560,
+      "sha256": "c460b6293a2109a1d39e2db656cd57d092784f2f73492cd39232f83be3411264",
+      "elf_needed": [
+        "libandroid.so",
+        "liblog.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    },
+    {
+      "apk_entry": "lib/x86_64/libsubloka_translation.so",
+      "bytes": 4943128,
+      "sha256": "e537339407de4314c0fc879f7c13f3357a33abf7bb6219d6eed4ecb0bdba3ada",
+      "elf_needed": [
+        "libandroid.so",
+        "liblog.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ]
+    }
+  ],
+  "scope": "Unsigned release APK native inventory and ELF dynamic dependencies. Does not establish static-link source/license closure.",
+  "review_date": "2026-11-03",
+  "packaged_licenses": {
+    "count": 20,
+    "all_match_source_git_blobs": true,
+    "verification": "Each APK assets/licenses entry compared byte-for-byte via Git blob hash against cd86dbf; no missing or extra license asset."
+  },
+  "source_pins": {
+    "whisper_cpp": "927cfce34f31707e17f2bff35c349632fb9e2c3a",
+    "llama_cpp": "2a667032dc788c3a071d538e0b572e45a3f12731",
+    "graphics_path": "androidx.graphics:graphics-path:1.0.1"
+  },
+  "open_checks": [
+    {
+      "id": "NATIVE-01",
+      "item": "Exact static C++ runtime/toolchain notices",
+      "evidence": "No libc++_shared.so entry or DT_NEEDED in inspected APK. This alone does not prove static link provenance.",
+      "next": "Collect NDK version, CMake cache, link commands and shipped runtime notices from the matching CI build."
+    },
+    {
+      "id": "NATIVE-02",
+      "item": "graphics-path native source provenance",
+      "evidence": "Exact-version Maven sources.jar contains Kotlin sources only, not C++.",
+      "next": "Identify version-pinned native source and license headers for graphics-path 1.0.1; current androidx-main is not proof for the released binary."
+    },
+    {
+      "id": "NATIVE-03",
+      "item": "Engine vendored source inclusion",
+      "evidence": "Pinned CMake disables common/examples/tools/server; vendor license existence does not prove that vendor code was linked.",
+      "next": "Compare exact compile/link inputs against vendored notices before adding unrelated licenses."
+    },
+    {
+      "id": "LEGACY-01",
+      "item": "Historical ML Kit result attribution",
+      "evidence": "SDK removal leaves saved historical outputs intact.",
+      "next": "Review actual legacy output paths separately; never relabel historical content as Gemma."
+    }
+  ],
+  "complete_distribution_audit": false
+}
