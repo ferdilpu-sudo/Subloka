@@ -12,8 +12,12 @@ def verify(text):
         raise ValueError('Debug/test APK cannot be distributed as beta')
     if 'launchable-activity:' not in text or 'application-icon-' not in text:
         raise ValueError('Missing launcher activity/icon')
-    if "versionName='0.7.0-beta.2'" not in text:
+    if "versionName='0.7.0-beta.3'" not in text:
         raise ValueError('Unexpected beta version')
+    # Preserve installed Beta #310: an owner-signed preview must be strictly newer.
+    match = re.search(r"versionCode='([0-9]+)'", text)
+    if match is None or int(match.group(1)) <= 310:
+        raise ValueError('Preview versionCode must be greater than installed Beta #310')
 
 
 def verify_native_libraries(text, apk_path):
