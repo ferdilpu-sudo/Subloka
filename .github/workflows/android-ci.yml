@@ -45,7 +45,7 @@ jobs:
           echo "Updated sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
 
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Configure Gradle cache
         uses: gradle/actions/setup-gradle@v4
@@ -177,7 +177,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Enable KVM
         shell: bash
@@ -221,7 +221,7 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
       - name: Enable KVM
         shell: bash
