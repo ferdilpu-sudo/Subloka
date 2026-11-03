@@ -40,7 +40,7 @@ jobs:
           "$SDKMANAGER" --version
           yes | "$SDKMANAGER" --licenses >/dev/null || true
 
-          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           echo "Updated sdkmanager: $SDKMANAGER"
           "$SDKMANAGER" --version
@@ -67,6 +67,9 @@ jobs:
 
       - name: UI preview signing workflow guards
         run: python3 tools/test_ui_beta_preview_workflow.py
+
+      - name: SDK installer retry regressions
+        run: python3 tools/test_retry_android_sdk_install.py
 
       - name: Instrumentation log verifier regression tests
         run: python3 tools/test_instrumentation_result.py
@@ -175,7 +178,7 @@ jobs:
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
@@ -219,7 +222,7 @@ jobs:
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "cmdline-tools;latest"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           bash tools/retry_android_sdk_install.sh "$SDKMANAGER" --channel=3 "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
 
@@ -358,7 +361,7 @@ jobs:
           test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
           test "$GITHUB_REF" = "refs/heads/ui/autocap-mobile-beta-preview"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          "$SDKMANAGER" "build-tools;37.0.0"
+          bash tools/retry_android_sdk_install.sh "$SDKMANAGER" "build-tools;37.0.0"
           APK="$(find unsigned-input -name app-release-unsigned.apk -type f)"
           test -n "$APK" && test -f "$APK"
           python3 tools/prototype_signing.py sign --apk "$APK" --output preview-apk/subloka-ui-beta.apk --apksigner "$ANDROID_HOME/build-tools/37.0.0/apksigner"
