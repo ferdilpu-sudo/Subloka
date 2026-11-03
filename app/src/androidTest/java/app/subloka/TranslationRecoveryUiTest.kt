@@ -6,10 +6,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.graphics.Color
+import app.subloka.core.designsystem.SubLokaTheme
+import app.subloka.core.designsystem.SubLokaColors
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import app.subloka.feature.projects.TranslationSetupScreen
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -82,4 +87,30 @@ class TranslationRecoveryUiTest {
         compose.runOnIdle { assertEquals(1, resumed) }
         compose.onNodeWithText("Lanjutkan dengan Google").assertDoesNotExist()
     }
+
+    @Test fun darkRootProvidesReadableForegroundOnTranslationScreen() {
+        var actualColor = Color.Unspecified
+        compose.setContent {
+            SubLokaTheme {
+                actualColor = LocalContentColor.current
+                Box(Modifier.size(320.dp, 480.dp)) {
+                    TranslationSetupScreen(
+                        ready = true, busy = true, stage = "Menerjemahkan caption ke-1…", error = null,
+                        recoveryCount = 0, hasRecovery = false, onResume = {}, onDiscardRecovery = {},
+                        eligibleCount = 3, replaceableCount = 3, pairLabel = "Indonesia → English",
+                        useGemma = true, termsAccepted = true, onModelSelected = {}, onTermsAccepted = {},
+                        onImport = {}, onCheck = {}, onDownload = {}, onTranslate = {}, onCancel = {},
+                        onBack = {}, backgroundRunning = true,
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Terjemahan offline").assertIsDisplayed()
+        compose.onNodeWithText("Terjemahan sedang berjalan").assertIsDisplayed()
+        compose.runOnIdle {
+            assertEquals(SubLokaColors.TextPrimary, actualColor)
+            assertTrue("Root text must not inherit black foreground", actualColor.red > 0.8f)
+        }
+    }
+
 }
