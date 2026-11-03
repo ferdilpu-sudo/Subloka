@@ -81,6 +81,7 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/autocap-portrait-preview-v1.md](evidence/autocap-portrait-preview-v1.md) | Bounded 9:16 / 16:9 Editor preview, high-font tests and physical review gate |
 | [evidence/ui-beta4-contrast-preview.md](evidence/ui-beta4-contrast-preview.md) | Signed owner beta4 preview for screen-recorded contrast fix, CI and Sony acceptance |
 | [evidence/ui-beta329-visual-review-contrast.md](evidence/ui-beta329-visual-review-contrast.md) | Rekaman layar Beta #329: temuan kontras visual, perbaikan dan gate QA |
 | [evidence/autocap-ui-beta-preview-signing.md](evidence/autocap-ui-beta-preview-signing.md) | Owner-key manual UI beta preview upgrade constraints and QA |
