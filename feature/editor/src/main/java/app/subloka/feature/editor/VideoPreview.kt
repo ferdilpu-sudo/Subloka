@@ -9,13 +9,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -98,33 +95,33 @@ fun VideoPreview(
                     .background(SubLokaColors.SurfaceHigh),
                 contentAlignment = Alignment.Center,
             ) {
-            if (controller != null) {
-                AndroidView(
-                    factory = { viewContext ->
-                        PlayerView(viewContext).apply {
-                            useController = true
-                            player = controller.player
-                        }
-                    },
-                    update = { playerView -> playerView.player = controller.player },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                Text("Pratinjau video belum tersedia", color = SubLokaColors.TextSecondary)
-            }
-
-            if (renderError == null) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val scale = minOf(size.width / videoWidth, size.height / videoHeight)
-                    val canvas = drawContext.canvas.nativeCanvas
-                    canvas.save()
-                    canvas.translate((size.width - videoWidth * scale) / 2, (size.height - videoHeight * scale) / 2)
-                    // Render at full oriented resolution, scaled into the player's fit rectangle.
-                    canvas.scale(scale, scale)
-                    painter.draw(canvas, videoWidth, videoHeight, if (controller == null) segment?.startUs ?: 0 else positionUs)
-                    canvas.restore()
+                if (controller != null) {
+                    AndroidView(
+                        factory = { viewContext ->
+                            PlayerView(viewContext).apply {
+                                useController = true
+                                player = controller.player
+                            }
+                        },
+                        update = { playerView -> playerView.player = controller.player },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    Text("Pratinjau video belum tersedia", color = SubLokaColors.TextSecondary)
                 }
-            } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
+
+                if (renderError == null) {
+                    Canvas(Modifier.fillMaxSize()) {
+                        val scale = minOf(size.width / videoWidth, size.height / videoHeight)
+                        val canvas = drawContext.canvas.nativeCanvas
+                        canvas.save()
+                        canvas.translate((size.width - videoWidth * scale) / 2, (size.height - videoHeight * scale) / 2)
+                        // Render at full oriented resolution, scaled into the player's fit rectangle.
+                        canvas.scale(scale, scale)
+                        painter.draw(canvas, videoWidth, videoHeight, if (controller == null) segment?.startUs ?: 0 else positionUs)
+                        canvas.restore()
+                    }
+                } else Text(renderError, color = SubLokaColors.Warning, modifier = Modifier.align(Alignment.BottomCenter))
             }
         }
     }
