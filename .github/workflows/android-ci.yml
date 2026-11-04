@@ -330,7 +330,7 @@ jobs:
   ui-beta-preview:
     # An owner must manually dispatch this workflow on the named preview branch.
     # NEVER sign a pull_request/push run, even if the PR originates in this repo.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/qa/translation-meaning-beta6-preview'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/ux/editor-caption-beta7-preview'
     needs: [build, media-device, modern-services]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -359,7 +359,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
-          test "$GITHUB_REF" = "refs/heads/qa/translation-meaning-beta6-preview"
+          test "$GITHUB_REF" = "refs/heads/ux/editor-caption-beta7-preview"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           bash tools/retry_android_sdk_install.sh "$SDKMANAGER" "build-tools;37.0.0"
           APK="$(find unsigned-input -name app-release-unsigned.apk -type f)"
