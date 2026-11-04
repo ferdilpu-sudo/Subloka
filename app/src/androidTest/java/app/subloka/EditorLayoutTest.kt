@@ -218,12 +218,12 @@ class EditorLayoutTest {
         }
         val compact = compose.onNodeWithTag("video-preview-frame")
             .fetchSemanticsNode().boundsInRoot
-        compose.onNodeWithText("Perbesar pratinjau").assertIsDisplayed().performClick()
+        compose.onNodeWithContentDescription("Perbesar pratinjau").assertIsDisplayed().performClick()
         val expanded = compose.onNodeWithTag("video-preview-frame")
             .fetchSemanticsNode().boundsInRoot
         assertTrue("Zoom must increase the useful portrait preview height",
             expanded.height > compact.height * 1.4f)
-        compose.onNodeWithText("Ringkas pratinjau").performClick()
+        compose.onNodeWithContentDescription("Ringkas pratinjau").performClick()
         val againCompact = compose.onNodeWithTag("video-preview-frame")
             .fetchSemanticsNode().boundsInRoot
         assertTrue("Preview should return to its editing size",
@@ -233,7 +233,7 @@ class EditorLayoutTest {
             .fetchSemanticsNode().boundsInRoot
         assertTrue("Style should present a large preview by default",
             stylePreview.height > compact.height * 1.4f)
-        compose.onNodeWithText("Perbesar pratinjau").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Perbesar pratinjau").assertDoesNotExist()
         compose.onNodeWithText("Jarak dari bawah", substring = true)
             .performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ekspor").assertIsDisplayed()
