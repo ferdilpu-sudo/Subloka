@@ -61,10 +61,13 @@ fun CaptionWorkspace(
     val selected = segments[selectedIndex]
     val listState = rememberLazyListState()
     val correctionScroll = rememberScrollState()
-    // Selecting the next caption should put its edit field in view without
-    // requiring a scroll back to the top of the previous caption.
-    LaunchedEffect(selectedId) { correctionScroll.scrollTo(0) }
     var listRequested by rememberSaveable { mutableStateOf(false) }
+    // Any selection, including the fixed navigation while a caption list is
+    // open, returns focus to the editable caption at its top.
+    LaunchedEffect(selectedId) {
+        correctionScroll.scrollTo(0)
+        listRequested = false
+    }
     BoxWithConstraints(modifier) {
         val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val showBoth = maxHeight >= 500.dp && !keyboardVisible
