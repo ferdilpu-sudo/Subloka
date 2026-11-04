@@ -138,11 +138,11 @@ class EditorLayoutTest {
         }
         compose.onNodeWithContentDescription("Caption sebelumnya").assertIsNotEnabled()
         compose.onNodeWithText("Teks asli").performScrollTo().performTextReplacement("Koreksi pertama")
-        compose.onNodeWithContentDescription("Caption berikutnya").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Caption berikutnya").performClick()
         compose.onNodeWithText("Caption 2 dari 2").assertIsDisplayed()
         compose.onNodeWithContentDescription("Caption berikutnya").assertIsNotEnabled()
         compose.onNodeWithText("Gabung berikutnya").performScrollTo().assertIsNotEnabled()
-        compose.onNodeWithContentDescription("Caption sebelumnya").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Caption sebelumnya").performClick()
         compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Koreksi pertama")
         compose.runOnIdle {
             assertTrue(saved.first().sourceText == "Koreksi pertama")
@@ -155,6 +155,112 @@ class EditorLayoutTest {
         compose.onNodeWithText("Waktu").performClick()
         compose.onAllNodesWithText("-10 ms")[0].performScrollTo().assertIsNotEnabled()
         compose.onAllNodesWithText("+10 ms")[1].performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test fun compactPortraitEditSecondCaptionThenThirdWithoutScrollingNavigation() {
+        val captions = (1..4).map { index ->
+            CaptionSegment("routine-$index", (index - 1L) * 2_000_000L,
+                index * 2_000_000L, SourceLanguage.INDONESIA,
+                "Kalimat nomor $index", "", TranslationStatus.MISSING)
+        }
+        var saved = captions
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 820.dp)) {
+                    EditorScreen(
+                        captions, CaptionStyle(), null, "Tersimpan lokal", false,
+                        { saved = it }, {}, {}, {}, demoMode = false,
+                        videoWidth = 1080, videoHeight = 1920,
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Periksa teks, waktu, dan terjemahan sebelum ekspor.")
+            .assertDoesNotExist()
+        compose.onNodeWithContentDescription("Caption berikutnya").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Caption 2 dari 4").assertIsDisplayed()
+        val nav = compose.onNodeWithText("Caption 2 dari 4").fetchSemanticsNode().boundsInRoot
+        val input = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
+        assertTrue("Caption navigation must be immediately above correction panel", nav.bottom < input.top)
+        compose.onNodeWithText("Teks asli").performScrollTo()
+            .performTextReplacement("Kalimat nomor dua dikoreksi")
+        compose.onNodeWithContentDescription("Caption berikutnya").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Caption 3 dari 4").assertIsDisplayed()
+        compose.onNodeWithText("Teks asli").performScrollTo().assertTextContains("Kalimat nomor 3")
+        compose.runOnIdle {
+            assertTrue(saved[1].sourceText == "Kalimat nomor dua dikoreksi")
+            assertTrue(saved[2].sourceText == "Kalimat nomor 3")
+        }
+        compose.onNodeWithText("Waktu").performClick()
+        compose.onNodeWithText("Caption 3 dari 4").assertIsDisplayed()
+        val timingNav = compose.onNodeWithText("Caption 3 dari 4").fetchSemanticsNode().boundsInRoot
+        val timingAction = compose.onNodeWithText("Awal: 00:04.00")
+            .performScrollTo().fetchSemanticsNode().boundsInRoot
+        assertTrue("Timing navigation must stay above selected timing controls",
+            timingNav.bottom < timingAction.top)
+        compose.onNodeWithContentDescription("Caption sebelumnya").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Caption 2 dari 4").assertIsDisplayed()
+        compose.onNodeWithText("Awal: 00:02.00").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun compactPreviewCanZoomAndStyleStartsWithLargePreview() {
+        val caption = CaptionSegment("zoom", 0L, 3_000_000L,
+            SourceLanguage.INDONESIA, "Kalimat untuk pratinjau",
+            "", TranslationStatus.MISSING)
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 820.dp)) {
+                    EditorScreen(listOf(caption), CaptionStyle(), null,
+                        "Tersimpan lokal", false, {}, {}, {}, {},
+                        demoMode = false, videoWidth = 1080, videoHeight = 1920)
+                }
+            }
+        }
+        val compact = compose.onNodeWithTag("video-preview-frame")
+            .fetchSemanticsNode().boundsInRoot
+        compose.onNodeWithText("Perbesar pratinjau").assertIsDisplayed().performClick()
+        val expanded = compose.onNodeWithTag("video-preview-frame")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("Zoom must increase the useful portrait preview height",
+            expanded.height > compact.height * 1.4f)
+        compose.onNodeWithText("Ringkas pratinjau").performClick()
+        val againCompact = compose.onNodeWithTag("video-preview-frame")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("Preview should return to its editing size",
+            kotlin.math.abs(againCompact.height - compact.height) <= 2f)
+        compose.onNodeWithText("Gaya").performClick()
+        val stylePreview = compose.onNodeWithTag("video-preview-frame")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("Style should present a large preview by default",
+            stylePreview.height > compact.height * 1.4f)
+        compose.onNodeWithText("Perbesar pratinjau").assertDoesNotExist()
+        compose.onNodeWithText("Jarak dari bawah", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Ekspor").assertIsDisplayed()
+    }
+
+    @Test fun translationModelActionMovesBelowActiveCaptionEditor() {
+        val caption = CaptionSegment("translation", 0L, 2_000_000L,
+            SourceLanguage.INDONESIA, "Teks asli singkat",
+            "", TranslationStatus.MISSING)
+        var requested = 0
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 760.dp)) {
+                    EditorScreen(listOf(caption), CaptionStyle(), null,
+                        "Tersimpan lokal", false, {}, {}, {}, {},
+                        demoMode = false,
+                        onRequestTranslation = { if (it == null) requested++ },
+                        videoWidth = 1080, videoHeight = 1920)
+                }
+            }
+        }
+        val input = compose.onNodeWithText("Teks asli").fetchSemanticsNode().boundsInRoot
+        val action = compose.onNodeWithText("Model / lanjutkan terjemahan")
+            .performScrollTo().fetchSemanticsNode().boundsInRoot
+        assertTrue("Model management must come after editing controls", input.top < action.top)
+        compose.onNodeWithText("Model / lanjutkan terjemahan").performClick()
+        compose.runOnIdle { assertTrue(requested == 1) }
     }
 
     @Test fun captionListRetainsPositionAfterSelectingAndCorrecting() {
