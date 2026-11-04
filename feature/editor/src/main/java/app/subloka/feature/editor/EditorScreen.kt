@@ -165,6 +165,7 @@ fun EditorScreen(
     }
 
     var previewRequested by remember { mutableStateOf(true) }
+    var compactEditingPreview by remember { mutableStateOf(true) }
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         // Short landscape phones still need video context; height must not force
         // them into the portrait path that intentionally hides the preview.
@@ -182,10 +183,13 @@ fun EditorScreen(
         val density = LocalDensity.current
         val keyboardLikelyVisible = WindowInsets.ime.getBottom(density) > 0
         val hasPreviewSpace = maxHeight >= if (keyboardLikelyVisible) 560.dp else 600.dp
-        val showPreview = previewRequested && hasPreviewSpace
+        val showPreview = previewRequested && hasPreviewSpace && !keyboardLikelyVisible
+        val editingPreviewLimit = if (workspace != EditorWorkspace.STYLE && compactEditingPreview) {
+            minOf(152.dp, maxHeight * 0.22f)
+        } else compactPreviewLimit
         val selected = segments.first { it.id == selectedId }
 
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ProjectTopBar(
                 onBack = onBack,
                 onExport = { onExport(segments) },
@@ -202,15 +206,7 @@ fun EditorScreen(
             if (!demoMode && sourceUnavailable) {
                 androidx.compose.material3.TextButton(onClick = onRelink) { Text("Tautkan ulang video") }
             }
-            if (hasPreviewSpace && !keyboardLikelyVisible) {
-                if (demoMode) DemoBadge() else Text("Periksa teks, waktu, dan terjemahan sebelum ekspor.", style = MaterialTheme.typography.bodySmall)
-            }
-
-            if (!demoMode && !keyboardLikelyVisible && !expanded) {
-                val count = segments.count(TranslationEligibility::canGenerate)
-                app.subloka.core.designsystem.SecondaryAction(if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
-                    { onRequestTranslation(null) }, enabled = segments.isNotEmpty(), modifier = Modifier.fillMaxWidth())
-            }
+            if (hasPreviewSpace && !keyboardLikelyVisible && demoMode) DemoBadge()
 
             if (expanded) {
                 Row(
@@ -219,40 +215,59 @@ fun EditorScreen(
                 ) {
                     Column(modifier = Modifier.weight(0.95f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = compactLandscapePreview, maxPreviewHeight = expandedPreviewLimit)
-                        if (!demoMode && !keyboardLikelyVisible) {
-                            val count = segments.count(TranslationEligibility::canGenerate)
-                            app.subloka.core.designsystem.SecondaryAction(
-                                if (count > 0) "Terjemahkan / perbarui $count caption" else "Model / lanjutkan terjemahan",
-                                { onRequestTranslation(null) }, enabled = segments.isNotEmpty(),
-                                modifier = Modifier.fillMaxWidth())
-                        }
                         WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
                     }
-                    WorkspacePanel(
-                        demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
-                        workspace = workspace,
-                        segments = segments,
-                        selectedId = selectedId,
-                        style = style,
-                        onSelect = { selectedId = it },
-                        onSegmentsChange = { commitSegments(it) },
-                        onStyleChange = {
-                            style = it
-                            onStylePersist(it)
-                        },
-                        onSplit = ::splitSelected,
-                        onMergeNext = ::mergeSelectedWithNext,
-                        modifier = Modifier.weight(1.05f),
-                    )
+                    Column(modifier = Modifier.weight(1.05f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (workspace != EditorWorkspace.STYLE) {
+                            CaptionNavigation(segments, selectedId) { selectedId = it }
+                        }
+                        WorkspacePanel(
+                            demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
+                            workspace = workspace,
+                            segments = segments,
+                            selectedId = selectedId,
+                            style = style,
+                            onSelect = { selectedId = it },
+                            onSegmentsChange = { commitSegments(it) },
+                            onStyleChange = {
+                                style = it
+                                onStylePersist(it)
+                            },
+                            onSplit = ::splitSelected,
+                            onMergeNext = ::mergeSelectedWithNext,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             } else {
                 if (hasPreviewSpace && !keyboardLikelyVisible) {
-                    TextButton(onClick = { previewRequested = !previewRequested }) {
-                        Text(if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau")
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(
+                            onClick = { previewRequested = !previewRequested },
+                            modifier = Modifier.semantics {
+                                contentDescription = if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau"
+                            },
+                        ) {
+                            Text(if (previewRequested) "Sembunyikan" else "Tampilkan")
+                        }
+                        if (previewRequested && workspace != EditorWorkspace.STYLE) {
+                            TextButton(
+                                onClick = { compactEditingPreview = !compactEditingPreview },
+                                modifier = Modifier.semantics {
+                                    contentDescription = if (compactEditingPreview) "Perbesar pratinjau" else "Ringkas pratinjau"
+                                },
+                            ) {
+                                Text(if (compactEditingPreview) "Perbesar" else "Ringkas")
+                            }
+                        }
                     }
                 }
-                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true, maxPreviewHeight = compactPreviewLimit)
+                if (showPreview) VideoPreview(onVideoError = onVideoError, segment = selected, segments = segments, mediaUri = mediaUri, captionStyle = style, videoWidth = videoWidth, videoHeight = videoHeight, compactHeight = true, maxPreviewHeight = editingPreviewLimit)
                 WorkspaceSwitcher(workspace = workspace, onWorkspaceChange = { workspace = it })
+                if (workspace != EditorWorkspace.STYLE) {
+                    CaptionNavigation(segments, selectedId) { selectedId = it }
+                }
                 WorkspacePanel(
                     demoMode = demoMode, durationUs = durationUs, onRequestTranslation = onRequestTranslation,
                     workspace = workspace,
@@ -399,14 +414,15 @@ private fun WorkspacePanel(
                 )
             },
             demoMode = demoMode,
+            showNavigation = false,
             translationAvailable = !demoMode && TranslationEligibility.canGenerate(selected, true),
+            onManageTranslation = { onRequestTranslation(null) },
             onRetranslate = { if (!demoMode) onRequestTranslation(selected.id) },
             onSplit = onSplit,
             onMergeNext = onMergeNext,
             modifier = modifier,
         )
         EditorWorkspace.TIMING -> TimingWorkspace(segment = selected,
-            navigation = { CaptionNavigation(segments, selectedId, onSelect) },
             minimumStartUs = segments.getOrNull(selectedIndex - 1)?.endUs ?: 0L,
             maximumEndUs = segments.getOrNull(selectedIndex + 1)?.startUs ?: durationUs,
             onChange = { start, end ->

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,12 +53,21 @@ fun CaptionWorkspace(
     onMergeNext: () -> Unit,
     demoMode: Boolean = true,
     translationAvailable: Boolean = true,
+    showNavigation: Boolean = true,
+    onManageTranslation: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val selectedIndex = segments.indexOfFirst { it.id == selectedId }
     val selected = segments[selectedIndex]
     val listState = rememberLazyListState()
+    val correctionScroll = rememberScrollState()
     var listRequested by rememberSaveable { mutableStateOf(false) }
+    // Any selection, including the fixed navigation while a caption list is
+    // open, returns focus to the editable caption at its top.
+    LaunchedEffect(selectedId) {
+        correctionScroll.scrollTo(0)
+        listRequested = false
+    }
     BoxWithConstraints(modifier) {
         val keyboardVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val showBoth = maxHeight >= 500.dp && !keyboardVisible
@@ -69,8 +79,8 @@ fun CaptionWorkspace(
             }
             if (showBoth || !listRequested) {
                 Column(Modifier.weight(if (showBoth) 0.65f else 1f)
-                    .verticalScroll(rememberScrollState())) {
-                    CaptionNavigation(segments, selectedId, onSelect)
+                    .verticalScroll(correctionScroll)) {
+                    if (showNavigation) CaptionNavigation(segments, selectedId, onSelect)
                     SelectedCaptionEditor(
                         segment = selected,
                         canMergeNext = selectedIndex < segments.lastIndex,
@@ -82,6 +92,11 @@ fun CaptionWorkspace(
                         onSplit = onSplit,
                         onMergeNext = onMergeNext,
                     )
+                    if (!demoMode) {
+                        TextButton(onClick = onManageTranslation, modifier = Modifier.fillMaxWidth()) {
+                            Text("Model / lanjutkan terjemahan")
+                        }
+                    }
                 }
             }
             if (showBoth || listRequested) {
