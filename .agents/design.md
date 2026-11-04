@@ -228,6 +228,8 @@ Preview menunjukkan oriented video content rectangle + subtitle renderer yang sa
 - Video portrait tidak boleh memakai tinggi penuh hanya karena aspect ratio 9:16.
 - T03 harus menentukan maximum preview height per compact state.
 - Preview harus cukup besar untuk mengecek timing/position, tetapi workspace caption harus tetap terlihat tanpa scroll ekstrem.
+- **Perbaikan audit Editor 2026-11-04:** untuk koreksi Teks/Waktu di layar compact, preview mulai pada `min(152dp, 22% tinggi)`, dan pengguna dapat **Perbesar/Ringkas** tanpa meninggalkan caption. Tab Gaya tetap memakai preview besar, sedangkan keyboard menyembunyikan preview supaya kolom edit tetap terjangkau. Rasio video aktual 9:16/16:9 tetap dihormati.
+- Navigasi tetap `‹ Caption n dari N ›` harus berada **di luar area yang bergulir**, tepat sebelum kontrol koreksi Teks atau Waktu. Perpindahan caption mereset posisi scroll edit ke atas dan seek video ke awal caption. Pengelolaan model tidak muncul sebelum kolom edit, tetapi tetap tersedia di bagian bawah panel Teks.
 - Playback controls minimum: play/pause, current time/duration, seek behavior yang dapat diakses.
 
 ## 10. Workspace Caption — default
