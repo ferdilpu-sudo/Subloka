@@ -243,12 +243,22 @@ fun EditorScreen(
                 if (hasPreviewSpace && !keyboardLikelyVisible) {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { previewRequested = !previewRequested }) {
-                            Text(if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau")
+                        TextButton(
+                            onClick = { previewRequested = !previewRequested },
+                            modifier = Modifier.semantics {
+                                contentDescription = if (previewRequested) "Sembunyikan pratinjau" else "Tampilkan pratinjau"
+                            },
+                        ) {
+                            Text(if (previewRequested) "Sembunyikan" else "Tampilkan")
                         }
                         if (previewRequested && workspace != EditorWorkspace.STYLE) {
-                            TextButton(onClick = { compactEditingPreview = !compactEditingPreview }) {
-                                Text(if (compactEditingPreview) "Perbesar pratinjau" else "Ringkas pratinjau")
+                            TextButton(
+                                onClick = { compactEditingPreview = !compactEditingPreview },
+                                modifier = Modifier.semantics {
+                                    contentDescription = if (compactEditingPreview) "Perbesar pratinjau" else "Ringkas pratinjau"
+                                },
+                            ) {
+                                Text(if (compactEditingPreview) "Perbesar" else "Ringkas")
                             }
                         }
                     }
