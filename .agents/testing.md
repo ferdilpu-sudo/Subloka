@@ -1378,3 +1378,7 @@ Prior PR #11 CI #333 SUCCESS 3/3 on source `f74596c44`, includes Android Compose
 ## QA-TRANSLATION-MEANING-REVIEW-001 / 2026-11-03 / TEST SOURCES PREPARED — NOT RUN
 
 Domain `TranslationOriginsTest` checks all 3 machine origins, manual/stale/blank/revision mismatch exclusion and export meaning advisory without breaking existing ML Kit/unknown provenance. Android `EditorLayoutTest` checks a machine translation shows review hint and user manual correction switches origin to MANUAL, retains CURRENT revision and protects from replace-machine; `ExportFlowUiTest` requires advisory only when Translation/Both selected, not Source-only. Source/example sentence synthetic, not user screenshot text. No accuracy benchmark run or independent bilingual PASS. CI build/Android11/Android15 pending; signed APK/device test not run. Evidence `.agents/evidence/translation-meaning-review-v1.md`.
+
+## QA-TRANSLATION-MEANING-BETA6-PREVIEW-001 / 2026-11-04 / TEST SOURCES PREPARED — CI pending
+
+PR #13 CI #337 PASS 3/3 after fixing invalid CURRENT state in test fixture. New beta6 branch changes only preview label, signer branch guard and verifier threshold (>335). Unit verifier rejects code 335 and older, wrong beta label, debug/testOnly and missing ABI/engine; signing workflow unit test requires exact `workflow_dispatch` branch and existing owner certificate. Live signed APK and Sony on-device UI/manual-correction tests NOT_RUN at writing. Do not mark CP4 PASS or claim a model improvement. Evidence: `.agents/evidence/translation-meaning-beta6-signing.md`.
