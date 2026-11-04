@@ -284,6 +284,29 @@ class EditorLayoutTest {
         compose.onNodeWithText("Kalimat nomor 26").assertIsDisplayed()
     }
 
+    @Test fun fixedCaptionNavigationReturnsToCorrectionWhenListWasOpen() {
+        val captions = (1..3).map { index ->
+            CaptionSegment("item-$index", (index - 1L) * 2_000_000L,
+                index * 2_000_000L, SourceLanguage.INDONESIA,
+                "Kalimat ke-$index", "", TranslationStatus.MISSING)
+        }
+        compose.setContent {
+            MaterialTheme {
+                Box(Modifier.size(360.dp, 580.dp)) {
+                    EditorScreen(captions, CaptionStyle(), null, "Tersimpan", false,
+                        {}, {}, {}, {}, demoMode = false)
+                }
+            }
+        }
+        compose.onNodeWithText("Daftar caption (3)").performClick()
+        compose.onNodeWithTag("caption-list").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Caption berikutnya").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Caption 2 dari 3").assertIsDisplayed()
+        compose.onNodeWithText("Kembali ke koreksi").assertDoesNotExist()
+        compose.onNodeWithText("Teks asli").performScrollTo()
+            .assertTextContains("Kalimat ke-2")
+    }
+
     @Test fun studioSwitcherClearlySelectsCaptionTimingAndStyleWithoutLosingEdits() {
         val caption = CaptionSegment("studio", 0, 2_000_000, SourceLanguage.INDONESIA,
             "Kalimat awal", "", TranslationStatus.MISSING)
