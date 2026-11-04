@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "android-ci.yml"
-PREVIEW_REF = "refs/heads/qa/translation-meaning-beta6-preview"
+PREVIEW_REF = "refs/heads/ux/editor-caption-beta7-preview"
 EXISTING_BETA310_CERT = "295b1bbcebb8419c8361b077e41b913410207ee3ecb3bc0da3acf150c8e1c325"
 
 

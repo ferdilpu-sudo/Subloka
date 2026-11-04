@@ -6,19 +6,21 @@ from verify_beta_package import verify, verify_native_libraries
 
 class BetaPackageTest(unittest.TestCase):
     def test_rejects_debug_wrong_package_and_missing_icon(self):
-        good = "package: name='app.subloka.caption' versionCode='360' versionName='0.7.0-beta.6'\nlaunchable-activity: name='app.subloka.MainActivity'\napplication-icon-160:'res/icon.xml'\n"
+        good = "package: name='app.subloka.caption' versionCode='370' versionName='0.7.0-beta.7'\nlaunchable-activity: name='app.subloka.MainActivity'\napplication-icon-160:'res/icon.xml'\n"
         verify(good)
         for bad in (good + 'application-debuggable', good + 'application-testOnly',
                     good.replace('app.subloka.caption', 'app.other'),
-                    good.replace("versionCode='360'", "versionCode='335'"),
-                    good.replace("versionCode='360'", "versionCode='332'"),
-                    good.replace("versionCode='360'", "versionCode='329'"),
-                    good.replace("versionCode='360'", "versionCode='310'"),
-                    good.replace("versionCode='360'", "versionCode='1'"),
-                    good.replace("versionCode='360'", "versionCode='abc'"),
-                    good.replace("versionName='0.7.0-beta.6'", "versionName='0.7.0-beta.5'"),
-                    good.replace("versionName='0.7.0-beta.6'", "versionName='0.7.0-beta.4'"),
-                    good.replace("versionName='0.7.0-beta.6'", "versionName='0.7.0-beta.2'"),
+                    good.replace("versionCode='370'", "versionCode='339'"),
+                    good.replace("versionCode='370'", "versionCode='335'"),
+                    good.replace("versionCode='370'", "versionCode='332'"),
+                    good.replace("versionCode='370'", "versionCode='329'"),
+                    good.replace("versionCode='370'", "versionCode='310'"),
+                    good.replace("versionCode='370'", "versionCode='1'"),
+                    good.replace("versionCode='370'", "versionCode='abc'"),
+                    good.replace("versionName='0.7.0-beta.7'", "versionName='0.7.0-beta.6'"),
+                    good.replace("versionName='0.7.0-beta.7'", "versionName='0.7.0-beta.5'"),
+                    good.replace("versionName='0.7.0-beta.7'", "versionName='0.7.0-beta.4'"),
+                    good.replace("versionName='0.7.0-beta.7'", "versionName='0.7.0-beta.2'"),
                     good.replace('application-icon-', 'missing-')):
             with self.assertRaises(ValueError): verify(bad)
 
