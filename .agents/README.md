@@ -81,6 +81,7 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/translation-meaning-beta6-signing.md](evidence/translation-meaning-beta6-signing.md) | Beta6 owner-key package and physical meaning-review QA gate |
 | [evidence/translation-meaning-review-v1.md](evidence/translation-meaning-review-v1.md) | Referent/meaning review hints for machine translations and export, QA limitations |
 | [evidence/autocap-portrait-beta5-signing.md](evidence/autocap-portrait-beta5-signing.md) | Owner-key Beta5 portrait preview upgrade version/signature and Sony gate |
 | [evidence/autocap-portrait-preview-v1.md](evidence/autocap-portrait-preview-v1.md) | Bounded 9:16 / 16:9 Editor preview, high-font tests and physical review gate |
