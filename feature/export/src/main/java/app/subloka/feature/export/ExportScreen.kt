@@ -54,6 +54,7 @@ fun ExportScreen(
     val locked = busy || pending || videoRendering
     val blocked = mode != SrtExportMode.SOURCE && !translationComplete
     val canPrepare = !locked && !blocked && segments.isNotEmpty()
+    val nextUnsavedSrt = SrtSaveActions.nextUnsaved(documents, saved)
     Column(modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             TextButton(onClick = onBack, enabled = !locked) { Text("Kembali ke editor") }
@@ -121,14 +122,45 @@ fun ExportScreen(
                 } else {
                     message?.let { Text(it) }
                     if (documents.isNotEmpty()) {
-                        Text("SRT yang sudah disiapkan", style = MaterialTheme.typography.titleMedium)
-                        Text("Pilih lokasi untuk setiap file. Gunakan penyimpanan perangkat agar tetap offline. Perubahan pilihan bahasa berlaku setelah menyiapkan SRT lagi.")
+                        Text("SRT siap disimpan", style = MaterialTheme.typography.titleMedium)
+                        Text("${documents.indices.count { it in saved }} dari ${documents.size} file tersimpan.",
+                            style = MaterialTheme.typography.bodyMedium)
+                        Text("Nama bahasa mengikuti file SRT yang sudah disiapkan. Pilih lokasi penyimpanan untuk setiap file.",
+                            style = MaterialTheme.typography.bodySmall, color = SubLokaColors.TextSecondary)
                         documents.forEachIndexed { index, document ->
-                            Text(document.name, style = MaterialTheme.typography.bodyMedium)
-                            if (index in saved) Text("Tersimpan", style = MaterialTheme.typography.labelMedium)
-                            SecondaryAction(if (index in saved) "Simpan lagi file ${index + 1}" else "Simpan file ${index + 1}",
-                                { onSave(index) }, enabled = !locked, modifier = Modifier.fillMaxWidth())
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(document.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    when {
+                                        index in saved -> "Tersimpan"
+                                        index == nextUnsavedSrt -> "Berikutnya disimpan"
+                                        else -> "Belum disimpan"
+                                    },
+                                    color = if (index in saved) SubLokaColors.TextSecondary else SubLokaColors.Primary,
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                                // The next pending file uses the fixed primary action below. Other
+                                // files remain individually selectable, even out of order.
+                                if (index in saved) {
+                                    SecondaryAction(
+                                        SrtSaveActions.resaveLabel(document, index),
+                                        { onSave(index) }, enabled = !locked,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                } else if (index != nextUnsavedSrt) {
+                                    SecondaryAction(
+                                        SrtSaveActions.saveLabel(document, index),
+                                        { onSave(index) }, enabled = !locked,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                            }
                         }
+                        TextButton(onClick = { onPrepare(mode) }, enabled = canPrepare) {
+                            Text("Siapkan SRT lagi")
+                        }
+                        Text("Menyiapkan ulang mengganti daftar hasil yang siap disimpan, bukan file yang sudah disimpan di perangkat.",
+                            style = MaterialTheme.typography.bodySmall, color = SubLokaColors.TextSecondary)
                     }
                 }
             }
@@ -139,7 +171,18 @@ fun ExportScreen(
             videoRendering -> SecondaryAction("Hentikan render", onCancelVideo, modifier = Modifier.fillMaxWidth())
             mp4 && videoReady -> PrimaryAction("Simpan MP4", onSaveVideo, enabled = !locked, modifier = Modifier.fillMaxWidth())
             mp4 -> PrimaryAction("Render MP4", { onRender(mode) }, enabled = canPrepare && !demoMode, modifier = Modifier.fillMaxWidth())
-            else -> PrimaryAction(if (documents.isEmpty()) "Siapkan SRT" else "Siapkan SRT lagi", { onPrepare(mode) }, enabled = canPrepare, modifier = Modifier.fillMaxWidth())
+            documents.isNotEmpty() && nextUnsavedSrt != null -> {
+                val index = nextUnsavedSrt
+                PrimaryAction(
+                    SrtSaveActions.saveLabel(documents[index], index),
+                    { onSave(index) }, enabled = !locked, modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            documents.isNotEmpty() -> PrimaryAction(
+                "Selesai — kembali ke editor", onBack,
+                enabled = !locked, modifier = Modifier.fillMaxWidth(),
+            )
+            else -> PrimaryAction("Siapkan SRT", { onPrepare(mode) }, enabled = canPrepare, modifier = Modifier.fillMaxWidth())
         }
     }
 }

@@ -81,6 +81,7 @@ Arah interaksi yang dikunci:
 | [rules.md](rules.md) | Aturan implementasi, UX guardrail, dan batas perubahan |
 | [prd.md](prd.md) | Kebutuhan produk serta acceptance criteria |
 | [design.md](design.md) | IA, perilaku layar, interaction model, responsive behavior, visual baseline |
+| [evidence/srt-save-first-v1.md](evidence/srt-save-first-v1.md) | Prepared Indonesian/English SRT saves as primary actions and QA trace |
 | [evidence/editor-caption-beta7-signing.md](evidence/editor-caption-beta7-signing.md) | Beta7 owner-signed portrait Editor correction preview and Sony acceptance gate |
 | [evidence/editor-caption-focus-v1.md](evidence/editor-caption-focus-v1.md) | Stable no-scroll correction flow, compact/zoom preview and QA acceptance |
 | [evidence/translation-meaning-beta6-signing.md](evidence/translation-meaning-beta6-signing.md) | Beta6 owner-key package and physical meaning-review QA gate |
