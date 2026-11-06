@@ -1390,3 +1390,7 @@ Added `EditorLayoutTest.compactPortraitEditSecondCaptionThenThirdWithoutScrollin
 ## UX-EDITOR-CAPTION-BETA7-001 / 2026-11-04 / PREVIEW TEST SOURCES — CI pending
 
 Inherited green Editor PR #15 CI #342 (build, Android11 media UI, Android15 foreground). Beta7 branch changes only release label, strict versionCode>339 verifier and tests, owner-only manual signing branch ref/guard and evidence. PR CI and signed manual run NOT_RUN at writing. Device QA must verify Caption2→edit→check preview→Caption3, previous manual edits/protected translations, large font/keyboard, SRT/MP4/audio and offline model use. No native/Room changes; release gate/CP4/CP6 open. Evidence `.agents/evidence/editor-caption-beta7-signing.md`.
+
+## UX-SRT-SAVE-FIRST-001 / 2026-11-06 / AUTOMATED TEST SOURCES PREPARED — CI PENDING
+
+Domain `SrtSaveActionsTest`: exact .id/.en labels in both source language directions, saved/unsaved order, all-saved and unknown suffix fallback. Android `ExportFlowUiTest`: BOTH prepared docs, language-specific save primary, 0/2→1/2→2/2 progress, cancel does not count as saved, model-free synthetic source, alternate EN→ID filename handling, secondary regeneration, full MP4 and source-only paths retained. Writer status remains authoritative: canceled/failed save never marked success; existing writer instrumentation tests retained. Before signing require green CI, after signing require Sony physical picker write and file readability confirmation. CP4/CP6/NOTICE not closed. Evidence `.agents/evidence/srt-save-first-v1.md`.

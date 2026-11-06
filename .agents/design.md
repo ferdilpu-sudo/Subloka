@@ -754,3 +754,7 @@ P1: user backgrounds ASR, inference appears to continue then ends interrupted. S
 
 ### Background translation0.6.4
 Starting/resuming caption translation may ask notification permission; denial does not block service start. While translating, explain screen-off/app-switch support and explicit resume after process termination. Notification shows generic progress without private text, opens translation workspace and provides Hentikan. Stopping state remains busy until native work/cleanup exits. Model setup still instructs staying in app. Editing and project switching remain locked during translation.
+
+## 2026-11-06 — SRT export save-first UX contract
+
+After preparing SRT snapshot(s), primary action is **save the first unsaved actual document** using its verified `.id.srt` / `.en.srt` language label. File rows show prepared filename, pending/saved state, allow choosing another unsaved file or re-saving an existing one, and show `n/N` status. `Siapkan SRT lagi` remains a secondary explicit regeneration action. Only a true write+close success in SrtExportViewModel marks saved; cancel and failed writes never acknowledge success. Once all files are saved, primary is `Selesai — kembali ke editor`. No prepared snapshot => `Siapkan SRT` remains primary. MP4 render/save actions unchanged. See `.agents/evidence/srt-save-first-v1.md`.

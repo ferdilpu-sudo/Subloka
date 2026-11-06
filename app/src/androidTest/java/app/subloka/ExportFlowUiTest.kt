@@ -52,7 +52,7 @@ class ExportFlowUiTest {
         compose.onNodeWithText("Keduanya").performScrollTo().performClick()
         compose.onNodeWithText("Siapkan SRT").assertIsNotEnabled()
         compose.runOnIdle { documents = listOf(SrtDocument("fixture.en.srt", "fixture")) }
-        compose.onNodeWithText("Simpan file 1").performScrollTo().performClick()
+        compose.onNodeWithText("Simpan SRT Inggris").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(0, savedIndex) }
         compose.onNodeWithText("MP4").performScrollTo().performClick()
         compose.onNodeWithText("Render MP4").assertIsNotEnabled()
@@ -69,6 +69,99 @@ class ExportFlowUiTest {
         compose.runOnIdle { pending = false }
         compose.onNodeWithText("Simpan MP4").performClick()
         compose.runOnIdle { assertEquals(2, saves) }
+    }
+
+    @Test fun preparedBothSrtPrioritizesUnsavedLanguageAndKeepsPreparedFiles() {
+        val first = CaptionSegment("one", 0L, 1_500_000L, SourceLanguage.INDONESIA,
+            "Halo", "Hello", TranslationStatus.CURRENT, TranslationOrigin.MANUAL, 1L, 1L)
+        var documents by mutableStateOf(emptyList<SrtDocument>())
+        var saved by mutableStateOf(emptySet<Int>())
+        var pending by mutableStateOf(false)
+        var selectedSave: Int? = null
+        var back = 0
+        var prepareCalls = 0
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.5f)) {
+                SubLokaTheme {
+                    Box(Modifier.size(320.dp, 560.dp)) {
+                        ExportScreen(
+                            segments = listOf(first), sourceLanguage = SourceLanguage.INDONESIA,
+                            demoMode = false, busy = false, pending = pending,
+                            documents = documents, saved = saved, message = null,
+                            onPrepare = { mode ->
+                                prepareCalls++
+                                documents = SrtExport.documents("7", SourceLanguage.INDONESIA,
+                                    2_000_000L, listOf(first), mode)
+                                saved = emptySet()
+                            },
+                            onSave = { index -> selectedSave = index; pending = true },
+                            onBack = { back++ }, videoReady = false, videoRendering = false,
+                            videoMessage = null, videoProgress = null,
+                            onRender = {}, onSaveVideo = {}, onCancelVideo = {},
+                        )
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("Keduanya").performScrollTo().performClick()
+        compose.onNodeWithText("Siapkan SRT").assertIsDisplayed().performClick()
+        compose.runOnIdle {
+            assertEquals(1, prepareCalls)
+            assertEquals(listOf("7.id.srt", "7.en.srt"), documents.map { it.name })
+        }
+        compose.onNodeWithText("SRT siap disimpan").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("0 dari 2 file tersimpan.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Simpan SRT Indonesia").assertIsDisplayed()
+        compose.onNodeWithText("Simpan SRT Inggris").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Siapkan SRT lagi").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Simpan SRT Indonesia").performClick()
+        compose.runOnIdle {
+            assertEquals(0, selectedSave)
+            assertTrue(pending)
+        }
+        compose.onNodeWithText("Simpan SRT Indonesia").assertIsNotEnabled()
+        // Simulate picker cancellation: no success should appear or be counted.
+        compose.runOnIdle { pending = false }
+        compose.onNodeWithText("0 dari 2 file tersimpan.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Simpan SRT Indonesia").performClick()
+        compose.runOnIdle { pending = false; saved = setOf(0) }
+        compose.onNodeWithText("1 dari 2 file tersimpan.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Simpan ulang SRT Indonesia").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Simpan SRT Inggris").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, selectedSave); pending = false; saved = setOf(0, 1) }
+        compose.onNodeWithText("2 dari 2 file tersimpan.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Selesai — kembali ke editor").assertIsDisplayed().performClick()
+        compose.runOnIdle {
+            assertEquals(1, back)
+            assertEquals(1, prepareCalls)
+            assertEquals(listOf("7.id.srt", "7.en.srt"), documents.map { it.name })
+        }
+    }
+
+    @Test fun preparedSrtCanBeSavedEvenAfterCurrentSelectionChanges() {
+        val caption = CaptionSegment("en", 0L, 1_500_000L, SourceLanguage.ENGLISH,
+            "Hello", "Halo", TranslationStatus.CURRENT, TranslationOrigin.MANUAL, 1L, 1L)
+        var chosen: Int? = null
+        val files = SrtExport.documents("7", SourceLanguage.ENGLISH, 2_000_000L,
+            listOf(caption), SrtExportMode.BOTH)
+        compose.setContent {
+            SubLokaTheme {
+                ExportScreen(
+                    segments = listOf(caption), sourceLanguage = SourceLanguage.ENGLISH,
+                    demoMode = false, busy = false, pending = false,
+                    documents = files, saved = setOf(0), message = null,
+                    onPrepare = {}, onSave = { chosen = it }, onBack = {},
+                    videoReady = false, videoRendering = false,
+                    videoMessage = null, videoProgress = null,
+                    onRender = {}, onSaveVideo = {}, onCancelVideo = {},
+                )
+            }
+        }
+        // The English-original file was saved, so the prepared Indonesian
+        // translation is the next action regardless of the selected radio.
+        compose.onNodeWithText("Simpan SRT Indonesia").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, chosen) }
     }
 
     @Test fun historicalGoogleNoticeFollowsTranslationSelection() {
